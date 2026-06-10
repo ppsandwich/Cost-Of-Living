@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f7f2e7;
+  --color-receipt: #fffdf6;
+  --color-ink: #2e2a24;
+  --color-faded: #8a8276;
+  --color-brand: #e8551f;
+  --color-brand-dark: #c44312;
+  --color-good: #3d9b4f;
+  --color-happy: #d99a06;
+  --color-danger: #d23c2a;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.sticker {
+  transform: rotate(-2deg);
+}
+
+@keyframes pulse-danger {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.timer-low {
+  animation: pulse-danger 1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
