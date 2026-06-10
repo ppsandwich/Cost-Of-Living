@@ -18,6 +18,17 @@
   --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-lilita), "Arial Black", sans-serif;
   --font-pixel: var(--font-vt323), ui-monospace, monospace;
+
+  /* Default type scale × 1.15 — text only, spacing stays put */
+  --text-xs: 0.8625rem;
+  --text-sm: 1.006rem;
+  --text-base: 1.15rem;
+  --text-lg: 1.294rem;
+  --text-xl: 1.4375rem;
+  --text-2xl: 1.725rem;
+  --text-3xl: 2.156rem;
+  --text-4xl: 2.588rem;
+  --text-5xl: 3.45rem;
 }
 
 body {

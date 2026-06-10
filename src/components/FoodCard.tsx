@@ -88,7 +88,7 @@ export function FoodCard({
         </div>
       )}
       {storeItem.specialLabel && (
-        <span className="sticker absolute left-9 top-[-2px] z-10 rounded-md bg-brand px-1.5 py-0.5 font-display text-[10px] uppercase tracking-wide text-white">
+        <span className="sticker absolute left-9 top-[-2px] z-10 rounded-md bg-brand px-1.5 py-0.5 font-display text-[11.5px] uppercase tracking-wide text-white">
           {storeItem.specialLabel}
         </span>
       )}
@@ -131,7 +131,7 @@ export function FoodCard({
               {wantMatches.map((match) => (
                 <span
                   key={match.label}
-                  className={`rounded-md border-2 px-1 py-px font-display text-[10px] uppercase leading-tight ${
+                  className={`rounded-md border-2 px-1 py-px font-display text-[11.5px] uppercase leading-tight ${
                     match.satisfied
                       ? "border-ink/20 bg-paper text-faded"
                       : "border-ink bg-good text-white shadow-[1px_1px_0_rgba(51,36,28,0.3)]"
@@ -224,7 +224,7 @@ export function FoodCard({
             {food.tags.slice(0, 6).map((tag) => (
               <span
                 key={tag}
-                className="rounded-md border border-ink/20 bg-paper px-1.5 py-0.5 text-[10px] font-bold text-faded"
+                className="rounded-md border border-ink/20 bg-paper px-1.5 py-0.5 text-[11.5px] font-bold text-faded"
               >
                 {tag.replaceAll("_", " ")}
               </span>

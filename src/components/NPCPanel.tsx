@@ -52,7 +52,7 @@ export function NPCPanel({ npc, roundBudgetCents }: { npc: NPC; roundBudgetCents
           {npc.restrictions.map((r) => (
             <span
               key={r}
-              className="rounded-full border-2 border-ink bg-paper px-2 py-0.5 text-[11px] font-extrabold text-ink/70"
+              className="rounded-full border-2 border-ink bg-paper px-2 py-0.5 text-[12.7px] font-extrabold text-ink/70"
             >
               {RESTRICTION_LABEL[r] ?? r}
             </span>

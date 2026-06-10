@@ -25,7 +25,7 @@ export function RequirementsChecklist({ npc, basket }: { npc: NPC; basket: Baske
 
   return (
     <section aria-label="Shopping list requirements" className="panel p-3">
-      <h2 className="font-display text-[11px] uppercase tracking-wider text-brand">
+      <h2 className="font-display text-[12.7px] uppercase tracking-wider text-brand">
         {npc.name}&apos;s shopping list — tick all three
       </h2>
       <ul className="mt-1.5 space-y-1.5">
