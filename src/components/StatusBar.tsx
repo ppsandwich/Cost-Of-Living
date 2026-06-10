@@ -35,7 +35,7 @@ export function StatusBar({
             </span>
             <div className="min-w-0">
               <div className="truncate font-display text-base leading-tight">{npc.name}</div>
-              <div className="truncate font-display text-[10px] uppercase tracking-wider text-brand">
+              <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand">
                 Round {roundNumber} · {budgetPressureLabel(budgetMultiplier)}
               </div>
             </div>
@@ -43,7 +43,7 @@ export function StatusBar({
 
           <div className="flex shrink-0 items-center gap-1.5">
             <div className="lcd px-2 py-1 text-center">
-              <div className="text-[9px] font-bold uppercase tracking-widest text-receipt/60">
+              <div className="text-[10.4px] font-bold uppercase tracking-widest text-receipt/60">
                 Budget
               </div>
               <div
@@ -57,7 +57,7 @@ export function StatusBar({
               role="timer"
               aria-label={`${timeRemainingSeconds} seconds remaining`}
             >
-              <div className="text-[9px] font-bold uppercase tracking-widest text-receipt/60">
+              <div className="text-[10.4px] font-bold uppercase tracking-widest text-receipt/60">
                 Time
               </div>
               <div

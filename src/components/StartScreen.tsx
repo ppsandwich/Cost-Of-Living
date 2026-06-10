@@ -85,7 +85,7 @@ export function StartScreen({
         >
           Start shopping
         </button>
-        <p className="mt-3 text-[11px] font-bold text-faded">
+        <p className="mt-3 text-[12.7px] font-bold text-faded">
           A satirical game about constrained choices. Not nutrition advice.
         </p>
       </div>

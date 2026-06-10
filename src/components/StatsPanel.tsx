@@ -88,7 +88,7 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
         fillClass="bg-happy"
       />
       <div className="flex flex-wrap items-center gap-1 pt-0.5">
-        <span className="font-display text-[10px] uppercase tracking-wider text-faded">
+        <span className="font-display text-[11.5px] uppercase tracking-wider text-faded">
           Danger
         </span>
         {risks.map(({ stat, ratio }) => {
