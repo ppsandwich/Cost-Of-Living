@@ -1,11 +1,12 @@
 import type { GameState } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { PURCHASE_FEEDBACK, WARNING_FEEDBACK } from "@/data/flavourText";
-import { computeImpact } from "./applyFoodItem";
+import { computeImpact, violatesMustNot } from "./applyFoodItem";
 import { basketFoods, calculateBasketStats, EMPTY_STATS } from "./calculateStats";
 import { generateInventory } from "./generateInventory";
 import { budgetMultiplierForRound, ROUND_TIMER_SECONDS, selectNPC } from "./progression";
-import { canAffordAnything, goalsMet, quantityRemaining } from "./roundEnd";
+import { canAffordAnything, quantityRemaining } from "./roundEnd";
+import { allRequirementsMet } from "./requirements";
 import { calculateRoundScore, ratingForRound } from "./scoring";
 import { fatalStat, warningStats } from "./thresholds";
 
@@ -13,7 +14,6 @@ export type GameAction =
   | { type: "START_RUN"; seed: number; bestScore: number; highestRound: number }
   | { type: "ADD_ITEM"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
-  | { type: "SUBMIT" }
   | { type: "TICK" }
   | { type: "NEXT_ROUND" };
 
@@ -68,48 +68,44 @@ function setupRound(state: GameState, roundNumber: number): GameState {
   };
 }
 
-function evaluateRound(state: GameState, submitted: boolean): GameState {
+function winRound(state: GameState): GameState {
   const npc = state.npc!;
-  const won = goalsMet(state.stats, npc);
-  if (won) {
-    const scoreInput = {
-      stats: state.stats,
-      npc,
-      basket: state.basket,
-      remainingBudgetCents: state.remainingBudgetCents,
-      timeRemainingSeconds: state.timeRemainingSeconds,
-      roundNumber: state.roundNumber,
-    };
-    const score = calculateRoundScore(scoreInput);
-    const totalScore = state.totalScore + score;
-    return {
-      ...state,
-      status: "round_won",
-      endReason: "submitted_success",
-      score,
-      totalScore,
-      successfulRounds: state.successfulRounds + 1,
-      bestScore: Math.max(state.bestScore, totalScore),
-      highestRound: Math.max(state.highestRound, state.roundNumber),
-      roundHistory: [
-        ...state.roundHistory,
-        {
-          roundNumber: state.roundNumber,
-          npcName: npc.name,
-          score,
-          rating: ratingForRound(scoreInput),
-        },
-      ],
-    };
-  }
+  const scoreInput = {
+    stats: state.stats,
+    npc,
+    basket: state.basket,
+    remainingBudgetCents: state.remainingBudgetCents,
+    timeRemainingSeconds: state.timeRemainingSeconds,
+    roundNumber: state.roundNumber,
+  };
+  const score = calculateRoundScore(scoreInput);
+  const totalScore = state.totalScore + score;
+  return {
+    ...state,
+    status: "round_won",
+    endReason: "goals_met",
+    score,
+    totalScore,
+    successfulRounds: state.successfulRounds + 1,
+    bestScore: Math.max(state.bestScore, totalScore),
+    highestRound: Math.max(state.highestRound, state.roundNumber),
+    roundHistory: [
+      ...state.roundHistory,
+      {
+        roundNumber: state.roundNumber,
+        npcName: npc.name,
+        score,
+        rating: ratingForRound(scoreInput),
+      },
+    ],
+  };
+}
+
+function loseRound(state: GameState, endReason: "timer_expired" | "out_of_money"): GameState {
   return {
     ...state,
     status: "lost",
-    endReason: submitted
-      ? "submitted_failed"
-      : state.timeRemainingSeconds <= 0
-        ? "timer_expired"
-        : "out_of_money",
+    endReason,
     bestScore: Math.max(state.bestScore, state.totalScore),
   };
 }
@@ -123,7 +119,7 @@ function feedbackFor(state: GameState, foodItemId: string): string {
   const warnings = warningStats(state.stats, npc.maxThresholds);
   if (warnings.length > 0) return WARNING_FEEDBACK[warnings[0]];
 
-  const pool = impact.restrictionViolation
+  const pool = impact.mustNotViolation
     ? PURCHASE_FEEDBACK.restriction
     : impact.equipmentMismatch
       ? PURCHASE_FEEDBACK.equipmentMismatch
@@ -158,6 +154,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!storeItem) return state;
       if (quantityRemaining(storeItem, state.basket) <= 0) return state;
       if (storeItem.currentPriceCents > state.remainingBudgetCents) return state;
+      // Forbidden items are display-only: the till refuses them
+      if (violatesMustNot(FOOD_BY_ID[action.foodItemId], state.npc)) return state;
 
       const existing = state.basket.find((b) => b.foodItemId === action.foodItemId);
       const basket = existing
@@ -188,11 +186,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
+      // Meters full, wants ticked, diet respected: checkout happens by itself
+      if (allRequirementsMet(stats, basket, state.npc)) {
+        return winRound(next);
+      }
+
       next = { ...next, lastFeedback: feedbackFor(next, action.foodItemId) };
 
-      // Out of valid purchases: the round ends and is evaluated as-is
-      if (!canAffordAnything(next.inventory, basket, remainingBudgetCents)) {
-        return evaluateRound(next, false);
+      // Out of valid purchases with the round not yet won: it's over
+      if (!canAffordAnything(next.inventory, basket, remainingBudgetCents, state.npc)) {
+        return loseRound(next, "out_of_money");
       }
       return next;
     }
@@ -208,25 +211,25 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             )
           : state.basket.filter((b) => b.foodItemId !== action.foodItemId);
       const stats = calculateBasketStats(basket, state.npc);
-      return {
+      const next: GameState = {
         ...state,
         basket,
         stats,
         remainingBudgetCents: state.remainingBudgetCents + existing.pricePaidCents,
         lastFeedback: null,
       };
-    }
-
-    case "SUBMIT": {
-      if (state.status !== "playing") return state;
-      return evaluateRound(state, true);
+      // Removing a repetition penalty can lift happiness over the line
+      if (allRequirementsMet(stats, basket, state.npc)) {
+        return winRound(next);
+      }
+      return next;
     }
 
     case "TICK": {
       if (state.status !== "playing") return state;
       const timeRemainingSeconds = state.timeRemainingSeconds - 1;
       if (timeRemainingSeconds <= 0) {
-        return evaluateRound({ ...state, timeRemainingSeconds: 0 }, false);
+        return loseRound({ ...state, timeRemainingSeconds: 0 }, "timer_expired");
       }
       return { ...state, timeRemainingSeconds };
     }

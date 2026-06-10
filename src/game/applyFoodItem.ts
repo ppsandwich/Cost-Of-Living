@@ -5,7 +5,7 @@ export interface ItemImpact {
   nutritionGain: number;
   happinessGain: number;
   equipmentMismatch: boolean;
-  restrictionViolation: boolean;
+  mustNotViolation: boolean;
   repetitionApplied: boolean;
 }
 
@@ -40,7 +40,8 @@ export function hasEquipmentMismatch(food: FoodItem, npc: NPC): boolean {
   return food.requiresEquipment.some((req) => !equipment.has(req));
 }
 
-const PREFERENCE_TAG: Partial<Record<FoodPreference, FoodTag>> = {
+/** Tag a food must carry to count toward each want ("likes_variety" is structural). */
+export const PREFERENCE_TAG: Partial<Record<FoodPreference, FoodTag>> = {
   likes_sweet_food: "sweet",
   likes_salty_food: "salty",
   likes_fresh_food: "fresh",
@@ -50,10 +51,27 @@ const PREFERENCE_TAG: Partial<Record<FoodPreference, FoodTag>> = {
   likes_familiar_food: "family_friendly",
 };
 
-export function violatesRestriction(food: FoodItem, npc: NPC): boolean {
-  if (npc.restrictions.includes("vegetarian") && food.tags.includes("meat")) return true;
-  if (npc.restrictions.includes("no_pork") && food.tags.includes("pork")) return true;
-  return false;
+const MUST_NOT_TAGS: Record<NPC["mustNot"], FoodTag[]> = {
+  vegetarian: ["meat", "pork"],
+  vegan: ["meat", "pork", "dairy", "egg"],
+  no_pork: ["pork"],
+  nut_allergy: ["nuts"],
+  dairy_allergy: ["dairy"],
+  egg_allergy: ["egg"],
+};
+
+/** True if this food crosses the NPC's hard dietary line. */
+export function violatesMustNot(food: FoodItem, npc: NPC): boolean {
+  return MUST_NOT_TAGS[npc.mustNot].some((tag) => food.tags.includes(tag));
+}
+
+/**
+ * Cheap food delivers less of its promise; pricier food delivers more.
+ * Derived from base price so specials discount the till price without
+ * changing what's in the packet.
+ */
+export function priceQualityMultiplier(basePriceCents: number): number {
+  return Math.min(1.2, 0.6 + basePriceCents / 800);
 }
 
 function isTreatLike(food: FoodItem): boolean {
@@ -74,7 +92,8 @@ export function computeImpact(food: FoodItem, npc: NPC, priorFoods: FoodItem[]):
   const restrictions = npc.restrictions;
 
   const equipmentMismatch = hasEquipmentMismatch(food, npc);
-  const restrictionViolation = violatesRestriction(food, npc);
+  const mustNotViolation = violatesMustNot(food, npc);
+  const quality = priceQualityMultiplier(food.basePriceCents);
 
   // ── Nutrition ──
   const vegMult =
@@ -82,7 +101,7 @@ export function computeImpact(food: FoodItem, npc: NPC, priorFoods: FoodItem[]):
       ? s.nutritionFromVegetablesMultiplier
       : 1;
   const equipNutritionMult = equipmentMismatch ? 0.6 : 1;
-  const restrictionNutritionMult = restrictionViolation ? 0.4 : 1;
+  const mustNotNutritionMult = mustNotViolation ? 0.4 : 1;
 
   const proteinContribution =
     food.protein * 0.1 * (restrictions.includes("high_protein_need") ? 1.5 : 1);
@@ -107,7 +126,7 @@ export function computeImpact(food: FoodItem, npc: NPC, priorFoods: FoodItem[]):
 
   const nutritionGain = Math.max(
     0,
-    food.baseNutrition * vegMult * equipNutritionMult * restrictionNutritionMult +
+    food.baseNutrition * quality * vegMult * equipNutritionMult * mustNotNutritionMult +
       proteinContribution +
       fibreContribution +
       vitaminContribution +
@@ -119,30 +138,25 @@ export function computeImpact(food: FoodItem, npc: NPC, priorFoods: FoodItem[]):
   );
 
   // ── Happiness ──
-  const matchedLikes = npc.preferences.filter((p) => {
-    const tag = PREFERENCE_TAG[p];
+  const matchedLikes = npc.wants.filter((want) => {
+    const tag = PREFERENCE_TAG[want];
     return tag !== undefined && food.tags.includes(tag);
   }).length;
-  let preferenceMultiplier = 1 + 0.25 * matchedLikes;
-  if (npc.preferences.includes("dislikes_bland_food") && food.tags.includes("bland")) {
-    preferenceMultiplier *= 0.6;
-  }
+  const preferenceMultiplier = 1 + 0.25 * matchedLikes;
 
   const sameCategoryCount = priorFoods.filter((f) => f.category === food.category).length;
-  const dislikesRepetition = npc.preferences.includes("dislikes_repetition");
-  let varietyMultiplier = dislikesRepetition
-    ? Math.max(0.25, 1 - 0.3 * sameCategoryCount)
-    : Math.max(0.4, 1 - 0.18 * sameCategoryCount);
-  if (npc.preferences.includes("likes_variety") && sameCategoryCount === 0) {
+  let varietyMultiplier = Math.max(0.4, 1 - 0.18 * sameCategoryCount);
+  if (npc.wants.includes("likes_variety") && sameCategoryCount === 0) {
     varietyMultiplier *= 1.15;
   }
 
   const treatsMultiplier = isTreatLike(food) ? s.happinessFromTreatsMultiplier : 1;
   const equipmentMultiplier = equipmentMismatch ? 0.5 : 1;
-  const restrictionPenalty = restrictionViolation ? 15 : 0;
+  const restrictionPenalty = mustNotViolation ? 15 : 0;
 
   const happinessGain =
     food.baseHappiness *
+      quality *
       preferenceMultiplier *
       varietyMultiplier *
       treatsMultiplier *
@@ -153,7 +167,7 @@ export function computeImpact(food: FoodItem, npc: NPC, priorFoods: FoodItem[]):
     nutritionGain: Math.round(nutritionGain * 10) / 10,
     happinessGain: Math.round(happinessGain * 10) / 10,
     equipmentMismatch,
-    restrictionViolation,
+    mustNotViolation,
     repetitionApplied: sameCategoryCount >= 2,
   };
 }

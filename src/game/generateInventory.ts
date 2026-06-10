@@ -2,8 +2,8 @@ import type { FoodItem } from "@/types/food";
 import type { NPC } from "@/types/npc";
 import type { StoreItem } from "@/types/game";
 import { FOOD_ITEMS } from "@/data/foodItems";
-import { hasEquipmentMismatch, violatesRestriction } from "./applyFoodItem";
-import { createRng, randomBetween, shuffle, type RNG } from "./seededRandom";
+import { hasEquipmentMismatch, PREFERENCE_TAG, violatesMustNot } from "./applyFoodItem";
+import { createRng, randomBetween, randomInt, shuffle, type RNG } from "./seededRandom";
 
 export const INVENTORY_SIZE = 16;
 
@@ -15,9 +15,9 @@ function variedPrice(rng: RNG, basePriceCents: number): number {
   return roundTo5Cents(basePriceCents * randomBetween(rng, 0.85, 1.25));
 }
 
-/** True if the NPC can actually use this food (no restriction or equipment clash). */
+/** True if the NPC can actually use this food (no dietary or equipment clash). */
 function usableBy(food: FoodItem, npc: NPC): boolean {
-  return !violatesRestriction(food, npc) && !hasEquipmentMismatch(food, npc);
+  return !violatesMustNot(food, npc) && !hasEquipmentMismatch(food, npc);
 }
 
 export function generateInventory(npc: NPC, roundBudgetCents: number, seed: number): StoreItem[] {
@@ -38,7 +38,8 @@ export function generateInventory(npc: NPC, roundBudgetCents: number, seed: numb
   pickFirst(FOOD_ITEMS, (f) => f.baseHappiness >= 16 && usableBy(f, npc)); // happiness-heavy
   pickFirst(
     FOOD_ITEMS,
-    (f) => (f.tags.includes("high_sugar") || f.tags.includes("high_fat")) && !chosen.has(f.id)
+    (f) =>
+      (f.tags.includes("high_sugar") || f.tags.includes("high_fat")) && usableBy(f, npc)
   ); // risky temptation
   // Cheap options the NPC can afford at round start
   for (let i = 0; i < 3; i++) {
@@ -49,11 +50,30 @@ export function generateInventory(npc: NPC, roundBudgetCents: number, seed: numb
   }
   // A second nutritious option
   pickFirst(FOOD_ITEMS, (f) => f.baseNutrition >= 18 && usableBy(f, npc));
+  // Something fresh, for the NPCs whose happiness lives in the produce aisle
+  pickFirst(FOOD_ITEMS, (f) => f.tags.includes("fresh") && usableBy(f, npc));
+  // Each want must be winnable: guarantee at least one usable match per want
+  for (const want of npc.wants) {
+    const tag = PREFERENCE_TAG[want];
+    if (!tag) continue; // likes_variety is satisfied structurally
+    if ([...chosen.values()].some((f) => f.tags.includes(tag) && usableBy(f, npc))) continue;
+    pickFirst(FOOD_ITEMS, (f) => f.tags.includes(tag) && usableBy(f, npc));
+  }
 
-  // Fill the rest randomly
+  // 1–5 items the NPC can't eat, shown disabled on the shelf
+  const forbiddenPool = FOOD_ITEMS.filter((f) => violatesMustNot(f, npc) && !chosen.has(f.id));
+  const forbiddenCount = Math.max(
+    1,
+    Math.min(forbiddenPool.length, randomInt(rng, 1, 5), INVENTORY_SIZE - chosen.size)
+  );
+  for (const food of shuffle(rng, forbiddenPool).slice(0, forbiddenCount)) {
+    chosen.set(food.id, food);
+  }
+
+  // Fill the rest with food the NPC can actually eat
   for (const food of shuffle(rng, FOOD_ITEMS)) {
     if (chosen.size >= INVENTORY_SIZE) break;
-    if (!chosen.has(food.id)) chosen.set(food.id, food);
+    if (!chosen.has(food.id) && !violatesMustNot(food, npc)) chosen.set(food.id, food);
   }
 
   const items: StoreItem[] = shuffle(rng, [...chosen.values()]).map((food) => ({

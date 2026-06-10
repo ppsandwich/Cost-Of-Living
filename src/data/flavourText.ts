@@ -60,8 +60,6 @@ export const LOSS_MESSAGES: Record<string, string> = {
   timer_expired: "Time's up. The basket contains food, technically, but not a plan.",
   out_of_money:
     "You are out of money and still short on needs. The game is over, which is rude but accurate.",
-  submitted_failed:
-    "The basket was submitted. The basket was insufficient. The basket apologises.",
 };
 
 export const WIN_MESSAGES = [
