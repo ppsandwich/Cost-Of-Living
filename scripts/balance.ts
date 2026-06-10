@@ -12,8 +12,10 @@ import { NPCS } from "../src/data/npcs";
 import { computeImpact } from "../src/game/applyFoodItem";
 import { basketFoods, calculateBasketStats } from "../src/game/calculateStats";
 import { generateInventory } from "../src/game/generateInventory";
-import { goalsMet, quantityRemaining } from "../src/game/roundEnd";
+import { quantityRemaining } from "../src/game/roundEnd";
+import { allRequirementsMet, getRequirementsStatus, VARIETY_CATEGORY_MIN } from "../src/game/requirements";
 import { fatalStat } from "../src/game/thresholds";
+import { PREFERENCE_TAG } from "../src/game/applyFoodItem";
 import type { BasketItem } from "../src/types/game";
 import type { NPC } from "../src/types/npc";
 
@@ -28,11 +30,19 @@ function simulate(npc: NPC, multiplier: number, seed: number): boolean {
 
   for (let step = 0; step < 30; step++) {
     let stats = calculateBasketStats(basket, npc);
-    if (goalsMet(stats, npc)) return true;
+    if (allRequirementsMet(stats, basket, npc)) return true;
 
     const needN = Math.max(0, npc.nutritionTarget - stats.nutrition);
     const needH = Math.max(0, npc.happinessTarget - stats.happiness);
     const prior = basketFoods(basket);
+    const reqs = getRequirementsStatus(basket, npc);
+    const unmetTags = reqs.wants
+      .filter((w) => !w.satisfied)
+      .map((w) => PREFERENCE_TAG[w.want])
+      .filter((t) => t !== undefined);
+    const wantsVariety =
+      reqs.wants.some((w) => w.want === "likes_variety" && !w.satisfied) &&
+      new Set(prior.map((f) => f.category)).size < VARIETY_CATEGORY_MIN;
 
     let best: { id: string; price: number; value: number } | null = null;
     for (const item of inventory) {
@@ -40,15 +50,21 @@ function simulate(npc: NPC, multiplier: number, seed: number): boolean {
       if (item.currentPriceCents > remaining) continue;
       const food = FOOD_BY_ID[item.foodItemId];
       const impact = computeImpact(food, npc, prior);
+      if (impact.mustNotViolation) continue; // a sane shopper reads the list
 
       // Would this purchase get dangerously close to a threshold?
       const trialBasket = addToBasket(basket, item.foodItemId, item.currentPriceCents);
       const trialStats = calculateBasketStats(trialBasket, npc);
       if (fatalStat(trialStats, npc.maxThresholds)) continue;
 
+      const wantBonus = unmetTags.some((t) => food.tags.includes(t)) ? 30 : 0;
+      const varietyBonus =
+        wantsVariety && !prior.some((f) => f.category === food.category) ? 15 : 0;
       const value =
         Math.min(Math.max(0, impact.nutritionGain), needN) +
-        Math.min(Math.max(0, impact.happinessGain), needH);
+        Math.min(Math.max(0, impact.happinessGain), needH) +
+        wantBonus +
+        varietyBonus;
       if (value <= 0) continue;
       if (!best || value > best.value || (value === best.value && item.currentPriceCents < best.price)) {
         best = { id: item.foodItemId, price: item.currentPriceCents, value };
@@ -61,7 +77,7 @@ function simulate(npc: NPC, multiplier: number, seed: number): boolean {
     stats = calculateBasketStats(basket, npc);
     if (fatalStat(stats, npc.maxThresholds)) return false;
   }
-  return goalsMet(calculateBasketStats(basket, npc), npc);
+  return allRequirementsMet(calculateBasketStats(basket, npc), basket, npc);
 }
 
 function addToBasket(basket: BasketItem[], foodItemId: string, price: number): BasketItem[] {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { NPC, NutritionStats } from "@/types/npc";
 import type { BasketItem } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { goalsMet } from "@/game/roundEnd";
+import { getRequirementsStatus } from "@/game/requirements";
 import { formatCents } from "@/utils/money";
 
 interface BasketDrawerProps {
@@ -13,7 +13,6 @@ interface BasketDrawerProps {
   remainingBudgetCents: number;
   onRemove: (foodItemId: string) => void;
   onAdd: (foodItemId: string) => void;
-  onSubmit: () => void;
 }
 
 export function BasketDrawer({
@@ -24,36 +23,47 @@ export function BasketDrawer({
   remainingBudgetCents,
   onRemove,
   onAdd,
-  onSubmit,
 }: BasketDrawerProps) {
   const [open, setOpen] = useState(false);
   const itemCount = basket.reduce((n, b) => n + b.quantity, 0);
   const spent = roundBudgetCents - remainingBudgetCents;
-  const met = goalsMet(stats, npc);
+  const needNutrition = Math.max(0, Math.ceil(npc.nutritionTarget - stats.nutrition));
+  const needHappiness = Math.max(0, Math.ceil(npc.happinessTarget - stats.happiness));
+  const requirements = getRequirementsStatus(basket, npc);
+  const listDone =
+    requirements.wants.filter((w) => w.satisfied).length + (requirements.mustNotViolated ? 0 : 1);
 
   return (
-    <div className="border-t-2 border-ink/10 bg-receipt shadow-[0_-4px_12px_rgba(0,0,0,0.08)] lg:rounded-xl lg:border-2 lg:shadow-none">
+    <div className="border-t-[3px] border-ink bg-receipt shadow-[0_-4px_12px_rgba(51,36,28,0.2)] lg:rounded-2xl lg:border-[3px] lg:shadow-[4px_4px_0_rgba(51,36,28,0.25)]">
       {open && (
-        <div className="max-h-[45vh] overflow-y-auto border-b border-dashed border-ink/15 px-3 py-2 lg:max-h-none">
-          <h2 className="text-xs font-bold uppercase tracking-wide text-faded">Basket</h2>
+        <div className="max-h-[45vh] overflow-y-auto border-b-2 border-dashed border-ink/25 px-3 py-2 lg:max-h-none">
+          <h2 className="text-center font-pixel text-lg uppercase tracking-widest text-faded">
+            ··· your receipt ···
+          </h2>
           {basket.length === 0 ? (
-            <p className="py-2 text-sm text-faded">Nothing yet. The shelves await.</p>
+            <p className="py-2 text-center text-sm font-semibold text-faded">
+              Nothing yet. The shelves await.
+            </p>
           ) : (
-            <ul className="divide-y divide-dashed divide-ink/10">
+            <ul className="divide-y divide-dashed divide-ink/15">
               {basket.map((entry) => {
                 const food = FOOD_BY_ID[entry.foodItemId];
                 if (!food) return null;
                 return (
                   <li key={entry.foodItemId} className="flex items-center gap-2 py-1.5">
-                    <span aria-hidden>{food.emoji}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm">{food.name}</span>
-                    <span className="font-mono text-xs tabular-nums text-faded">
-                      {formatCents(entry.pricePaidCents)} × {entry.quantity}
+                    <span aria-hidden className="text-lg">
+                      {food.emoji}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate font-pixel text-lg leading-none">
+                      {food.name}
+                    </span>
+                    <span className="font-pixel text-lg leading-none tabular-nums text-faded">
+                      {formatCents(entry.pricePaidCents)}×{entry.quantity}
                     </span>
                     <button
                       type="button"
                       onClick={() => onRemove(entry.foodItemId)}
-                      className="grid size-11 place-items-center rounded-lg border-2 border-ink/15 text-lg font-bold hover:bg-ink/5"
+                      className="btn grid size-11 place-items-center bg-paper text-lg"
                       aria-label={`Remove one ${food.name}`}
                     >
                       −
@@ -61,7 +71,7 @@ export function BasketDrawer({
                     <button
                       type="button"
                       onClick={() => onAdd(entry.foodItemId)}
-                      className="grid size-11 place-items-center rounded-lg border-2 border-ink/15 text-lg font-bold hover:bg-ink/5"
+                      className="btn grid size-11 place-items-center bg-paper text-lg"
                       aria-label={`Add one more ${food.name}`}
                     >
                       +
@@ -71,44 +81,39 @@ export function BasketDrawer({
               })}
             </ul>
           )}
-          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[11px] text-faded">
-            <span>nutrition {Math.round(stats.nutrition)}/{npc.nutritionTarget}</span>
-            <span>happiness {Math.round(stats.happiness)}/{npc.happinessTarget}</span>
-            <span>cals {stats.calories}</span>
+          <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-0.5 font-pixel text-base leading-tight text-faded">
+            <span>🥦 {Math.round(stats.nutrition)}/{npc.nutritionTarget}</span>
+            <span>😊 {Math.round(stats.happiness)}/{npc.happinessTarget}</span>
+            <span>cal {stats.calories}</span>
             <span>sugar {stats.sugar}</span>
             <span>fat {stats.fat}</span>
           </div>
         </div>
       )}
 
-      <div className="flex items-center gap-2 px-3 py-2">
+      <div className="px-3 py-2">
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="min-h-11 min-w-0 flex-1 rounded-lg border-2 border-ink/15 px-2 text-left hover:bg-ink/5"
+          className="btn flex min-h-12 w-full items-center justify-between gap-2 bg-paper px-2.5 text-left"
         >
-          <span className="block truncate text-sm font-bold">
-            🧺 {itemCount} item{itemCount === 1 ? "" : "s"} · {formatCents(spent)} spent
+          <span className="min-w-0">
+            <span className="block truncate font-display text-sm leading-tight">
+              🧺 {itemCount} item{itemCount === 1 ? "" : "s"} · {formatCents(spent)} ·{" "}
+              {formatCents(remainingBudgetCents)} left
+            </span>
+            <span className="block truncate font-sans text-xs font-bold leading-tight text-faded">
+              needs 🥦 {needNutrition} · 😊 {needHappiness} ·{" "}
+              <span className={requirements.mustNotViolated ? "text-danger" : ""}>
+                📋 {listDone}/3
+              </span>{" "}
+              — fills up, checks out
+            </span>
           </span>
-          <span className="block truncate text-xs text-faded">
-            {formatCents(remainingBudgetCents)} left ·{" "}
-            {met ? (
-              <span className="font-bold text-good">goals met ✓</span>
-            ) : (
-              "goals not met"
-            )}{" "}
-            · {open ? "close" : "review"}
+          <span aria-hidden className="font-display text-faded">
+            {open ? "▼" : "▲"}
           </span>
-        </button>
-        <button
-          type="button"
-          onClick={onSubmit}
-          className={`min-h-12 rounded-lg px-4 text-sm font-bold text-white transition-colors ${
-            met ? "bg-good hover:brightness-110" : "bg-ink/40 hover:bg-ink/50"
-          }`}
-        >
-          Submit
         </button>
       </div>
     </div>

@@ -4,30 +4,32 @@ import { WARNING_FEEDBACK } from "@/data/flavourText";
 
 function GoalMeter({
   label,
+  emoji,
   value,
   target,
-  colorClass,
+  fillClass,
 }: {
   label: string;
+  emoji: string;
   value: number;
   target: number;
-  colorClass: string;
+  fillClass: string;
 }) {
   const percent = Math.min(100, (value / (target * 1.4)) * 100);
   const targetPercent = (target / (target * 1.4)) * 100;
   const met = value >= target;
   return (
     <div>
-      <div className="flex items-baseline justify-between text-xs">
-        <span className="font-semibold">
-          {label} {met && <span aria-hidden>✓</span>}
+      <div className="flex items-baseline justify-between">
+        <span className="font-display text-xs uppercase tracking-wide">
+          <span aria-hidden>{emoji}</span> {label} {met && <span aria-hidden>✓</span>}
         </span>
-        <span className="font-mono tabular-nums text-faded">
-          {Math.round(value)} / {target}
+        <span className="font-pixel text-lg leading-none tabular-nums text-faded">
+          {Math.round(value)}/{target}
         </span>
       </div>
       <div
-        className="relative mt-0.5 h-3 overflow-hidden rounded-full bg-ink/10"
+        className="meter-track relative mt-1 h-5 overflow-hidden"
         role="meter"
         aria-valuenow={Math.round(value)}
         aria-valuemin={0}
@@ -35,11 +37,11 @@ function GoalMeter({
         aria-label={`${label}: ${Math.round(value)} of ${target} needed`}
       >
         <div
-          className={`h-full rounded-full transition-all ${colorClass}`}
+          className={`meter-fill h-full transition-all ${fillClass}`}
           style={{ width: `${percent}%` }}
         />
         <div
-          className="absolute top-0 h-full w-0.5 bg-ink/50"
+          className="absolute top-0 h-full w-1 bg-ink"
           style={{ left: `${targetPercent}%` }}
           aria-hidden
         />
@@ -49,12 +51,18 @@ function GoalMeter({
 }
 
 const STAT_LABEL: Record<string, string> = {
-  calories: "Cals",
-  fat: "Fat",
-  sugar: "Sugar",
-  carbs: "Carbs",
-  sodium: "Salt",
+  calories: "CALS",
+  fat: "FAT",
+  sugar: "SUGAR",
+  carbs: "CARBS",
+  sodium: "SALT",
 };
+
+/** Grey at 0%, blending to pure red at 70%+ of the fatal threshold. */
+function riskColor(ratio: number): string {
+  const redShare = Math.round(Math.min(1, ratio / 0.7) * 100);
+  return `color-mix(in oklab, var(--color-danger) ${redShare}%, var(--color-faded))`;
+}
 
 export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) {
   const risks = DANGER_STATS.map((stat) => ({
@@ -64,42 +72,46 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
   const worst = risks.filter((r) => r.ratio >= 0.8).sort((a, b) => b.ratio - a.ratio)[0];
 
   return (
-    <section
-      aria-label="Needs and risk"
-      className="space-y-2 rounded-xl border-2 border-ink/10 bg-receipt p-3"
-    >
+    <section aria-label="Needs and risk" className="panel space-y-2.5 p-3">
       <GoalMeter
         label="Nutrition"
+        emoji="🥦"
         value={stats.nutrition}
         target={npc.nutritionTarget}
-        colorClass="bg-good"
+        fillClass="bg-good"
       />
       <GoalMeter
         label="Happiness"
+        emoji="😊"
         value={stats.happiness}
         target={npc.happinessTarget}
-        colorClass="bg-happy"
+        fillClass="bg-happy"
       />
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5 text-[11px] font-mono">
-        <span className="text-faded">Risk:</span>
+      <div className="flex flex-wrap items-center gap-1 pt-0.5">
+        <span className="font-display text-[10px] uppercase tracking-wider text-faded">
+          Danger
+        </span>
         {risks.map(({ stat, ratio }) => {
           const percent = Math.round(ratio * 100);
-          const danger = ratio >= 0.8;
+          const alarm = ratio >= 0.8;
           return (
             <span
               key={stat}
-              className={
-                danger ? "rounded bg-danger px-1 font-bold text-white" : "text-faded"
-              }
+              className={`rounded-md border-2 px-1 py-0.5 font-pixel text-sm leading-none ${
+                alarm
+                  ? "border-ink bg-danger font-bold text-white"
+                  : `border-ink/15 bg-paper ${ratio >= 0.7 ? "font-bold" : ""}`
+              }`}
+              style={alarm ? undefined : { color: riskColor(ratio) }}
             >
-              {danger && "⚠ "}
+              {alarm && "⚠"}
               {STAT_LABEL[stat]} {percent}%
             </span>
           );
         })}
       </div>
       {worst && (
-        <p className="text-xs font-medium text-danger" role="alert">
+        <p className="text-xs font-bold text-danger" role="alert">
           {WARNING_FEEDBACK[worst.stat]}
         </p>
       )}

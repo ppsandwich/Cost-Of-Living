@@ -28,13 +28,19 @@ export type FoodPreference =
   | "likes_spicy_food"
   | "likes_crunchy_food"
   | "likes_familiar_food"
-  | "likes_variety"
-  | "dislikes_bland_food"
-  | "dislikes_repetition";
+  | "likes_variety";
 
-export type FoodRestriction =
+/** The hard dietary line each NPC has — one per NPC, never to be crossed. */
+export type DietaryMustNot =
   | "vegetarian"
+  | "vegan"
   | "no_pork"
+  | "nut_allergy"
+  | "dairy_allergy"
+  | "egg_allergy";
+
+/** Soft modifiers: shape how food lands, but aren't win requirements. */
+export type FoodRestriction =
   | "low_sugar"
   | "low_fat"
   | "low_sodium"
@@ -65,7 +71,10 @@ export interface NPC {
   nutritionTarget: number;
   happinessTarget: number;
   maxThresholds: DangerThresholds;
-  preferences: FoodPreference[];
+  /** Exactly two wants — both must be satisfied to clear the round. */
+  wants: [FoodPreference, FoodPreference];
+  /** One hard dietary rule — violating it blocks the round until fixed. */
+  mustNot: DietaryMustNot;
   restrictions: FoodRestriction[];
   sensitivity: NPCSensitivity;
 }

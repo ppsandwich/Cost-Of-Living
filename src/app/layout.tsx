@@ -1,15 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Lilita_One, Nunito, VT323 } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Lilita_One({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-lilita",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const body = Nunito({
   subsets: ["latin"],
+  variable: "--font-nunito",
+});
+
+const pixel = VT323({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-vt323",
 });
 
 export const metadata: Metadata = {
@@ -32,7 +39,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${pixel.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">{children}</body>
     </html>

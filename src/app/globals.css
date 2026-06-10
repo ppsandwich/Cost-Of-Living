@@ -1,24 +1,162 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f7f2e7;
-  --color-receipt: #fffdf6;
-  --color-ink: #2e2a24;
-  --color-faded: #8a8276;
-  --color-brand: #e8551f;
-  --color-brand-dark: #c44312;
-  --color-good: #3d9b4f;
-  --color-happy: #d99a06;
-  --color-danger: #d23c2a;
+  --color-paper: #f4ead3;
+  --color-receipt: #fffaf0;
+  --color-ink: #33241c;
+  --color-faded: #93826f;
+  --color-brand: #e23d28;
+  --color-brand-dark: #b42a18;
+  --color-good: #2f9e6e;
+  --color-good-dark: #237a54;
+  --color-happy: #f2a414;
+  --color-danger: #d6402e;
+  --color-tag: #ffd23f;
+  --color-lcd: #8df0a8;
+  --color-lcd-amber: #ffd23f;
+
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-lilita), "Arial Black", sans-serif;
+  --font-pixel: var(--font-vt323), ui-monospace, monospace;
 }
 
 body {
-  background: var(--color-paper);
+  background-color: var(--color-paper);
+  /* faint grocery-floor checkerboard */
+  background-image:
+    linear-gradient(
+      45deg,
+      rgba(51, 36, 28, 0.04) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(51, 36, 28, 0.04) 75%
+    ),
+    linear-gradient(
+      45deg,
+      rgba(51, 36, 28, 0.04) 25%,
+      transparent 25%,
+      transparent 75%,
+      rgba(51, 36, 28, 0.04) 75%
+    );
+  background-size: 28px 28px;
+  background-position:
+    0 0,
+    14px 14px;
   color: var(--color-ink);
 }
 
+/* ── Cartoon panels & buttons ─────────────────────────────── */
+
+.panel {
+  background: var(--color-receipt);
+  border: 3px solid var(--color-ink);
+  border-radius: 1rem;
+  box-shadow: 4px 4px 0 rgba(51, 36, 28, 0.25);
+}
+
+/* A card the NPC must not eat: unmissably red */
+.panel-danger {
+  background: #fdf0ed;
+  border-color: var(--color-danger);
+  box-shadow: 4px 4px 0 rgba(214, 60, 46, 0.35);
+}
+
+.btn {
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+  border: 3px solid var(--color-ink);
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 0 var(--color-ink);
+  transition:
+    transform 0.06s ease,
+    box-shadow 0.06s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 var(--color-ink);
+}
+
+.btn:disabled {
+  box-shadow: 0 2px 0 var(--color-ink);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Supermarket awning (header trim) ─────────────────────── */
+
+.awning-stripes {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-brand) 0 24px,
+    var(--color-receipt) 24px 48px
+  );
+  border-top: 3px solid var(--color-ink);
+}
+
+.awning-scallops {
+  background:
+    radial-gradient(12px at 12px 0, var(--color-brand) 96%, transparent 100%) 0 0 / 48px 100%
+      repeat-x,
+    radial-gradient(12px at 12px 0, var(--color-receipt) 96%, transparent 100%) 24px 0 / 48px
+      100% repeat-x;
+  filter: drop-shadow(0 3px 0 rgba(51, 36, 28, 0.25));
+}
+
+/* ── LCD readouts (registers, timers) ─────────────────────── */
+
+.lcd {
+  font-family: var(--font-pixel);
+  background: #221a14;
+  border: 3px solid var(--color-ink);
+  border-radius: 0.625rem;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+}
+
+/* ── Price tags & special stickers ────────────────────────── */
+
+.price-tag {
+  font-family: var(--font-pixel);
+  background: var(--color-tag);
+  border: 2px solid var(--color-ink);
+  border-radius: 0.375rem;
+  box-shadow: 2px 2px 0 rgba(51, 36, 28, 0.25);
+  line-height: 1;
+}
+
 .sticker {
-  transform: rotate(-2deg);
+  transform: rotate(-3deg);
+  border: 2px solid var(--color-ink);
+  box-shadow: 1px 2px 0 rgba(51, 36, 28, 0.3);
+}
+
+/* ── Meters ───────────────────────────────────────────────── */
+
+.meter-track {
+  background: #eadfca;
+  border: 3px solid var(--color-ink);
+  border-radius: 9999px;
+  box-shadow: inset 0 2px 3px rgba(51, 36, 28, 0.2);
+}
+
+.meter-fill {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.3) 0 8px,
+    transparent 8px 16px
+  );
+  border-radius: 9999px;
+}
+
+/* ── Decorations ──────────────────────────────────────────── */
+
+.sunburst {
+  background-image: repeating-conic-gradient(
+    from 0deg,
+    rgba(226, 61, 40, 0.07) 0deg 15deg,
+    transparent 15deg 30deg
+  );
 }
 
 @keyframes pulse-danger {
@@ -29,6 +167,20 @@ body {
 
 .timer-low {
   animation: pulse-danger 1s ease-in-out infinite;
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+.wobble {
+  animation: wobble 2.5s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
