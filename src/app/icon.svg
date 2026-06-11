@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- paper background -->
+  <rect width="64" height="64" rx="12" fill="#f4ead3"/>
+  <!-- storefront -->
+  <rect x="11" y="21" width="42" height="33" rx="3" fill="#fffaf0" stroke="#33241c" stroke-width="3"/>
+  <!-- window -->
+  <rect x="16.5" y="32" width="13" height="11" rx="2" fill="#8df0a8" stroke="#33241c" stroke-width="2.5"/>
+  <!-- door -->
+  <rect x="35" y="32" width="12.5" height="22" rx="2" fill="#e23d28" stroke="#33241c" stroke-width="2.5"/>
+  <!-- awning -->
+  <rect x="7" y="9" width="50" height="11" fill="#e23d28" stroke="#33241c" stroke-width="3"/>
+  <rect x="15.5" y="10.5" width="8" height="8" fill="#fffaf0"/>
+  <rect x="31.5" y="10.5" width="8" height="8" fill="#fffaf0"/>
+  <rect x="47.5" y="10.5" width="8" height="8" fill="#fffaf0"/>
+  <!-- awning scallops -->
+  <g stroke="#33241c" stroke-width="2.5">
+    <path d="M8 20 a4 4 0 0 0 8 0 z" fill="#e23d28"/>
+    <path d="M16 20 a4 4 0 0 0 8 0 z" fill="#fffaf0"/>
+    <path d="M24 20 a4 4 0 0 0 8 0 z" fill="#e23d28"/>
+    <path d="M32 20 a4 4 0 0 0 8 0 z" fill="#fffaf0"/>
+    <path d="M40 20 a4 4 0 0 0 8 0 z" fill="#e23d28"/>
+    <path d="M48 20 a4 4 0 0 0 8 0 z" fill="#fffaf0"/>
+  </g>
+</svg>

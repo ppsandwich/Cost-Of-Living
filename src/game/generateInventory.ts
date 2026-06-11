@@ -62,12 +62,21 @@ export function generateInventory(
   pickFirst(FOOD_ITEMS, (f) => f.baseNutrition >= 18 && usableBy(f, npc));
   // Something fresh, for the NPCs whose happiness lives in the produce aisle
   pickFirst(FOOD_ITEMS, (f) => f.tags.includes("fresh") && usableBy(f, npc));
-  // Each want must be winnable: guarantee at least one usable match per want
+  // Each want must be winnable: guarantee a usable match per want, and
+  // at least one of them affordable even on a battered budget
   for (const want of npc.wants) {
     const tag = PREFERENCE_TAG[want];
     if (!tag) continue; // likes_variety is satisfied structurally
-    if ([...chosen.values()].some((f) => f.tags.includes(tag) && usableBy(f, npc))) continue;
-    pickFirst(FOOD_ITEMS, (f) => f.tags.includes(tag) && usableBy(f, npc));
+    const matches = [...chosen.values()].filter((f) => f.tags.includes(tag) && usableBy(f, npc));
+    if (matches.length === 0) {
+      pickFirst(FOOD_ITEMS, (f) => f.tags.includes(tag) && usableBy(f, npc));
+    }
+    if (!matches.some((f) => f.basePriceCents <= 300)) {
+      pickFirst(
+        FOOD_ITEMS,
+        (f) => f.tags.includes(tag) && f.basePriceCents <= 300 && usableBy(f, npc)
+      );
+    }
   }
 
   // 1–5 items the NPC can't eat, shown disabled on the shelf

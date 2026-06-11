@@ -74,6 +74,14 @@ export function priceQualityMultiplier(basePriceCents: number): number {
   return Math.min(1.2, 0.6 + basePriceCents / 800);
 }
 
+/**
+ * Happiness is nerfed far more gently than nutrition: a cheap biscuit
+ * still has to feel like a treat, or the trap stops being tempting.
+ */
+export function priceHappinessMultiplier(basePriceCents: number): number {
+  return Math.min(1.1, 0.85 + basePriceCents / 2000);
+}
+
 function isTreatLike(food: FoodItem): boolean {
   return (
     food.category === "treat" ||
@@ -102,6 +110,7 @@ export function computeImpact(
   const equipmentMismatch = hasEquipmentMismatch(food, npc);
   const mustNotViolation = violatesMustNot(food, npc);
   const quality = priceQualityMultiplier(food.basePriceCents);
+  const happinessQuality = priceHappinessMultiplier(food.basePriceCents);
 
   // ── Nutrition ──
   const vegMult =
@@ -164,7 +173,7 @@ export function computeImpact(
 
   const happinessGain =
     food.baseHappiness *
-      quality *
+      happinessQuality *
       preferenceMultiplier *
       varietyMultiplier *
       treatsMultiplier *
