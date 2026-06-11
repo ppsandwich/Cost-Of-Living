@@ -66,9 +66,13 @@ export function previewNextBudgetCents(state: GameState): number {
   const roundNumber = state.roundNumber + 1;
   const previous = state.npc ? [...state.previousNPCIds, state.npc.id] : state.previousNPCIds;
   const npc = selectNPC(previous, roundSeed(state.seed, roundNumber));
+  const carryoverCents = hasPowerUp(state.powerUps, "embezzler")
+    ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
+    : 0;
   return (
     Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
-    powerUpExtraBudgetCents(state.powerUps)
+    powerUpExtraBudgetCents(state.powerUps) +
+    carryoverCents
   );
 }
 
@@ -84,9 +88,14 @@ function setupRound(state: GameState, roundNumber: number): GameState {
       ? ("none" as const)
       : selected.mustNot,
   };
+  // Embezzler: half of last round's surplus rolls forward
+  const carryoverCents = hasPowerUp(state.powerUps, "embezzler")
+    ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
+    : 0;
   const roundBudgetCents =
     Math.round(npc.baseBudgetCents * budgetMultiplier) +
-    powerUpExtraBudgetCents(state.powerUps);
+    powerUpExtraBudgetCents(state.powerUps) +
+    carryoverCents;
   const roundDurationSeconds = ROUND_TIMER_SECONDS + powerUpExtraSeconds(state.powerUps);
   return {
     ...state,
@@ -159,27 +168,7 @@ function loseRound(state: GameState, endReason: "timer_expired"): GameState {
   };
 }
 
-/**
- * Settle the round: death first if any threshold is exceeded, then a win
- * if every requirement is met, otherwise the given loss reason.
- */
-function evaluateRound(state: GameState, failReason: "timer_expired"): GameState {
-  const npc = state.npc!;
-  const fatal = fatalStat(state.stats, npc.maxThresholds);
-  if (fatal) {
-    return {
-      ...state,
-      status: "lost",
-      endReason: "npc_died",
-      diedFromStat: fatal,
-      bestScore: Math.max(state.bestScore, state.totalScore),
-    };
-  }
-  if (state.remainingBudgetCents >= 0 && allRequirementsMet(state.stats, state.basket, npc)) {
-    return winRound(state);
-  }
-  return loseRound(state, failReason);
-}
+
 
 function feedbackFor(state: GameState, foodItemId: string): string {
   const npc = state.npc!;
@@ -254,6 +243,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ];
 
       const stats = calculateBasketStats(basket, state.npc, state.powerUps);
+      // Training Wheels: the shelf refuses anything that would cross a limit
+      if (
+        hasPowerUp(state.powerUps, "training_wheels") &&
+        fatalStat(stats, state.npc.maxThresholds)
+      ) {
+        return state;
+      }
       const remainingBudgetCents = state.remainingBudgetCents - storeItem.currentPriceCents;
       // Overspending is allowed mid-round; checkout stays locked until
       // the basket is trimmed back within budget
@@ -319,7 +315,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.status !== "playing") return state;
       const timeRemainingSeconds = state.timeRemainingSeconds - 1;
       if (timeRemainingSeconds <= 0) {
-        return evaluateRound({ ...state, timeRemainingSeconds: 0 }, "timer_expired");
+        // No last-second checkout: when the clock dies, the round dies
+        return loseRound({ ...state, timeRemainingSeconds: 0 }, "timer_expired");
       }
       return { ...state, timeRemainingSeconds };
     }

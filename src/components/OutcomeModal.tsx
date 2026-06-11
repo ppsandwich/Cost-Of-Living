@@ -4,6 +4,7 @@ import { FOOD_BY_ID } from "@/data/foodItems";
 import { WIN_MESSAGES } from "@/data/flavourText";
 import { previewNextBudgetCents } from "@/game/reducer";
 import type { PowerUpId } from "@/data/powerups";
+import { POWER_UPS } from "@/data/powerups";
 import { PowerUpChoice } from "./PowerUps";
 import { formatCents } from "@/utils/money";
 
@@ -66,6 +67,7 @@ export function OutcomeModal({
   onChoosePowerUp: (id: PowerUpId) => void;
 }) {
   const mustChoose = state.powerUpChoices !== null && state.powerUpChoices.length > 0;
+  const poolExhausted = POWER_UPS.every((p) => state.powerUps.includes(p.id));
   const npc = state.npc!;
   const winLine = WIN_MESSAGES[state.roundNumber % WIN_MESSAGES.length](npc.name);
   const lastResult = state.roundHistory[state.roundHistory.length - 1];
@@ -115,6 +117,16 @@ export function OutcomeModal({
 
         {mustChoose && (
           <PowerUpChoice choices={state.powerUpChoices!} onChoose={onChoosePowerUp} />
+        )}
+        {poolExhausted && (
+          <div className="mt-4 text-center">
+            <h3 className="font-display text-sm uppercase tracking-wider text-brand">
+              Pick a power-up
+            </h3>
+            <p className="sticker mx-auto mt-2 inline-block rounded-lg bg-faded px-3 py-1 font-display text-sm uppercase text-white">
+              Out of stock
+            </p>
+          </div>
         )}
 
         <button

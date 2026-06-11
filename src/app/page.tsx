@@ -68,7 +68,7 @@ export default function Home() {
       <main className="mx-auto w-full max-w-md flex-1 px-3 pb-3 pt-2 lg:grid lg:max-w-6xl lg:grid-cols-[320px_1fr_340px] lg:items-start lg:gap-4">
         <div className="space-y-3 lg:sticky lg:top-28">
           <NPCPanel npc={state.npc} basket={state.basket} />
-          <PowerUpShelf powerUps={state.powerUps} />
+          <PowerUpShelf key={state.roundNumber} powerUps={state.powerUps} />
           <p
             aria-live="polite"
             className="min-h-5 px-1 text-xs font-semibold italic text-ink/70"

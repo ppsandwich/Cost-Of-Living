@@ -6,6 +6,7 @@ import { hasEquipmentMismatch, PREFERENCE_TAG, violatesMustNot } from "./applyFo
 import { exceedsAnyLimitAlone } from "./thresholds";
 import type { PowerUpId } from "@/data/powerups";
 import {
+  hasPowerUp,
   powerUpExtraSpecials,
   powerUpInventoryMultiplier,
   powerUpPriceMultiplier,
@@ -109,6 +110,22 @@ export function generateInventory(
   );
   for (const food of shuffle(rng, forbiddenPool).slice(0, forbiddenCount)) {
     chosen.set(food.id, food);
+  }
+
+  // Dubious Food: half the time, force an extra expired item onto the
+  // shelf — measured, this lands at roughly 1.5x their usual prevalence
+  if (hasPowerUp(powerUps, "dubious_food") && rng() < 0.35) {
+    const extraExpired = shuffle(
+      rng,
+      FOOD_ITEMS.filter(
+        (f) =>
+          f.variant === "expired" &&
+          !chosen.has(f.id) &&
+          !violatesMustNot(f, npc) &&
+          shelfSafe(f, npc, powerUps)
+      )
+    )[0];
+    if (extraExpired) chosen.set(extraExpired.id, extraExpired);
   }
 
   // Fill the rest with food the NPC can actually eat
