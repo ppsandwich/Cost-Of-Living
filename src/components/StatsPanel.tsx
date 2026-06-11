@@ -24,7 +24,7 @@ function GoalMeter({
         <span className="font-display text-xs uppercase tracking-wide">
           <span aria-hidden>{emoji}</span> {label} {met && <span aria-hidden>✓</span>}
         </span>
-        <span className="font-pixel text-lg leading-none tabular-nums text-faded">
+        <span className="text-sm font-bold leading-none tabular-nums text-faded">
           {Math.round(value)}/{target}
         </span>
       </div>
@@ -72,7 +72,7 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
   const worst = risks.filter((r) => r.ratio >= 0.8).sort((a, b) => b.ratio - a.ratio)[0];
 
   return (
-    <section aria-label="Needs and risk" className="panel space-y-2.5 p-3">
+    <section aria-label="Needs and risk" className="space-y-2.5">
       <GoalMeter
         label="Nutrition"
         emoji="🥦"
@@ -97,7 +97,7 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
           return (
             <span
               key={stat}
-              className={`rounded-md border-2 px-1 py-0.5 font-pixel text-sm leading-none ${
+              className={`rounded-md border-2 px-1 py-0.5 text-xs font-bold leading-none ${
                 alarm
                   ? "border-ink bg-danger font-bold text-white"
                   : `border-ink/15 bg-paper ${ratio >= 0.7 ? "font-bold" : ""}`

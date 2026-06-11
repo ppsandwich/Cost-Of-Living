@@ -1,5 +1,4 @@
 import type { GameState } from "@/types/game";
-import { FOOD_BY_ID } from "@/data/foodItems";
 import { DEATH_MESSAGES, LOSS_MESSAGES, RUN_SUMMARY_LINES } from "@/data/flavourText";
 
 export function RunSummary({ state, onReplay }: { state: GameState; onReplay: () => void }) {
@@ -35,7 +34,7 @@ export function RunSummary({ state, onReplay }: { state: GameState; onReplay: ()
           <p className="mt-1 text-sm font-semibold text-faded">{summaryLine}</p>
         </div>
 
-        <div className="mt-4 rounded-xl border-2 border-dashed border-ink/30 bg-receipt p-3 font-pixel text-xl leading-snug">
+        <div className="mt-4 rounded-xl border-2 border-dashed border-ink/30 bg-receipt p-3 text-sm font-bold leading-relaxed">
           <div className="flex justify-between">
             <span className="text-faded">ROUNDS SURVIVED</span>
             <span className="tabular-nums">{state.successfulRounds}</span>
@@ -69,10 +68,10 @@ export function RunSummary({ state, onReplay }: { state: GameState; onReplay: ()
 
         {state.roundHistory.length > 0 && (
           <div className="mt-3">
-            <h3 className="text-center font-pixel text-lg uppercase tracking-widest text-faded">
+            <h3 className="text-center text-sm font-bold uppercase tracking-widest text-faded">
               ··· receipts ···
             </h3>
-            <ul className="mt-1 space-y-0.5 font-pixel text-lg leading-snug text-faded">
+            <ul className="mt-1 space-y-0.5 text-sm font-semibold leading-snug text-faded">
               {state.roundHistory.map((r) => (
                 <li key={r.roundNumber} className="flex justify-between gap-2">
                   <span className="truncate">
@@ -83,14 +82,6 @@ export function RunSummary({ state, onReplay }: { state: GameState; onReplay: ()
               ))}
             </ul>
           </div>
-        )}
-
-        {state.basket.length > 0 && (
-          <p className="mt-2 text-center text-lg" aria-label="Final basket">
-            {state.basket
-              .map((b) => `${FOOD_BY_ID[b.foodItemId]?.emoji ?? ""}×${b.quantity}`)
-              .join(" ")}
-          </p>
         )}
 
         <button

@@ -1,8 +1,58 @@
+import { useEffect, useState } from "react";
 import type { GameState } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { WIN_MESSAGES } from "@/data/flavourText";
-import { budgetMultiplierForRound, budgetPressureLabel } from "@/game/progression";
+import { previewNextBudgetCents } from "@/game/reducer";
 import { formatCents } from "@/utils/money";
+
+const STRIKE_MS = 450; // strike draws across the old budget
+const PAUSE_MS = 150; // strike lifts
+const COUNT_MS = 900; // number falls to the new budget — 1.5s all told
+
+/** Old budget gets struck through, then counts down to the new one. */
+function BudgetCountdown({ fromCents, toCents }: { fromCents: number; toCents: number }) {
+  // Reduced-motion users get the final number straight away
+  const [reducedMotion] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+  const [phase, setPhase] = useState<"strike" | "count">(reducedMotion ? "count" : "strike");
+  const [displayCents, setDisplayCents] = useState(reducedMotion ? toCents : fromCents);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    const unstrike = setTimeout(() => setPhase("count"), STRIKE_MS + PAUSE_MS);
+    return () => clearTimeout(unstrike);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    if (phase !== "count" || displayCents === toCents) return;
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / COUNT_MS);
+      const eased = 1 - (1 - t) * (1 - t);
+      setDisplayCents(Math.round(fromCents + (toCents - fromCents) * eased));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  return (
+    <span className="relative inline-block tabular-nums">
+      {formatCents(displayCents)}
+      {phase === "strike" && (
+        <span
+          aria-hidden
+          className="strike-line absolute left-0 top-1/2 h-[3px] -translate-y-1/2 rounded bg-current"
+        />
+      )}
+    </span>
+  );
+}
 
 export function OutcomeModal({
   state,
@@ -14,7 +64,7 @@ export function OutcomeModal({
   const npc = state.npc!;
   const winLine = WIN_MESSAGES[state.roundNumber % WIN_MESSAGES.length](npc.name);
   const lastResult = state.roundHistory[state.roundHistory.length - 1];
-  const nextMultiplier = budgetMultiplierForRound(state.roundNumber + 1);
+  const nextBudgetCents = previewNextBudgetCents(state);
 
   return (
     <div
@@ -39,7 +89,7 @@ export function OutcomeModal({
           )}
         </div>
 
-        <div className="mt-4 rounded-xl border-2 border-dashed border-ink/30 bg-receipt p-3 font-pixel text-xl leading-snug">
+        <div className="mt-4 rounded-xl border-2 border-dashed border-ink/30 bg-receipt p-3 text-sm font-bold leading-relaxed">
           <div className="flex justify-between">
             <span className="text-faded">ROUND SCORE</span>
             <span className="tabular-nums">{state.score}</span>
@@ -48,27 +98,11 @@ export function OutcomeModal({
             <span className="text-faded">RUN TOTAL</span>
             <span className="tabular-nums">{state.totalScore}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-faded">NUTRITION</span>
-            <span className="tabular-nums">
-              {Math.round(state.stats.nutrition)}/{npc.nutritionTarget}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-faded">HAPPINESS</span>
-            <span className="tabular-nums">
-              {Math.round(state.stats.happiness)}/{npc.happinessTarget}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-faded">CHANGE LEFT</span>
-            <span className="tabular-nums">{formatCents(state.remainingBudgetCents)}</span>
-          </div>
         </div>
 
-        <p className="mt-2 text-center text-lg" aria-label="Final basket">
+        <p className="mt-2 text-center text-2xl" aria-label="Final basket">
           {state.basket
-            .map((b) => `${FOOD_BY_ID[b.foodItemId]?.emoji ?? ""}×${b.quantity}`)
+            .map((b) => (FOOD_BY_ID[b.foodItemId]?.emoji ?? "").repeat(b.quantity))
             .join(" ")}
         </p>
 
@@ -77,7 +111,8 @@ export function OutcomeModal({
           onClick={onNextRound}
           className="btn mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
         >
-          Next round → budget gets {budgetPressureLabel(nextMultiplier).toLowerCase()}
+          Next round:{" "}
+          <BudgetCountdown fromCents={state.roundBudgetCents} toCents={nextBudgetCents} /> budget
         </button>
       </div>
     </div>

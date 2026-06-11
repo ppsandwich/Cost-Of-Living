@@ -1,6 +1,6 @@
 import type { FoodItem } from "@/types/food";
 
-export const FOOD_ITEMS: FoodItem[] = [
+const STANDARD_ITEMS: FoodItem[] = [
   // ── Fruit (6) ────────────────────────────────────────────────
   {
     id: "bananas",
@@ -1332,6 +1332,59 @@ export const FOOD_ITEMS: FoodItem[] = [
     flavour: "For when you deserve nice things and can't afford them.",
   },
 ];
+
+const byId = Object.fromEntries(STANDARD_ITEMS.map((f) => [f.id, f]));
+
+/** 2x the price, 50% more nutrition and happiness. */
+function premiumVariant(baseId: string, name: string, flavour: string): FoodItem {
+  const base = byId[baseId];
+  return {
+    ...base,
+    id: `premium-${base.id}`,
+    name,
+    variant: "premium",
+    basePriceCents: base.basePriceCents * 2,
+    baseNutrition: Math.round(base.baseNutrition * 1.5),
+    baseHappiness: Math.round(base.baseHappiness * 1.5),
+    flavour,
+  };
+}
+
+/** Half price, 20% less nutrition, 70% less happiness. */
+function expiredVariant(baseId: string, name: string, flavour: string): FoodItem {
+  const base = byId[baseId];
+  return {
+    ...base,
+    id: `expired-${base.id}`,
+    name,
+    variant: "expired",
+    basePriceCents: Math.round((base.basePriceCents * 0.5) / 5) * 5,
+    baseNutrition: Math.round(base.baseNutrition * 0.8),
+    baseHappiness: Math.round(base.baseHappiness * 0.3),
+    flavour,
+  };
+}
+
+const PREMIUM_ITEMS: FoodItem[] = [
+  premiumVariant("chicken-thighs", "Free-range chicken", "The chicken had a lovely life. Your wallet, less so."),
+  premiumVariant("cheese-block", "Aged artisan cheese", "Matured in a cave by someone with strong opinions."),
+  premiumVariant("eggs-dozen", "Pasture-raised eggs", "These hens have a better lifestyle than you do."),
+  premiumVariant("bag-of-apples", "Heirloom apples", "Apples with a lineage. Possibly a coat of arms."),
+  premiumVariant("wholemeal-bread", "Artisan sourdough", "Fermented for 72 hours and priced accordingly."),
+  premiumVariant("yoghurt-tub", "Greek yoghurt", "Thick enough to stand a spoon in. Authentically smug."),
+  premiumVariant("beef-mince", "Grass-fed mince", "The cow ate better than most of this store's customers."),
+  premiumVariant("frozen-berries", "Organic berries", "Hand-picked, flash-frozen, financially devastating."),
+];
+
+const EXPIRED_ITEMS: FoodItem[] = [
+  expiredVariant("milk-2l", "Expired milk, 2L", "Best before: a date that has been and gone."),
+  expiredVariant("white-bread", "Expired white bread", "Toast hides a multitude of sins."),
+  expiredVariant("bagged-salad", "Expired bagged salad", "Already soup, structurally speaking."),
+  expiredVariant("meal-deal-sandwich", "Expired meal deal", "Yesterday's lunch at yesterday's price. Roughly."),
+  expiredVariant("sausages", "Expired sausages", "The mystery percentage is asking new questions."),
+];
+
+export const FOOD_ITEMS: FoodItem[] = [...STANDARD_ITEMS, ...PREMIUM_ITEMS, ...EXPIRED_ITEMS];
 
 export const FOOD_BY_ID: Record<string, FoodItem> = Object.fromEntries(
   FOOD_ITEMS.map((f) => [f.id, f])

@@ -28,7 +28,7 @@ Deploys to Vercel as a fully static app — no database, no auth, no APIs. Score
 
 - **Framework:** Next.js (App Router) + TypeScript + Tailwind CSS
 - **State:** a pure reducer (`src/game/reducer.ts`) driven by React `useReducer`; the timer is the only effect
-- **Data:** 12 NPCs (`src/data/npcs.ts`) and 63 food items (`src/data/foodItems.ts`) as local TypeScript files
+- **Data:** 12 NPCs (`src/data/npcs.ts`) and 76 food items (`src/data/foodItems.ts`) as local TypeScript files
 - **Game logic:** `src/game/` — seeded inventory generation, per-item nutrition/happiness impact (preferences, restrictions, equipment mismatches, repetition penalties), danger thresholds, progressive budget multiplier (1.00 → 0.60), scoring and ratings
 - **Price–quality gradient:** a multiplier derived from base price (`priceQualityMultiplier`) makes cheap food deliver less nutrition and happiness per pack, while the data skews cheap processed items toward fat and sugar — filling needs on a tight budget costs more threshold headroom
 

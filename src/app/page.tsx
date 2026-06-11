@@ -4,9 +4,7 @@ import { useEffect, useReducer } from "react";
 import { gameReducer, INITIAL_STATE } from "@/game/reducer";
 import { dismissTutorial, recordRunProgress, useRecords } from "@/utils/records";
 import { StatusBar } from "@/components/StatusBar";
-import { StatsPanel } from "@/components/StatsPanel";
 import { NPCPanel } from "@/components/NPCPanel";
-import { RequirementsChecklist } from "@/components/RequirementsChecklist";
 import { StoreList } from "@/components/StoreList";
 import { BasketDrawer } from "@/components/BasketDrawer";
 import { OutcomeModal } from "@/components/OutcomeModal";
@@ -61,9 +59,7 @@ export default function Home() {
 
       <main className="mx-auto w-full max-w-md flex-1 px-3 pb-3 pt-2 lg:grid lg:max-w-6xl lg:grid-cols-[320px_1fr_340px] lg:items-start lg:gap-4">
         <div className="space-y-3 lg:sticky lg:top-28">
-          <NPCPanel npc={state.npc} />
-          <RequirementsChecklist npc={state.npc} basket={state.basket} />
-          <StatsPanel stats={state.stats} npc={state.npc} />
+          <NPCPanel npc={state.npc} basket={state.basket} />
           <p
             aria-live="polite"
             className="min-h-5 px-1 text-xs font-semibold italic text-ink/70"
@@ -73,7 +69,7 @@ export default function Home() {
         </div>
 
         {/* bottom padding keeps the last food card clear of the fixed mobile drawer */}
-        <div className="mt-3 pb-40 lg:mt-0 lg:pb-0">
+        <div className="mt-3 pb-80 lg:mt-0 lg:pb-0">
           <StoreList
             inventory={state.inventory}
             basket={state.basket}
@@ -89,7 +85,6 @@ export default function Home() {
             basket={state.basket}
             stats={state.stats}
             npc={state.npc}
-            roundBudgetCents={state.roundBudgetCents}
             remainingBudgetCents={state.remainingBudgetCents}
             onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
