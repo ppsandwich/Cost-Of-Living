@@ -101,6 +101,17 @@ export function StartScreen({
         <p className="mt-3 text-[12.7px] font-bold text-faded">
           A satirical game about constrained choices. Not nutrition advice.
         </p>
+        <p className="mt-1.5 text-[12.7px] font-bold text-faded">
+          This game is a hallucination by{" "}
+          <a
+            href="https://sandwich.codes"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline decoration-dotted underline-offset-2 hover:text-brand"
+          >
+            sandwich.codes
+          </a>
+        </p>
       </div>
     </main>
   );
