@@ -30,9 +30,9 @@ export function StartScreen({
   const open = tutorialOpen ?? showTutorial;
 
   return (
-    <main className="relative mx-auto grid min-h-dvh max-w-md place-items-center overflow-hidden px-4 py-8">
+    <main className="relative grid min-h-dvh place-items-center overflow-hidden px-4 py-8">
       <div aria-hidden className="sunburst-spin absolute inset-[-75%]" />
-      <div className="relative w-full text-center">
+      <div className="relative w-full max-w-md text-center">
         {/* Shop sign */}
         <div className="panel relative mx-auto max-w-xs bg-brand px-4 pb-5 pt-6">
           <div className="absolute inset-x-0 -top-0.5">
@@ -41,7 +41,7 @@ export function StartScreen({
           <p aria-hidden className="text-5xl drop-shadow-[2px_2px_0_rgba(51,36,28,0.4)]">
             🛒
           </p>
-          <h1 className="mt-1 font-title text-5xl font-bold leading-none text-brand [text-shadow:3px_3px_0_var(--color-ink)]">
+          <h1 className="mt-1 font-title text-5xl font-bold leading-none text-brand [text-shadow:2px_2px_0_rgba(51,36,28,0.35)]">
             Cost of
             <br />
             Living
