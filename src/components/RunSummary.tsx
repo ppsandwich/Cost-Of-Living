@@ -1,16 +1,8 @@
 import type { GameState } from "@/types/game";
-import { DEATH_MESSAGES, LOSS_MESSAGES, RUN_SUMMARY_LINES } from "@/data/flavourText";
 import { PowerUpCard } from "./PowerUps";
 
 export function RunSummary({ state, onReplay }: { state: GameState; onReplay: () => void }) {
   const npc = state.npc!;
-  const reasonLine =
-    state.endReason === "npc_died" && state.diedFromStat
-      ? DEATH_MESSAGES[state.diedFromStat]?.(npc.name) ?? `${npc.name} didn't make it.`
-      : LOSS_MESSAGES[state.endReason ?? "timer_expired"];
-  const summaryLine = RUN_SUMMARY_LINES[state.successfulRounds % RUN_SUMMARY_LINES.length](
-    state.successfulRounds
-  );
   const isNewBest = state.totalScore > 0 && state.totalScore >= state.bestScore;
 
   return (
@@ -29,10 +21,8 @@ export function RunSummary({ state, onReplay }: { state: GameState; onReplay: ()
             {npc.emoji}
           </div>
           <h2 className="mt-1 font-display text-3xl uppercase tracking-wide text-brand">
-            Game over
+            Time&apos;s Up
           </h2>
-          <p className="mt-2 text-sm font-semibold">{reasonLine}</p>
-          <p className="mt-1 text-sm font-semibold text-faded">{summaryLine}</p>
         </div>
 
         <div className="mt-4 rounded-xl border-2 border-dashed border-ink/30 bg-receipt p-3 text-sm font-bold leading-relaxed">
@@ -67,8 +57,16 @@ export function RunSummary({ state, onReplay }: { state: GameState; onReplay: ()
           </div>
         </div>
 
+        <button
+          type="button"
+          onClick={onReplay}
+          className="btn mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
+        >
+          Play again
+        </button>
+
         {state.powerUps.length > 0 && (
-          <div className="mt-3">
+          <div className="mt-4">
             <h3 className="text-center text-sm font-bold uppercase tracking-widest text-faded">
               Power-ups collected
             </h3>
@@ -79,14 +77,6 @@ export function RunSummary({ state, onReplay }: { state: GameState; onReplay: ()
             </div>
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={onReplay}
-          className="btn mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
-        >
-          Run it back
-        </button>
       </div>
     </div>
   );

@@ -28,6 +28,8 @@ interface FoodCardProps {
   zeroed: ZeroedMacros;
   /** Set when the food crosses the NPC's dietary line. */
   mustNotLabel: string | null;
+  /** Training Wheels: adding this would cross a macro limit. */
+  blockedByLimits: boolean;
   /** Bulk Buyer: a one-shot bonus add is available for this item. */
   canBulkAdd: boolean;
   onAdd: () => void;
@@ -44,6 +46,7 @@ export function FoodCard({
   wantMatches,
   zeroed,
   mustNotLabel,
+  blockedByLimits,
   canBulkAdd,
   onAdd,
   onRemove,
@@ -53,7 +56,7 @@ export function FoodCard({
   const soldOut = remainingQuantity <= 0;
   const forbidden = mustNotLabel !== null;
   const inBasketMode = inBasket > 0;
-  const buyable = !soldOut && !forbidden;
+  const buyable = !soldOut && !forbidden && !blockedByLimits;
 
   // power-ups can erase a macro from every item
   const fat = zeroed.fat ? 0 : food.fat;
@@ -194,10 +197,20 @@ export function FoodCard({
                   ? `${food.name} — they can't eat this`
                   : soldOut
                     ? `${food.name} sold out`
-                    : `Add ${food.name} for ${formatCents(storeItem.currentPriceCents)}`
+                    : blockedByLimits
+                      ? `${food.name} — would cross a macro limit`
+                      : `Add ${food.name} for ${formatCents(storeItem.currentPriceCents)}`
             }
           >
-            {inBasketMode ? "Remove" : forbidden ? "Can't eat" : soldOut ? "Gone" : "Add"}
+            {inBasketMode
+              ? "Remove"
+              : forbidden
+                ? "Can't eat"
+                : soldOut
+                  ? "Gone"
+                  : blockedByLimits
+                    ? "Over limit"
+                    : "Add"}
           </button>
           </div>
         </div>

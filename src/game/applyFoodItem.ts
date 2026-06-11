@@ -180,10 +180,7 @@ export function computeImpact(
   const preferenceMultiplier = 1 + 0.25 * matchedLikes;
 
   const sameCategoryCount = priorFoods.filter((f) => f.category === food.category).length;
-  // Minimalist: repetition never wears the joy down
-  let varietyMultiplier = hasPowerUp(powerUps, "minimalist")
-    ? 1
-    : Math.max(0.4, 1 - 0.18 * sameCategoryCount);
+  let varietyMultiplier = Math.max(0.4, 1 - 0.18 * sameCategoryCount);
   if (npc.wants.includes("likes_variety") && sameCategoryCount === 0) {
     varietyMultiplier *= 1.15;
   }

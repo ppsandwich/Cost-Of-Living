@@ -1,4 +1,4 @@
-import { TUTORIAL_COPY } from "@/data/flavourText";
+import { useState } from "react";
 
 interface StartScreenProps {
   bestScore: number;
@@ -24,6 +24,10 @@ export function StartScreen({
   onDismissTutorial,
   onStart,
 }: StartScreenProps) {
+  // null = follow the saved preference; true/false = user toggled this visit
+  const [tutorialOpen, setTutorialOpen] = useState<boolean | null>(null);
+  const open = tutorialOpen ?? showTutorial;
+
   return (
     <main className="sunburst mx-auto grid min-h-dvh max-w-md place-items-center px-4 py-8">
       <div className="w-full text-center">
@@ -46,7 +50,7 @@ export function StartScreen({
           A supermarket survival game about budgets, trade-offs, and snacks with consequences.
         </p>
 
-        {showTutorial && (
+        {open && (
           <div className="panel mt-5 p-4 text-left">
             <h2 className="font-display text-sm uppercase tracking-wider text-brand">
               How to play
@@ -56,15 +60,15 @@ export function StartScreen({
                 <li key={step}>{step}</li>
               ))}
             </ol>
-            <p className="mt-3 border-t-2 border-dashed border-ink/20 pt-2 text-xs font-semibold italic text-faded">
-              {TUTORIAL_COPY}
-            </p>
             <button
               type="button"
-              onClick={onDismissTutorial}
+              onClick={() => {
+                onDismissTutorial();
+                setTutorialOpen(false);
+              }}
               className="btn mt-3 min-h-11 w-full bg-paper text-sm"
             >
-              Got it, don&apos;t show again
+              {showTutorial ? "Got it, don't show again" : "Close"}
             </button>
           </div>
         )}
@@ -82,6 +86,17 @@ export function StartScreen({
         >
           Start shopping
         </button>
+
+        {!open && (
+          <button
+            type="button"
+            onClick={() => setTutorialOpen(true)}
+            className="btn mt-3 min-h-11 w-full bg-paper text-sm uppercase"
+          >
+            How to play
+          </button>
+        )}
+
         <p className="mt-3 text-[12.7px] font-bold text-faded">
           A satirical game about constrained choices. Not nutrition advice.
         </p>

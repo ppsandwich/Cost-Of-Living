@@ -6,7 +6,6 @@ export type PowerUpId =
   | "timewalker"
   | "sweet_tooth"
   | "deep_pockets"
-  | "minimalist"
   | "bulk_buyer"
   | "label_reader"
   | "treat_whisperer"
@@ -19,7 +18,10 @@ export type PowerUpId =
   | "carb_loading"
   | "sugar_free"
   | "zero_carb"
-  | "fat_free";
+  | "fat_free"
+  | "embezzler"
+  | "dubious_food"
+  | "training_wheels";
 
 export interface PowerUp {
   id: PowerUpId;
@@ -74,12 +76,6 @@ export const POWER_UPS: PowerUp[] = [
     description: "Every round's budget is $2.00 bigger. Found it down the sofa.",
   },
   {
-    id: "minimalist",
-    name: "Minimalist",
-    icon: "🧘",
-    description: "No repetition penalty — the third beige carbohydrate is as joyful as the first.",
-  },
-  {
     id: "bulk_buyer",
     name: "Bulk Buyer",
     icon: "📦",
@@ -131,6 +127,7 @@ export const POWER_UPS: PowerUp[] = [
     id: "exposure_therapy",
     name: "Exposure Therapy",
     icon: "💉",
+    rarity: "rare",
     description: "Characters no longer have allergies or aversions. Everything is on the menu.",
   },
   {
@@ -159,6 +156,25 @@ export const POWER_UPS: PowerUp[] = [
     icon: "🪶",
     rarity: "rare",
     description: "Items no longer contain fat. Everything floats a little.",
+  },
+  {
+    id: "embezzler",
+    name: "Embezzler",
+    icon: "🕴️",
+    rarity: "rare",
+    description: "Half of your surplus rolls into the next round's budget. Nobody checks the books.",
+  },
+  {
+    id: "dubious_food",
+    name: "Dubious Food",
+    icon: "🤢",
+    description: "Expired items are 50% more prevalent. The clearance shelf overfloweth.",
+  },
+  {
+    id: "training_wheels",
+    name: "Training Wheels",
+    icon: "🛞",
+    description: "Items that would push you over a macro limit are disabled at the shelf.",
   },
 ];
 

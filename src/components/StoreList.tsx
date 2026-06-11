@@ -5,7 +5,8 @@ import { zeroedMacros } from "@/game/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { MUST_NOT_BADGE, WANT_BADGE, WANT_EMOJI } from "@/data/labels";
 import { computeImpact, PREFERENCE_TAG } from "@/game/applyFoodItem";
-import { basketFoods } from "@/game/calculateStats";
+import { basketFoods, calculateBasketStats } from "@/game/calculateStats";
+import { fatalStat } from "@/game/thresholds";
 import { getRequirementsStatus } from "@/game/requirements";
 import { quantityInBasket, quantityRemaining } from "@/game/roundEnd";
 import { FoodCard } from "./FoodCard";
@@ -35,6 +36,16 @@ export function StoreList({
   const status = getRequirementsStatus(basket, npc);
   const zeroed = zeroedMacros(powerUps);
   const bulkBuyer = powerUps.includes("bulk_buyer");
+  const trainingWheels = powerUps.includes("training_wheels");
+
+  const wouldCrossLimit = (foodItemId: string, shrinkflated?: boolean) => {
+    if (!trainingWheels) return false;
+    const existing = basket.find((b) => b.foodItemId === foodItemId);
+    const trial = existing
+      ? basket.map((b) => (b.foodItemId === foodItemId ? { ...b, quantity: b.quantity + 1 } : b))
+      : [...basket, { foodItemId, quantity: 1, pricePaidCents: 0, shrinkflated }];
+    return fatalStat(calculateBasketStats(trial, npc, powerUps), npc.maxThresholds) !== null;
+  };
 
   return (
     <section aria-label="Store shelves">
@@ -47,6 +58,7 @@ export function StoreList({
           const food = FOOD_BY_ID[storeItem.foodItemId];
           if (!food) return null;
           const impact = computeImpact(food, npc, prior, storeItem.shrinkflated, powerUps);
+          const blockedByLimits = wouldCrossLimit(storeItem.foodItemId, storeItem.shrinkflated);
           const wantMatches = npc.wants
             .filter((want) => {
               const tag = PREFERENCE_TAG[want];
@@ -68,9 +80,11 @@ export function StoreList({
               wantMatches={wantMatches}
               zeroed={zeroed}
               mustNotLabel={impact.mustNotViolation ? MUST_NOT_BADGE[npc.mustNot] : null}
+              blockedByLimits={blockedByLimits}
               canBulkAdd={
                 bulkBuyer &&
                 !bulkAddsUsed.includes(storeItem.foodItemId) &&
+                !blockedByLimits &&
                 quantityRemaining(storeItem, basket) > 0
               }
               onAdd={() => onAdd(storeItem.foodItemId)}
