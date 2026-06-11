@@ -58,6 +58,8 @@ export interface GameState {
   powerUps: PowerUpId[];
   /** Pending pick-one-of-two offer after a round win. */
   powerUpChoices: PowerUpId[] | null;
+  /** Items that already used Bulk Buyer's "One more" this round. */
+  bulkAddsUsed: string[];
   endReason?: EndReason;
   diedFromStat?: string;
   score: number;

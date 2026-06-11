@@ -15,8 +15,10 @@ interface StoreListProps {
   basket: BasketItem[];
   npc: NPC;
   powerUps: PowerUpId[];
+  bulkAddsUsed: string[];
   onAdd: (foodItemId: string) => void;
   onRemove: (foodItemId: string) => void;
+  onBulkAdd: (foodItemId: string) => void;
 }
 
 export function StoreList({
@@ -24,12 +26,15 @@ export function StoreList({
   basket,
   npc,
   powerUps,
+  bulkAddsUsed,
   onAdd,
   onRemove,
+  onBulkAdd,
 }: StoreListProps) {
   const prior = basketFoods(basket);
   const status = getRequirementsStatus(basket, npc);
   const zeroed = zeroedMacros(powerUps);
+  const bulkBuyer = powerUps.includes("bulk_buyer");
 
   return (
     <section aria-label="Store shelves">
@@ -63,8 +68,14 @@ export function StoreList({
               wantMatches={wantMatches}
               zeroed={zeroed}
               mustNotLabel={impact.mustNotViolation ? MUST_NOT_BADGE[npc.mustNot] : null}
+              canBulkAdd={
+                bulkBuyer &&
+                !bulkAddsUsed.includes(storeItem.foodItemId) &&
+                quantityRemaining(storeItem, basket) > 0
+              }
               onAdd={() => onAdd(storeItem.foodItemId)}
               onRemove={() => onRemove(storeItem.foodItemId)}
+              onBulkAdd={() => onBulkAdd(storeItem.foodItemId)}
             />
           );
         })}

@@ -8,7 +8,9 @@ const SELECTION_FUZZ = 7;
 export const ROUND_TIMER_SECONDS = 90;
 
 export function budgetMultiplierForRound(roundNumber: number): number {
-  return Math.max(0.6, 1 - (roundNumber - 1) * 0.05);
+  // Steeper than the PRD's original curve: collected power-ups carry a
+  // run, so the money has to get worse faster to keep rounds honest
+  return Math.max(0.55, 1 - (roundNumber - 1) * 0.06);
 }
 
 export function budgetPressureLabel(multiplier: number): string {

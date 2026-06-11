@@ -1,5 +1,6 @@
 import type { GameState } from "@/types/game";
 import { DEATH_MESSAGES, LOSS_MESSAGES, RUN_SUMMARY_LINES } from "@/data/flavourText";
+import { PowerUpCard } from "./PowerUps";
 
 export function RunSummary({ state, onReplay }: { state: GameState; onReplay: () => void }) {
   const npc = state.npc!;
@@ -66,21 +67,16 @@ export function RunSummary({ state, onReplay }: { state: GameState; onReplay: ()
           </div>
         </div>
 
-        {state.roundHistory.length > 0 && (
+        {state.powerUps.length > 0 && (
           <div className="mt-3">
             <h3 className="text-center text-sm font-bold uppercase tracking-widest text-faded">
-              ··· receipts ···
+              Power-ups collected
             </h3>
-            <ul className="mt-1 space-y-0.5 text-sm font-semibold leading-snug text-faded">
-              {state.roundHistory.map((r) => (
-                <li key={r.roundNumber} className="flex justify-between gap-2">
-                  <span className="truncate">
-                    R{r.roundNumber} {r.npcName.toUpperCase()} — {r.rating.toUpperCase()}
-                  </span>
-                  <span className="tabular-nums">{r.score}</span>
-                </li>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {state.powerUps.map((id) => (
+                <PowerUpCard key={id} powerUpId={id} size="medium" />
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
