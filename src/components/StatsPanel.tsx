@@ -22,17 +22,12 @@ function GoalMeter({
   const targetPercent = (target / (target * 1.4)) * 100;
   const met = Math.round(value) >= target;
   return (
-    <div>
-      <div className="flex items-baseline justify-between">
-        <span className="font-display text-xs uppercase tracking-wide">
-          <span aria-hidden>{emoji}</span> {label} {met && <span aria-hidden>✓</span>}
-        </span>
-        <span className="text-sm font-bold leading-none tabular-nums text-faded">
-          {Math.round(value)}/{target}
-        </span>
-      </div>
+    <div className="flex items-center gap-2">
+      <span className="w-24 shrink-0 font-display text-xs uppercase tracking-wide">
+        <span aria-hidden>{emoji}</span> {label} {met && <span aria-hidden>✓</span>}
+      </span>
       <div
-        className="meter-track relative mt-1 h-5 overflow-hidden"
+        className="meter-track relative h-5 min-w-0 flex-1 overflow-hidden"
         role="meter"
         aria-valuenow={Math.round(value)}
         aria-valuemin={0}
@@ -49,6 +44,9 @@ function GoalMeter({
           aria-hidden
         />
       </div>
+      <span className="w-12 shrink-0 text-right text-sm font-bold leading-none tabular-nums text-faded">
+        {Math.round(value)}/{target}
+      </span>
     </div>
   );
 }
