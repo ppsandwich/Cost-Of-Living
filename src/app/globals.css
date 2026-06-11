@@ -30,7 +30,6 @@
 @theme inline {
   --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-sour-gummy), "Arial Black", sans-serif;
-  --font-title: var(--font-freckle), "Arial Black", sans-serif;
 }
 
 body {
