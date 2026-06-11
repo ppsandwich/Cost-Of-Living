@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FoodItem } from "@/types/food";
 import type { StoreItem } from "@/types/game";
 import type { ItemImpact } from "@/game/applyFoodItem";
+import type { ZeroedMacros } from "@/game/powerups";
 import { formatCents } from "@/utils/money";
 
 interface WantMatch {
@@ -23,6 +24,8 @@ interface FoodCardProps {
   remainingQuantity: number;
   /** NPC wants this food matches, e.g. Salty/Sweet, with tick state. */
   wantMatches: WantMatch[];
+  /** Macros erased by power-ups (Sugar Free etc.). */
+  zeroed: ZeroedMacros;
   /** Set when the food crosses the NPC's dietary line. */
   mustNotLabel: string | null;
   onAdd: () => void;
@@ -36,6 +39,7 @@ export function FoodCard({
   inBasket,
   remainingQuantity,
   wantMatches,
+  zeroed,
   mustNotLabel,
   onAdd,
   onRemove,
@@ -46,12 +50,17 @@ export function FoodCard({
   const inBasketMode = inBasket > 0;
   const buyable = !soldOut && !forbidden;
 
+  // power-ups can erase a macro from every item
+  const fat = zeroed.fat ? 0 : food.fat;
+  const sugar = zeroed.sugar ? 0 : food.sugar;
+  const carbs = zeroed.carbs ? 0 : food.carbs;
+
   // show: worth mentioning · hot: red flag for the danger thresholds
   const macroBits = [
     { value: food.calories, text: `${food.calories} cal`, show: food.calories >= 400, hot: food.calories >= 700 },
-    { value: food.fat, text: `${food.fat} fat`, show: food.fat >= 15, hot: food.fat >= 35 },
-    { value: food.sugar, text: `${food.sugar} sugar`, show: food.sugar >= 25, hot: food.sugar >= 50 },
-    { value: food.carbs, text: `${food.carbs} carbs`, show: food.carbs >= 60, hot: food.carbs >= 100 },
+    { value: fat, text: `${fat} fat`, show: fat >= 15, hot: fat >= 35 },
+    { value: sugar, text: `${sugar} sugar`, show: sugar >= 25, hot: sugar >= 50 },
+    { value: carbs, text: `${carbs} carbs`, show: carbs >= 60, hot: carbs >= 100 },
     { value: food.sodium ?? 0, text: `${food.sodium} salt`, show: (food.sodium ?? 0) >= 40, hot: (food.sodium ?? 0) >= 55 },
   ].filter((m) => m.show);
 
@@ -195,9 +204,9 @@ export function FoodCard({
           <dl className="mt-1.5 grid grid-cols-3 gap-x-2 gap-y-1 text-xs font-semibold leading-tight text-faded">
             <div className={hotPill(food.calories >= 700)}>cals {food.calories}</div>
             <div>protein {food.protein}</div>
-            <div className={hotPill(food.fat >= 35)}>fat {food.fat}</div>
-            <div className={hotPill(food.sugar >= 50)}>sugar {food.sugar}</div>
-            <div className={hotPill(food.carbs >= 100)}>carbs {food.carbs}</div>
+            <div className={hotPill(fat >= 35)}>fat {fat}</div>
+            <div className={hotPill(sugar >= 50)}>sugar {sugar}</div>
+            <div className={hotPill(carbs >= 100)}>carbs {carbs}</div>
             <div>fibre {food.fibre}</div>
             <div>vits {food.vitamins}</div>
             <div>minerals {food.minerals}</div>

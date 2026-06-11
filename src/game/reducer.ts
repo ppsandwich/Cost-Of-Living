@@ -5,6 +5,16 @@ import { computeImpact, violatesMustNot } from "./applyFoodItem";
 import { basketFoods, calculateBasketStats, EMPTY_STATS } from "./calculateStats";
 import { generateInventory } from "./generateInventory";
 import { budgetMultiplierForRound, ROUND_TIMER_SECONDS, selectNPC } from "./progression";
+import type { PowerUpId } from "@/data/powerups";
+import { POWER_UPS } from "@/data/powerups";
+import {
+  adjustThresholds,
+  hasPowerUp,
+  powerUpExtraBudgetCents,
+  powerUpExtraSeconds,
+  SHOPLIFTER_CHANCE,
+} from "./powerups";
+import { createRng } from "./seededRandom";
 import { quantityRemaining } from "./roundEnd";
 import { allRequirementsMet } from "./requirements";
 import { calculateRoundScore, ratingForRound } from "./scoring";
@@ -15,6 +25,7 @@ export type GameAction =
   | { type: "ADD_ITEM"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
   | { type: "CHECKOUT" }
+  | { type: "CHOOSE_POWERUP"; powerUpId: PowerUpId }
   | { type: "TICK" }
   | { type: "NEXT_ROUND" };
 
@@ -31,7 +42,10 @@ export const INITIAL_STATE: GameState = {
   roundBudgetCents: 0,
   remainingBudgetCents: 0,
   timeRemainingSeconds: ROUND_TIMER_SECONDS,
+  roundDurationSeconds: ROUND_TIMER_SECONDS,
   previousNPCIds: [],
+  powerUps: [],
+  powerUpChoices: null,
   score: 0,
   totalScore: 0,
   bestScore: 0,
@@ -50,31 +64,58 @@ export function previewNextBudgetCents(state: GameState): number {
   const roundNumber = state.roundNumber + 1;
   const previous = state.npc ? [...state.previousNPCIds, state.npc.id] : state.previousNPCIds;
   const npc = selectNPC(previous, roundSeed(state.seed, roundNumber));
-  return Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber));
+  return (
+    Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
+    powerUpExtraBudgetCents(state.powerUps)
+  );
 }
 
 function setupRound(state: GameState, roundNumber: number): GameState {
   const seed = roundSeed(state.seed, roundNumber);
   const budgetMultiplier = budgetMultiplierForRound(roundNumber);
-  const npc = selectNPC(state.previousNPCIds, seed);
-  const roundBudgetCents = Math.round(npc.baseBudgetCents * budgetMultiplier);
+  const selected = selectNPC(state.previousNPCIds, seed);
+  // Power-ups that bend the rules live on an adjusted copy of the NPC
+  const npc = {
+    ...selected,
+    maxThresholds: adjustThresholds(selected.maxThresholds, state.powerUps),
+    mustNot: hasPowerUp(state.powerUps, "exposure_therapy")
+      ? ("none" as const)
+      : selected.mustNot,
+  };
+  const roundBudgetCents =
+    Math.round(npc.baseBudgetCents * budgetMultiplier) +
+    powerUpExtraBudgetCents(state.powerUps);
+  const roundDurationSeconds = ROUND_TIMER_SECONDS + powerUpExtraSeconds(state.powerUps);
   return {
     ...state,
     status: "playing",
     roundNumber,
     budgetMultiplier,
     npc,
-    inventory: generateInventory(npc, roundBudgetCents, seed, roundNumber),
+    inventory: generateInventory(npc, roundBudgetCents, seed, roundNumber, state.powerUps),
     basket: [],
     stats: { ...EMPTY_STATS },
     roundBudgetCents,
     remainingBudgetCents: roundBudgetCents,
-    timeRemainingSeconds: ROUND_TIMER_SECONDS,
+    timeRemainingSeconds: roundDurationSeconds,
+    roundDurationSeconds,
     endReason: undefined,
     diedFromStat: undefined,
     score: 0,
     lastFeedback: null,
   };
+}
+
+/** Two random not-yet-owned power-ups to choose between after a win. */
+function rollPowerUpChoices(state: GameState): PowerUpId[] | null {
+  const rng = createRng((roundSeed(state.seed, state.roundNumber) ^ 0x9e3779b9) >>> 0);
+  const pool = POWER_UPS.map((p) => p.id).filter((id) => !state.powerUps.includes(id));
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const choices = pool.slice(0, 2);
+  return choices.length > 0 ? choices : null;
 }
 
 function winRound(state: GameState): GameState {
@@ -93,6 +134,7 @@ function winRound(state: GameState): GameState {
     ...state,
     status: "round_won",
     endReason: "goals_met",
+    powerUpChoices: rollPowerUpChoices(state),
     score,
     totalScore,
     successfulRounds: state.successfulRounds + 1,
@@ -146,7 +188,7 @@ function feedbackFor(state: GameState, foodItemId: string): string {
   const food = FOOD_BY_ID[foodItemId];
   const prior = basketFoods(state.basket).slice(0, -1);
   const shrinkflated = state.inventory.find((i) => i.foodItemId === foodItemId)?.shrinkflated;
-  const impact = computeImpact(food, npc, prior, shrinkflated);
+  const impact = computeImpact(food, npc, prior, shrinkflated, state.powerUps);
 
   const warnings = warningStats(state.stats, npc.maxThresholds);
   if (warnings.length > 0) return WARNING_FEEDBACK[warnings[0]];
@@ -189,6 +231,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (violatesMustNot(FOOD_BY_ID[action.foodItemId], state.npc)) return state;
 
       const existing = state.basket.find((b) => b.foodItemId === action.foodItemId);
+      // Shoplifter: first add of an item each round may count double
+      const luckyDouble =
+        !existing &&
+        hasPowerUp(state.powerUps, "shoplifter") &&
+        createRng(
+          (roundSeed(state.seed, state.roundNumber) ^
+            [...action.foodItemId].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)) >>>
+            0
+        )() < SHOPLIFTER_CHANCE;
       const basket = existing
         ? state.basket.map((b) =>
             b.foodItemId === action.foodItemId ? { ...b, quantity: b.quantity + 1 } : b
@@ -200,10 +251,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               quantity: 1,
               pricePaidCents: storeItem.currentPriceCents,
               shrinkflated: storeItem.shrinkflated,
+              luckyDouble,
             },
           ];
 
-      const stats = calculateBasketStats(basket, state.npc);
+      const stats = calculateBasketStats(basket, state.npc, state.powerUps);
       const remainingBudgetCents = state.remainingBudgetCents - storeItem.currentPriceCents;
       // Overspending is allowed mid-round; checkout stays locked until
       // the basket is trimmed back within budget
@@ -221,7 +273,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               b.foodItemId === action.foodItemId ? { ...b, quantity: b.quantity - 1 } : b
             )
           : state.basket.filter((b) => b.foodItemId !== action.foodItemId);
-      const stats = calculateBasketStats(basket, state.npc);
+      const stats = calculateBasketStats(basket, state.npc, state.powerUps);
       return {
         ...state,
         basket,
@@ -242,6 +294,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         return state;
       }
       return winRound(state);
+    }
+
+    case "CHOOSE_POWERUP": {
+      if (state.status !== "round_won" || !state.powerUpChoices) return state;
+      if (!state.powerUpChoices.includes(action.powerUpId)) return state;
+      return {
+        ...state,
+        powerUps: [...state.powerUps, action.powerUpId],
+        powerUpChoices: null,
+      };
     }
 
     case "TICK": {

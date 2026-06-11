@@ -1,4 +1,5 @@
 import type { NPC, NutritionStats } from "./npc";
+import type { PowerUpId } from "@/data/powerups";
 
 export type GameMode = "standard_run";
 
@@ -26,6 +27,8 @@ export interface BasketItem {
   pricePaidCents: number;
   /** Carried over from the store item at purchase time. */
   shrinkflated?: boolean;
+  /** Shoplifter power-up: this entry counts double. */
+  luckyDouble?: boolean;
 }
 
 export interface RoundResult {
@@ -48,7 +51,13 @@ export interface GameState {
   roundBudgetCents: number;
   remainingBudgetCents: number;
   timeRemainingSeconds: number;
+  /** Full length of the current round, power-ups included. */
+  roundDurationSeconds: number;
   previousNPCIds: string[];
+  /** Power-ups collected this run. */
+  powerUps: PowerUpId[];
+  /** Pending pick-one-of-two offer after a round win. */
+  powerUpChoices: PowerUpId[] | null;
   endReason?: EndReason;
   diedFromStat?: string;
   score: number;

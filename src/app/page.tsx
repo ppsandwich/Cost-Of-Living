@@ -10,6 +10,7 @@ import { BasketDrawer } from "@/components/BasketDrawer";
 import { OutcomeModal } from "@/components/OutcomeModal";
 import { RunSummary } from "@/components/RunSummary";
 import { StartScreen } from "@/components/StartScreen";
+import { PowerUpShelf } from "@/components/PowerUps";
 
 export default function Home() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
@@ -61,11 +62,13 @@ export default function Home() {
         roundNumber={state.roundNumber}
         budgetMultiplier={state.budgetMultiplier}
         timeRemainingSeconds={state.timeRemainingSeconds}
+        roundDurationSeconds={state.roundDurationSeconds}
       />
 
       <main className="mx-auto w-full max-w-md flex-1 px-3 pb-3 pt-2 lg:grid lg:max-w-6xl lg:grid-cols-[320px_1fr_340px] lg:items-start lg:gap-4">
         <div className="space-y-3 lg:sticky lg:top-28">
           <NPCPanel npc={state.npc} basket={state.basket} />
+          <PowerUpShelf powerUps={state.powerUps} />
           <p
             aria-live="polite"
             className="min-h-5 px-1 text-xs font-semibold italic text-ink/70"
@@ -80,6 +83,7 @@ export default function Home() {
             inventory={state.inventory}
             basket={state.basket}
             npc={state.npc}
+            powerUps={state.powerUps}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
             onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
           />
@@ -99,7 +103,11 @@ export default function Home() {
       </main>
 
       {state.status === "round_won" && (
-        <OutcomeModal state={state} onNextRound={() => dispatch({ type: "NEXT_ROUND" })} />
+        <OutcomeModal
+          state={state}
+          onNextRound={() => dispatch({ type: "NEXT_ROUND" })}
+          onChoosePowerUp={(powerUpId) => dispatch({ type: "CHOOSE_POWERUP", powerUpId })}
+        />
       )}
       {state.status === "lost" && <RunSummary state={state} onReplay={startRun} />}
     </div>

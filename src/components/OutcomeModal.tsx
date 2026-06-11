@@ -3,6 +3,8 @@ import type { GameState } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { WIN_MESSAGES } from "@/data/flavourText";
 import { previewNextBudgetCents } from "@/game/reducer";
+import type { PowerUpId } from "@/data/powerups";
+import { PowerUpChoice } from "./PowerUps";
 import { formatCents } from "@/utils/money";
 
 const STRIKE_MS = 450; // strike draws across the old budget
@@ -57,10 +59,13 @@ function BudgetCountdown({ fromCents, toCents }: { fromCents: number; toCents: n
 export function OutcomeModal({
   state,
   onNextRound,
+  onChoosePowerUp,
 }: {
   state: GameState;
   onNextRound: () => void;
+  onChoosePowerUp: (id: PowerUpId) => void;
 }) {
+  const mustChoose = state.powerUpChoices !== null && state.powerUpChoices.length > 0;
   const npc = state.npc!;
   const winLine = WIN_MESSAGES[state.roundNumber % WIN_MESSAGES.length](npc.name);
   const lastResult = state.roundHistory[state.roundHistory.length - 1];
@@ -108,13 +113,29 @@ export function OutcomeModal({
             .join(" ")}
         </p>
 
+        {mustChoose && (
+          <PowerUpChoice choices={state.powerUpChoices!} onChoose={onChoosePowerUp} />
+        )}
+
         <button
           type="button"
           onClick={onNextRound}
+          disabled={mustChoose}
           className="btn mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
         >
-          Next round:{" "}
-          <BudgetCountdown fromCents={state.roundBudgetCents} toCents={nextBudgetCents} /> budget
+          {mustChoose ? (
+            "Pick a power-up first"
+          ) : (
+            <>
+              Next round:{" "}
+              <BudgetCountdown
+                key={nextBudgetCents}
+                fromCents={state.roundBudgetCents}
+                toCents={nextBudgetCents}
+              />{" "}
+              budget
+            </>
+          )}
         </button>
         </div>
       </div>

@@ -1,5 +1,7 @@
 import type { FoodItem } from "@/types/food";
 import type { DangerThresholds, NutritionStats } from "@/types/npc";
+import type { PowerUpId } from "@/data/powerups";
+import { zeroedMacros } from "./powerups";
 
 export type DangerStat = "calories" | "fat" | "sugar" | "carbs" | "sodium";
 
@@ -40,12 +42,17 @@ export function warningStats(stats: NutritionStats, thresholds: DangerThresholds
 }
 
 /** True if this one item, alone in the basket, would already be over a limit. */
-export function exceedsAnyLimitAlone(food: FoodItem, thresholds: DangerThresholds): boolean {
+export function exceedsAnyLimitAlone(
+  food: FoodItem,
+  thresholds: DangerThresholds,
+  powerUps: PowerUpId[] = []
+): boolean {
+  const zeroed = zeroedMacros(powerUps);
   return (
     food.calories > thresholds.caloriesMax ||
-    food.fat > thresholds.fatMax ||
-    food.sugar > thresholds.sugarMax ||
-    food.carbs > thresholds.carbsMax ||
+    (zeroed.fat ? 0 : food.fat) > thresholds.fatMax ||
+    (zeroed.sugar ? 0 : food.sugar) > thresholds.sugarMax ||
+    (zeroed.carbs ? 0 : food.carbs) > thresholds.carbsMax ||
     (food.sodium ?? 0) > thresholds.sodiumMax
   );
 }

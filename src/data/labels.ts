@@ -43,6 +43,7 @@ export const MUST_NOT_LABEL: Record<DietaryMustNot, string> = {
   nut_allergy: "Nut allergy — no nuts",
   dairy_allergy: "Dairy allergy — no dairy",
   egg_allergy: "Egg allergy — no egg",
+  none: "Eats anything — exposure therapy!",
 };
 
 /** What a violating food card screams. */
@@ -53,4 +54,5 @@ export const MUST_NOT_BADGE: Record<DietaryMustNot, string> = {
   nut_allergy: "Nuts — allergic!",
   dairy_allergy: "Dairy — allergic!",
   egg_allergy: "Egg — allergic!",
+  none: "",
 };

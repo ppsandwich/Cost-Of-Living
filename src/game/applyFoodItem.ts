@@ -1,5 +1,7 @@
 import type { EquipmentRequirement, FoodItem, FoodTag } from "@/types/food";
 import type { FoodPreference, NPC } from "@/types/npc";
+import type { PowerUpId } from "@/data/powerups";
+import { hasPowerUp, zeroedMacros } from "./powerups";
 
 export interface ItemImpact {
   nutritionGain: number;
@@ -58,6 +60,7 @@ const MUST_NOT_TAGS: Record<NPC["mustNot"], FoodTag[]> = {
   nut_allergy: ["nuts"],
   dairy_allergy: ["dairy"],
   egg_allergy: ["egg"],
+  none: [],
 };
 
 /** True if this food crosses the NPC's hard dietary line. */
@@ -102,7 +105,8 @@ export function computeImpact(
   food: FoodItem,
   npc: NPC,
   priorFoods: FoodItem[],
-  shrinkflated = false
+  shrinkflated = false,
+  powerUps: PowerUpId[] = []
 ): ItemImpact {
   const s = npc.sensitivity;
   const restrictions = npc.restrictions;
@@ -117,33 +121,45 @@ export function computeImpact(
     food.category === "vegetable" || food.category === "fruit"
       ? s.nutritionFromVegetablesMultiplier
       : 1;
-  const equipNutritionMult = equipmentMismatch ? 0.6 : 1;
+  const campChef = hasPowerUp(powerUps, "camp_chef");
+  const equipNutritionMult = equipmentMismatch ? (campChef ? 0.8 : 0.6) : 1;
   const mustNotNutritionMult = mustNotViolation ? 0.4 : 1;
+  // Iron Stomach: expired food keeps most of its goodness
+  const ironStomachMult =
+    food.variant === "expired" && hasPowerUp(powerUps, "iron_stomach") ? 1.5 : 1;
+  // Plant Lover: fresh food blooms
+  const plantLoverMult =
+    food.tags.includes("fresh") && hasPowerUp(powerUps, "plant_lover") ? 1.2 : 1;
 
   const proteinContribution =
-    food.protein * 0.1 * (restrictions.includes("high_protein_need") ? 1.5 : 1);
+    food.protein *
+    0.1 *
+    (restrictions.includes("high_protein_need") ? 1.5 : 1) *
+    (hasPowerUp(powerUps, "protein_shaker") ? 1.5 : 1);
   const fibreContribution =
     food.fibre * 0.15 * (restrictions.includes("high_fibre_need") ? 1.5 : 1);
   const vitaminContribution = food.vitamins * 0.2 * s.vitaminNeedMultiplier;
   const mineralContribution = food.minerals * 0.15 * s.mineralNeedMultiplier;
 
+  const zeroed = zeroedMacros(powerUps);
   const excessSugarPenalty =
-    Math.max(0, food.sugar - 25) *
+    Math.max(0, (zeroed.sugar ? 0 : food.sugar) - 25) *
     0.15 *
     s.sugarPenaltyMultiplier *
     (restrictions.includes("low_sugar") ? 1.5 : 1);
   const excessFatPenalty =
-    Math.max(0, food.fat - 20) *
+    Math.max(0, (zeroed.fat ? 0 : food.fat) - 20) *
     0.2 *
     s.fatPenaltyMultiplier *
     (restrictions.includes("low_fat") ? 1.5 : 1);
-  const excessCarbPenalty = Math.max(0, food.carbs - 120) * 0.05 * s.carbPenaltyMultiplier;
+  const excessCarbPenalty =
+    Math.max(0, (zeroed.carbs ? 0 : food.carbs) - 120) * 0.05 * s.carbPenaltyMultiplier;
   const excessSodiumPenalty =
     Math.max(0, (food.sodium ?? 0) - 40) * 0.1 * (restrictions.includes("low_sodium") ? 1.5 : 1);
 
   const nutritionGain = Math.max(
     0,
-    food.baseNutrition * quality * vegMult * equipNutritionMult * mustNotNutritionMult +
+    (food.baseNutrition * quality * vegMult * equipNutritionMult * mustNotNutritionMult +
       proteinContribution +
       fibreContribution +
       vitaminContribution +
@@ -151,7 +167,9 @@ export function computeImpact(
       excessSugarPenalty -
       excessFatPenalty -
       excessCarbPenalty -
-      excessSodiumPenalty
+      excessSodiumPenalty) *
+      ironStomachMult *
+      plantLoverMult
   );
 
   // ── Happiness ──
@@ -162,13 +180,18 @@ export function computeImpact(
   const preferenceMultiplier = 1 + 0.25 * matchedLikes;
 
   const sameCategoryCount = priorFoods.filter((f) => f.category === food.category).length;
-  let varietyMultiplier = Math.max(0.4, 1 - 0.18 * sameCategoryCount);
+  // Minimalist: repetition never wears the joy down
+  let varietyMultiplier = hasPowerUp(powerUps, "minimalist")
+    ? 1
+    : Math.max(0.4, 1 - 0.18 * sameCategoryCount);
   if (npc.wants.includes("likes_variety") && sameCategoryCount === 0) {
     varietyMultiplier *= 1.15;
   }
 
-  const treatsMultiplier = isTreatLike(food) ? s.happinessFromTreatsMultiplier : 1;
-  const equipmentMultiplier = equipmentMismatch ? 0.5 : 1;
+  const treatsMultiplier =
+    (isTreatLike(food) ? s.happinessFromTreatsMultiplier : 1) *
+    (isTreatLike(food) && hasPowerUp(powerUps, "treat_whisperer") ? 1.25 : 1);
+  const equipmentMultiplier = equipmentMismatch ? (campChef ? 0.75 : 0.5) : 1;
   const restrictionPenalty = mustNotViolation ? 15 : 0;
 
   const happinessGain =
@@ -177,10 +200,16 @@ export function computeImpact(
       preferenceMultiplier *
       varietyMultiplier *
       treatsMultiplier *
-      equipmentMultiplier -
+      equipmentMultiplier *
+      plantLoverMult -
     restrictionPenalty;
 
-  const shrinkMult = shrinkflated ? SHRINKFLATION_MULTIPLIER : 1;
+  // Label Reader: shrinkflation only stings a quarter
+  const shrinkMult = shrinkflated
+    ? hasPowerUp(powerUps, "label_reader")
+      ? 0.75
+      : SHRINKFLATION_MULTIPLIER
+    : 1;
 
   return {
     nutritionGain: Math.round(nutritionGain * shrinkMult * 10) / 10,
