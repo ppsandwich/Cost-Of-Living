@@ -97,17 +97,7 @@ body {
   filter: drop-shadow(0 3px 0 rgba(51, 36, 28, 0.25));
 }
 
-/* ── Price tags & special stickers ────────────────────────── */
-
-.price-tag {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  background: var(--color-tag);
-  border: 2px solid var(--color-ink);
-  border-radius: 0.375rem;
-  box-shadow: 2px 2px 0 rgba(51, 36, 28, 0.25);
-  line-height: 1;
-}
+/* ── Special stickers ─────────────────────────────────────── */
 
 .sticker {
   transform: rotate(-3deg);
@@ -141,6 +131,22 @@ body {
     rgba(226, 61, 40, 0.07) 0deg 15deg,
     transparent 15deg 30deg
   );
+}
+
+/* Oversized spinning sunburst layer for celebration screens */
+.sunburst-spin {
+  background-image: repeating-conic-gradient(
+    from 0deg,
+    rgba(226, 61, 40, 0.07) 0deg 15deg,
+    transparent 15deg 30deg
+  );
+  animation: spin-slow 45s linear infinite;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes strike-in {

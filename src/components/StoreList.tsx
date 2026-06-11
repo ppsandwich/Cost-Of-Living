@@ -12,7 +12,6 @@ interface StoreListProps {
   inventory: StoreItem[];
   basket: BasketItem[];
   npc: NPC;
-  remainingBudgetCents: number;
   onAdd: (foodItemId: string) => void;
   onRemove: (foodItemId: string) => void;
 }
@@ -21,7 +20,6 @@ export function StoreList({
   inventory,
   basket,
   npc,
-  remainingBudgetCents,
   onAdd,
   onRemove,
 }: StoreListProps) {
@@ -57,7 +55,6 @@ export function StoreList({
               impact={impact}
               inBasket={quantityInBasket(basket, storeItem.foodItemId)}
               remainingQuantity={quantityRemaining(storeItem, basket)}
-              affordable={storeItem.currentPriceCents <= remainingBudgetCents}
               wantMatches={wantMatches}
               mustNotLabel={impact.mustNotViolation ? MUST_NOT_BADGE[npc.mustNot] : null}
               onAdd={() => onAdd(storeItem.foodItemId)}

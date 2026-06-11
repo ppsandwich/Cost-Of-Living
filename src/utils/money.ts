@@ -1,3 +1,4 @@
 export function formatCents(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  const sign = cents < 0 ? "-" : "";
+  return `${sign}$${(Math.abs(cents) / 100).toFixed(2)}`;
 }

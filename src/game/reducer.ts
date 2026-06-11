@@ -5,7 +5,7 @@ import { computeImpact, violatesMustNot } from "./applyFoodItem";
 import { basketFoods, calculateBasketStats, EMPTY_STATS } from "./calculateStats";
 import { generateInventory } from "./generateInventory";
 import { budgetMultiplierForRound, ROUND_TIMER_SECONDS, selectNPC } from "./progression";
-import { canAffordAnything, quantityRemaining } from "./roundEnd";
+import { quantityRemaining } from "./roundEnd";
 import { allRequirementsMet } from "./requirements";
 import { calculateRoundScore, ratingForRound } from "./scoring";
 import { fatalStat, warningStats } from "./thresholds";
@@ -110,10 +110,7 @@ function winRound(state: GameState): GameState {
   };
 }
 
-function loseRound(
-  state: GameState,
-  endReason: "timer_expired" | "out_of_money" | "submitted_failed"
-): GameState {
+function loseRound(state: GameState, endReason: "timer_expired"): GameState {
   return {
     ...state,
     status: "lost",
@@ -126,10 +123,7 @@ function loseRound(
  * Settle the round: death first if any threshold is exceeded, then a win
  * if every requirement is met, otherwise the given loss reason.
  */
-function evaluateRound(
-  state: GameState,
-  failReason: "timer_expired" | "out_of_money" | "submitted_failed"
-): GameState {
+function evaluateRound(state: GameState, failReason: "timer_expired"): GameState {
   const npc = state.npc!;
   const fatal = fatalStat(state.stats, npc.maxThresholds);
   if (fatal) {
@@ -141,7 +135,7 @@ function evaluateRound(
       bestScore: Math.max(state.bestScore, state.totalScore),
     };
   }
-  if (allRequirementsMet(state.stats, state.basket, npc)) {
+  if (state.remainingBudgetCents >= 0 && allRequirementsMet(state.stats, state.basket, npc)) {
     return winRound(state);
   }
   return loseRound(state, failReason);
@@ -191,7 +185,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const storeItem = state.inventory.find((i) => i.foodItemId === action.foodItemId);
       if (!storeItem) return state;
       if (quantityRemaining(storeItem, state.basket) <= 0) return state;
-      if (storeItem.currentPriceCents > state.remainingBudgetCents) return state;
       // Forbidden items are display-only: the till refuses them
       if (violatesMustNot(FOOD_BY_ID[action.foodItemId], state.npc)) return state;
 
@@ -212,19 +205,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       const stats = calculateBasketStats(basket, state.npc);
       const remainingBudgetCents = state.remainingBudgetCents - storeItem.currentPriceCents;
-      let next: GameState = { ...state, basket, stats, remainingBudgetCents };
-
-      next = { ...next, lastFeedback: feedbackFor(next, action.foodItemId) };
-
-      // Out of valid purchases: settle the round — unless a threshold is
-      // exceeded, since removing items can still bring the basket back
-      if (
-        !canAffordAnything(next.inventory, basket, remainingBudgetCents, state.npc) &&
-        !fatalStat(stats, state.npc.maxThresholds)
-      ) {
-        return evaluateRound(next, "out_of_money");
-      }
-      return next;
+      // Overspending is allowed mid-round; checkout stays locked until
+      // the basket is trimmed back within budget
+      const next: GameState = { ...state, basket, stats, remainingBudgetCents };
+      return { ...next, lastFeedback: feedbackFor(next, action.foodItemId) };
     }
 
     case "REMOVE_ITEM": {
@@ -249,7 +233,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
     case "CHECKOUT": {
       if (state.status !== "playing" || !state.npc) return state;
-      return evaluateRound(state, "submitted_failed");
+      // The till only opens when every objective is met and the money adds up
+      if (
+        state.remainingBudgetCents < 0 ||
+        fatalStat(state.stats, state.npc.maxThresholds) ||
+        !allRequirementsMet(state.stats, state.basket, state.npc)
+      ) {
+        return state;
+      }
+      return winRound(state);
     }
 
     case "TICK": {
