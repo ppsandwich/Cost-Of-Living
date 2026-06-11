@@ -67,6 +67,12 @@ export interface NPC {
   ageLabel: string;
   description: string;
   mood: string;
+  /**
+   * Average balance-bot win rate across all budget multipliers (percent).
+   * Measured by `npm run balance` — higher means easier. Drives round
+   * ordering: easy NPCs front-load a run, hard ones close it out.
+   */
+  botWinRate: number;
   baseBudgetCents: number;
   nutritionTarget: number;
   happinessTarget: number;

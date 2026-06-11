@@ -102,12 +102,14 @@ console.log(
 );
 for (const npc of NPCS) {
   let row = npc.id.padEnd(10);
+  let sum = 0;
   for (const multiplier of MULTIPLIERS) {
     let wins = 0;
     for (let s = 0; s < SEEDS_PER_CELL; s++) {
       if (simulate(npc, multiplier, 1000 + s * 7919)) wins++;
     }
     const rate = wins / SEEDS_PER_CELL;
+    sum += rate;
     // PRD §29: round 1 must be winnable; high multipliers should be
     // comfortable; low multipliers may be very difficult but not impossible.
     if (multiplier >= 0.9 && rate < 0.9) failures++;
@@ -115,6 +117,8 @@ for (const npc of NPCS) {
     else if (rate <= 0.1) failures++;
     row += `${Math.round(rate * 100)}%`.padStart(7);
   }
+  const avg = Math.round((sum / MULTIPLIERS.length) * 100);
+  row += `  avg ${avg}% ${avg === npc.botWinRate ? "" : `(data says ${npc.botWinRate})`}`;
   console.log(row);
 }
 

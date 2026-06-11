@@ -316,7 +316,7 @@ export const FOOD_ITEMS: FoodItem[] = [
     sodium: 70,
     baseNutrition: 8,
     baseHappiness: 12,
-    tags: ["cheap", "filling", "processed", "salty", "comfort", "high_carb", "low_prep"],
+    tags: ["cheap", "filling", "processed", "salty", "comfort", "high_carb", "low_prep", "spicy"],
     requiresEquipment: ["kettle"],
     maxQuantity: 3,
     flavour: "Cheap. Salty. Legally adjacent to dinner.",
