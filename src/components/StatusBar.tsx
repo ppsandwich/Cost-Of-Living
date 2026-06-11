@@ -1,11 +1,12 @@
 import type { NPC } from "@/types/npc";
-import { budgetPressureLabel, ROUND_TIMER_SECONDS } from "@/game/progression";
+import { budgetPressureLabel } from "@/game/progression";
 
 interface StatusBarProps {
   npc: NPC;
   roundNumber: number;
   budgetMultiplier: number;
   timeRemainingSeconds: number;
+  roundDurationSeconds: number;
 }
 
 export function StatusBar({
@@ -13,13 +14,14 @@ export function StatusBar({
   roundNumber,
   budgetMultiplier,
   timeRemainingSeconds,
+  roundDurationSeconds,
 }: StatusBarProps) {
   const minutes = Math.floor(timeRemainingSeconds / 60);
   const seconds = timeRemainingSeconds % 60;
   const timeLow = timeRemainingSeconds <= 15;
   const timePercent = Math.max(
     0,
-    Math.min(100, (timeRemainingSeconds / ROUND_TIMER_SECONDS) * 100)
+    Math.min(100, (timeRemainingSeconds / roundDurationSeconds) * 100)
   );
 
   return (

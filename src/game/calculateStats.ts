@@ -1,8 +1,10 @@
 import type { FoodItem } from "@/types/food";
 import type { NPC, NutritionStats } from "@/types/npc";
 import type { BasketItem } from "@/types/game";
+import type { PowerUpId } from "@/data/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { computeImpact } from "./applyFoodItem";
+import { zeroedMacros } from "./powerups";
 
 export const EMPTY_STATS: NutritionStats = {
   calories: 0,
@@ -22,26 +24,32 @@ export const EMPTY_STATS: NutritionStats = {
  * Recompute full NPC stats from the basket, applying items in purchase
  * order so variety/repetition effects are consistent on add and remove.
  */
-export function calculateBasketStats(basket: BasketItem[], npc: NPC): NutritionStats {
+export function calculateBasketStats(
+  basket: BasketItem[],
+  npc: NPC,
+  powerUps: PowerUpId[] = []
+): NutritionStats {
   const stats: NutritionStats = { ...EMPTY_STATS };
   const applied: FoodItem[] = [];
+  const zeroed = zeroedMacros(powerUps);
 
   for (const entry of basket) {
     const food = FOOD_BY_ID[entry.foodItemId];
     if (!food) continue;
+    const luckyMult = entry.luckyDouble ? 2 : 1;
     for (let i = 0; i < entry.quantity; i++) {
-      const impact = computeImpact(food, npc, applied, entry.shrinkflated);
+      const impact = computeImpact(food, npc, applied, entry.shrinkflated, powerUps);
       stats.calories += food.calories;
       stats.protein += food.protein;
-      stats.fat += food.fat;
-      stats.sugar += food.sugar;
-      stats.carbs += food.carbs;
+      stats.fat += zeroed.fat ? 0 : food.fat;
+      stats.sugar += zeroed.sugar ? 0 : food.sugar;
+      stats.carbs += zeroed.carbs ? 0 : food.carbs;
       stats.fibre += food.fibre;
       stats.vitamins += food.vitamins;
       stats.minerals += food.minerals;
       stats.sodium += food.sodium ?? 0;
-      stats.nutrition += impact.nutritionGain;
-      stats.happiness += impact.happinessGain;
+      stats.nutrition += impact.nutritionGain * luckyMult;
+      stats.happiness += impact.happinessGain * luckyMult;
       applied.push(food);
     }
   }

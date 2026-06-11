@@ -1,5 +1,7 @@
 import type { NPC } from "@/types/npc";
 import type { BasketItem, StoreItem } from "@/types/game";
+import type { PowerUpId } from "@/data/powerups";
+import { zeroedMacros } from "@/game/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { MUST_NOT_BADGE, WANT_BADGE, WANT_EMOJI } from "@/data/labels";
 import { computeImpact, PREFERENCE_TAG } from "@/game/applyFoodItem";
@@ -12,6 +14,7 @@ interface StoreListProps {
   inventory: StoreItem[];
   basket: BasketItem[];
   npc: NPC;
+  powerUps: PowerUpId[];
   onAdd: (foodItemId: string) => void;
   onRemove: (foodItemId: string) => void;
 }
@@ -20,11 +23,13 @@ export function StoreList({
   inventory,
   basket,
   npc,
+  powerUps,
   onAdd,
   onRemove,
 }: StoreListProps) {
   const prior = basketFoods(basket);
   const status = getRequirementsStatus(basket, npc);
+  const zeroed = zeroedMacros(powerUps);
 
   return (
     <section aria-label="Store shelves">
@@ -36,7 +41,7 @@ export function StoreList({
         {inventory.map((storeItem) => {
           const food = FOOD_BY_ID[storeItem.foodItemId];
           if (!food) return null;
-          const impact = computeImpact(food, npc, prior, storeItem.shrinkflated);
+          const impact = computeImpact(food, npc, prior, storeItem.shrinkflated, powerUps);
           const wantMatches = npc.wants
             .filter((want) => {
               const tag = PREFERENCE_TAG[want];
@@ -56,6 +61,7 @@ export function StoreList({
               inBasket={quantityInBasket(basket, storeItem.foodItemId)}
               remainingQuantity={quantityRemaining(storeItem, basket)}
               wantMatches={wantMatches}
+              zeroed={zeroed}
               mustNotLabel={impact.mustNotViolation ? MUST_NOT_BADGE[npc.mustNot] : null}
               onAdd={() => onAdd(storeItem.foodItemId)}
               onRemove={() => onRemove(storeItem.foodItemId)}

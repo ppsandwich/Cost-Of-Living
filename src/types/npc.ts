@@ -37,7 +37,9 @@ export type DietaryMustNot =
   | "no_pork"
   | "nut_allergy"
   | "dairy_allergy"
-  | "egg_allergy";
+  | "egg_allergy"
+  /** Exposure Therapy power-up: the hard line is gone. */
+  | "none";
 
 /** Soft modifiers: shape how food lands, but aren't win requirements. */
 export type FoodRestriction =

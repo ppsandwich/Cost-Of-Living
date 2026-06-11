@@ -4,6 +4,13 @@ import type { StoreItem } from "@/types/game";
 import { FOOD_ITEMS } from "@/data/foodItems";
 import { hasEquipmentMismatch, PREFERENCE_TAG, violatesMustNot } from "./applyFoodItem";
 import { exceedsAnyLimitAlone } from "./thresholds";
+import type { PowerUpId } from "@/data/powerups";
+import {
+  powerUpExtraSpecials,
+  powerUpInventoryMultiplier,
+  powerUpPriceMultiplier,
+  powerUpQuantityBonus,
+} from "./powerups";
 import { createRng, randomBetween, randomInt, shuffle, type RNG } from "./seededRandom";
 
 export const INVENTORY_SIZE = 16;
@@ -22,8 +29,8 @@ function usableBy(food: FoodItem, npc: NPC): boolean {
 }
 
 /** The shelf never stocks something that alone would already be over a limit. */
-function shelfSafe(food: FoodItem, npc: NPC): boolean {
-  return !exceedsAnyLimitAlone(food, npc.maxThresholds);
+function shelfSafe(food: FoodItem, npc: NPC, powerUps: PowerUpId[]): boolean {
+  return !exceedsAnyLimitAlone(food, npc.maxThresholds, powerUps);
 }
 
 /** Chance each of the 5 shrinkflation slots fires, rising with the round. */
@@ -35,17 +42,19 @@ export function generateInventory(
   npc: NPC,
   roundBudgetCents: number,
   seed: number,
-  roundNumber = 1
+  roundNumber = 1,
+  powerUps: PowerUpId[] = []
 ): StoreItem[] {
   const rng = createRng(seed);
   const chosen = new Map<string, FoodItem>();
+  const inventorySize = Math.round(INVENTORY_SIZE * powerUpInventoryMultiplier(powerUps));
 
   // Guaranteed slots only ever pick standard items: a premium "protein
   // source" nobody can afford or an expired "cheap option" that delivers
   // nothing would be a fake safety net. Variants arrive via random fill.
   const pickFirst = (pool: FoodItem[], predicate: (f: FoodItem) => boolean) => {
     const candidate = shuffle(rng, pool).find(
-      (f) => !chosen.has(f.id) && !f.variant && shelfSafe(f, npc) && predicate(f)
+      (f) => !chosen.has(f.id) && !f.variant && shelfSafe(f, npc, powerUps) && predicate(f)
     );
     if (candidate) chosen.set(candidate.id, candidate);
   };
@@ -92,11 +101,11 @@ export function generateInventory(
 
   // 1–5 items the NPC can't eat, shown disabled on the shelf
   const forbiddenPool = FOOD_ITEMS.filter(
-    (f) => violatesMustNot(f, npc) && shelfSafe(f, npc) && !chosen.has(f.id)
+    (f) => violatesMustNot(f, npc) && shelfSafe(f, npc, powerUps) && !chosen.has(f.id)
   );
   const forbiddenCount = Math.max(
-    1,
-    Math.min(forbiddenPool.length, randomInt(rng, 1, 5), INVENTORY_SIZE - chosen.size)
+    forbiddenPool.length > 0 ? 1 : 0,
+    Math.min(forbiddenPool.length, randomInt(rng, 1, 5), inventorySize - chosen.size)
   );
   for (const food of shuffle(rng, forbiddenPool).slice(0, forbiddenCount)) {
     chosen.set(food.id, food);
@@ -104,16 +113,18 @@ export function generateInventory(
 
   // Fill the rest with food the NPC can actually eat
   for (const food of shuffle(rng, FOOD_ITEMS)) {
-    if (chosen.size >= INVENTORY_SIZE) break;
-    if (!chosen.has(food.id) && !violatesMustNot(food, npc) && shelfSafe(food, npc)) {
+    if (chosen.size >= inventorySize) break;
+    if (!chosen.has(food.id) && !violatesMustNot(food, npc) && shelfSafe(food, npc, powerUps)) {
       chosen.set(food.id, food);
     }
   }
 
+  const priceMult = powerUpPriceMultiplier(powerUps);
+  const quantityBonus = powerUpQuantityBonus(powerUps);
   const items: StoreItem[] = shuffle(rng, [...chosen.values()]).map((food) => ({
     foodItemId: food.id,
-    currentPriceCents: variedPrice(rng, food.basePriceCents),
-    quantityAvailable: food.maxQuantity ?? 1,
+    currentPriceCents: roundTo5Cents(variedPrice(rng, food.basePriceCents) * priceMult),
+    quantityAvailable: (food.maxQuantity ?? 1) + quantityBonus,
   }));
 
   // Shrinkflation: 0-5 edible items lose half their benefit, same price.
@@ -132,7 +143,7 @@ export function generateInventory(
   }
 
   // Specials: a few price stickers per round (shrinkflated items excluded)
-  const specialCount = 2 + Math.floor(rng() * 2);
+  const specialCount = 2 + Math.floor(rng() * 2) + powerUpExtraSpecials(powerUps);
   const specialIndices = shuffle(
     rng,
     items.map((_, i) => i).filter((i) => !items[i].shrinkflated)
