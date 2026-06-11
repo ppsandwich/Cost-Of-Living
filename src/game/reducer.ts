@@ -3,8 +3,13 @@ import { FOOD_BY_ID } from "@/data/foodItems";
 import { PURCHASE_FEEDBACK, WARNING_FEEDBACK } from "@/data/flavourText";
 import { computeImpact, violatesMustNot } from "./applyFoodItem";
 import { basketFoods, calculateBasketStats, EMPTY_STATS } from "./calculateStats";
-import { generateInventory } from "./generateInventory";
-import { budgetMultiplierForRound, ROUND_TIMER_SECONDS, selectNPC } from "./progression";
+import {
+  budgetMultiplierForRound,
+  FINAL_ROUND,
+  ROUND_TIMER_SECONDS,
+  selectNPC,
+} from "./progression";
+import { generateSolvableRound } from "./solver";
 import type { PowerUpId } from "@/data/powerups";
 import {
   adjustThresholds,
@@ -65,15 +70,24 @@ function roundSeed(baseSeed: number, roundNumber: number): number {
 export function previewNextBudgetCents(state: GameState): number {
   const roundNumber = state.roundNumber + 1;
   const previous = state.npc ? [...state.previousNPCIds, state.npc.id] : state.previousNPCIds;
-  const npc = selectNPC(previous, roundSeed(state.seed, roundNumber));
+  const seed = roundSeed(state.seed, roundNumber);
+  const selected = selectNPC(previous, seed);
+  const npc = {
+    ...selected,
+    maxThresholds: adjustThresholds(selected.maxThresholds, state.powerUps),
+    mustNot: hasPowerUp(state.powerUps, "exposure_therapy")
+      ? ("none" as const)
+      : selected.mustNot,
+  };
   const carryoverCents = hasPowerUp(state.powerUps, "embezzler")
     ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
     : 0;
-  return (
+  const baseBudgetCents =
     Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
     powerUpExtraBudgetCents(state.powerUps) +
-    carryoverCents
-  );
+    carryoverCents;
+  return generateSolvableRound(npc, baseBudgetCents, seed, roundNumber, state.powerUps)
+    .budgetCents;
 }
 
 function setupRound(state: GameState, roundNumber: number): GameState {
@@ -92,10 +106,18 @@ function setupRound(state: GameState, roundNumber: number): GameState {
   const carryoverCents = hasPowerUp(state.powerUps, "embezzler")
     ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
     : 0;
-  const roundBudgetCents =
+  const baseBudgetCents =
     Math.round(npc.baseBudgetCents * budgetMultiplier) +
     powerUpExtraBudgetCents(state.powerUps) +
     carryoverCents;
+  // Every round is guaranteed to have at least one clearing combination
+  const { inventory, budgetCents: roundBudgetCents } = generateSolvableRound(
+    npc,
+    baseBudgetCents,
+    seed,
+    roundNumber,
+    state.powerUps
+  );
   const roundDurationSeconds = ROUND_TIMER_SECONDS + powerUpExtraSeconds(state.powerUps);
   return {
     ...state,
@@ -103,7 +125,7 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     roundNumber,
     budgetMultiplier,
     npc,
-    inventory: generateInventory(npc, roundBudgetCents, seed, roundNumber, state.powerUps),
+    inventory,
     basket: [],
     bulkAddsUsed: [],
     stats: { ...EMPTY_STATS },
@@ -137,11 +159,12 @@ function winRound(state: GameState): GameState {
   };
   const score = calculateRoundScore(scoreInput);
   const totalScore = state.totalScore + score;
+  const gameWon = state.roundNumber >= FINAL_ROUND;
   return {
     ...state,
-    status: "round_won",
+    status: gameWon ? "game_won" : "round_won",
     endReason: "goals_met",
-    powerUpChoices: rollPowerUpChoices(state),
+    powerUpChoices: gameWon ? null : rollPowerUpChoices(state),
     score,
     totalScore,
     successfulRounds: state.successfulRounds + 1,

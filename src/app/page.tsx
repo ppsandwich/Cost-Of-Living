@@ -31,7 +31,8 @@ export default function Home() {
 
   // Persist records (external system) whenever a round resolves
   useEffect(() => {
-    if (state.status !== "round_won" && state.status !== "lost") return;
+    if (state.status !== "round_won" && state.status !== "lost" && state.status !== "game_won")
+      return;
     recordRunProgress(state.totalScore, state.successfulRounds);
   }, [state.status, state.totalScore, state.successfulRounds]);
 
@@ -112,6 +113,7 @@ export default function Home() {
         />
       )}
       {state.status === "lost" && <RunSummary state={state} onReplay={startRun} />}
+      {state.status === "game_won" && <RunSummary state={state} won onReplay={startRun} />}
     </div>
   );
 }

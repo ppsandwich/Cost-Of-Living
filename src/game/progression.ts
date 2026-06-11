@@ -7,6 +7,9 @@ const SELECTION_FUZZ = 7;
 
 export const ROUND_TIMER_SECONDS = 90;
 
+/** Clear this round and the run is won. */
+export const FINAL_ROUND = 20;
+
 export function budgetMultiplierForRound(roundNumber: number): number {
   // Steeper than the PRD's original curve: collected power-ups carry a
   // run, so the money has to get worse faster to keep rounds honest

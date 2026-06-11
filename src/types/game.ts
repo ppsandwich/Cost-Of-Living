@@ -3,7 +3,7 @@ import type { PowerUpId } from "@/data/powerups";
 
 export type GameMode = "standard_run";
 
-export type GameStatus = "idle" | "playing" | "round_won" | "lost";
+export type GameStatus = "idle" | "playing" | "round_won" | "game_won" | "lost";
 
 export type EndReason =
   | "goals_met"
