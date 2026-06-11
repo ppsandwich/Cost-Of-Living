@@ -4,19 +4,28 @@ export type GameMode = "standard_run";
 
 export type GameStatus = "idle" | "playing" | "round_won" | "lost";
 
-export type EndReason = "goals_met" | "timer_expired" | "out_of_money" | "npc_died";
+export type EndReason =
+  | "goals_met"
+  | "submitted_failed"
+  | "timer_expired"
+  | "out_of_money"
+  | "npc_died";
 
 export interface StoreItem {
   foodItemId: string;
   currentPriceCents: number;
   quantityAvailable: number;
   specialLabel?: string;
+  /** Same price, half the nutrition and happiness. */
+  shrinkflated?: boolean;
 }
 
 export interface BasketItem {
   foodItemId: string;
   quantity: number;
   pricePaidCents: number;
+  /** Carried over from the store item at purchase time. */
+  shrinkflated?: boolean;
 }
 
 export interface RoundResult {

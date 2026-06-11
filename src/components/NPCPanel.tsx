@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { NPC } from "@/types/npc";
-import { formatCents } from "@/utils/money";
 
 const RESTRICTION_LABEL: Record<string, string> = {
   low_sugar: "Low sugar",
@@ -13,7 +12,7 @@ const RESTRICTION_LABEL: Record<string, string> = {
   no_microwave: "No microwave",
 };
 
-export function NPCPanel({ npc, roundBudgetCents }: { npc: NPC; roundBudgetCents: number }) {
+export function NPCPanel({ npc }: { npc: NPC }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -37,8 +36,7 @@ export function NPCPanel({ npc, roundBudgetCents }: { npc: NPC; roundBudgetCents
               <span className="ml-1.5 text-xs font-bold text-faded">{npc.ageLabel}</span>
             </div>
             <div className="text-xs font-semibold text-faded">
-              Budget {formatCents(roundBudgetCents)} · 🥦 {npc.nutritionTarget} · 😊{" "}
-              {npc.happinessTarget}
+              Needs 🥦 {npc.nutritionTarget} · 😊 {npc.happinessTarget}
             </div>
           </div>
         </div>

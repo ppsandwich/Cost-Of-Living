@@ -30,7 +30,7 @@ export function calculateBasketStats(basket: BasketItem[], npc: NPC): NutritionS
     const food = FOOD_BY_ID[entry.foodItemId];
     if (!food) continue;
     for (let i = 0; i < entry.quantity; i++) {
-      const impact = computeImpact(food, npc, applied);
+      const impact = computeImpact(food, npc, applied, entry.shrinkflated);
       stats.calories += food.calories;
       stats.protein += food.protein;
       stats.fat += food.fat;

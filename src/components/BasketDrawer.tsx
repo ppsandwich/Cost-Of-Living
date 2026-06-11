@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { NPC, NutritionStats } from "@/types/npc";
 import type { BasketItem } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { getRequirementsStatus } from "@/game/requirements";
+import { allRequirementsMet, getRequirementsStatus } from "@/game/requirements";
+import { fatalStat } from "@/game/thresholds";
 import { formatCents } from "@/utils/money";
 
 interface BasketDrawerProps {
@@ -13,6 +14,7 @@ interface BasketDrawerProps {
   remainingBudgetCents: number;
   onRemove: (foodItemId: string) => void;
   onAdd: (foodItemId: string) => void;
+  onCheckout: () => void;
 }
 
 export function BasketDrawer({
@@ -23,6 +25,7 @@ export function BasketDrawer({
   remainingBudgetCents,
   onRemove,
   onAdd,
+  onCheckout,
 }: BasketDrawerProps) {
   const [open, setOpen] = useState(false);
   const itemCount = basket.reduce((n, b) => n + b.quantity, 0);
@@ -32,6 +35,8 @@ export function BasketDrawer({
   const requirements = getRequirementsStatus(basket, npc);
   const listDone =
     requirements.wants.filter((w) => w.satisfied).length + (requirements.mustNotViolated ? 0 : 1);
+  const overThreshold = fatalStat(stats, npc.maxThresholds) !== null;
+  const readyToWin = !overThreshold && allRequirementsMet(stats, basket, npc);
 
   return (
     <div className="border-t-[3px] border-ink bg-receipt shadow-[0_-4px_12px_rgba(51,36,28,0.2)] lg:rounded-2xl lg:border-[3px] lg:shadow-[4px_4px_0_rgba(51,36,28,0.25)]">
@@ -91,7 +96,7 @@ export function BasketDrawer({
         </div>
       )}
 
-      <div className="px-3 py-2">
+      <div className="space-y-2 px-3 py-2">
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -105,15 +110,23 @@ export function BasketDrawer({
             </span>
             <span className="block truncate font-sans text-xs font-bold leading-tight text-faded">
               needs 🥦 {needNutrition} · 😊 {needHappiness} ·{" "}
-              <span className={requirements.mustNotViolated ? "text-danger" : ""}>
-                📋 {listDone}/3
-              </span>{" "}
-              — fills up, checks out
+              <span className="text-ink/80">📋 {listDone}/3</span>
             </span>
           </span>
           <span aria-hidden className="font-display text-faded">
             {open ? "▼" : "▲"}
           </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onCheckout}
+          className={`btn min-h-12 w-full text-base uppercase text-white ${
+            overThreshold ? "bg-danger" : readyToWin ? "wobble bg-good" : "bg-faded"
+          }`}
+          aria-label="Check out the basket"
+        >
+          {overThreshold ? "⚠ Check out" : "Check out"}
         </button>
       </div>
     </div>

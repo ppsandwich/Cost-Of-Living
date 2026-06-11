@@ -24,7 +24,10 @@ const SEEDS_PER_CELL = 40;
 
 function simulate(npc: NPC, multiplier: number, seed: number): boolean {
   const budget = Math.round(npc.baseBudgetCents * multiplier);
-  const inventory = generateInventory(npc, budget, seed);
+  // Multipliers map 1:1 to rounds (1.00 = round 1 ... 0.60 = round 9+),
+  // so shrinkflation pressure is tested at the round it actually occurs
+  const roundNumber = Math.round((1 - multiplier) / 0.05) + 1;
+  const inventory = generateInventory(npc, budget, seed, roundNumber);
   let basket: BasketItem[] = [];
   let remaining = budget;
 
@@ -44,16 +47,16 @@ function simulate(npc: NPC, multiplier: number, seed: number): boolean {
       reqs.wants.some((w) => w.want === "likes_variety" && !w.satisfied) &&
       new Set(prior.map((f) => f.category)).size < VARIETY_CATEGORY_MIN;
 
-    let best: { id: string; price: number; value: number } | null = null;
+    let best: { id: string; price: number; value: number; shrinkflated?: boolean } | null = null;
     for (const item of inventory) {
       if (quantityRemaining(item, basket) <= 0) continue;
       if (item.currentPriceCents > remaining) continue;
       const food = FOOD_BY_ID[item.foodItemId];
-      const impact = computeImpact(food, npc, prior);
+      const impact = computeImpact(food, npc, prior, item.shrinkflated);
       if (impact.mustNotViolation) continue; // a sane shopper reads the list
 
       // Would this purchase get dangerously close to a threshold?
-      const trialBasket = addToBasket(basket, item.foodItemId, item.currentPriceCents);
+      const trialBasket = addToBasket(basket, item.foodItemId, item.currentPriceCents, item.shrinkflated);
       const trialStats = calculateBasketStats(trialBasket, npc);
       if (fatalStat(trialStats, npc.maxThresholds)) continue;
 
@@ -67,12 +70,12 @@ function simulate(npc: NPC, multiplier: number, seed: number): boolean {
         varietyBonus;
       if (value <= 0) continue;
       if (!best || value > best.value || (value === best.value && item.currentPriceCents < best.price)) {
-        best = { id: item.foodItemId, price: item.currentPriceCents, value };
+        best = { id: item.foodItemId, price: item.currentPriceCents, value, shrinkflated: item.shrinkflated };
       }
     }
 
     if (!best) return false;
-    basket = addToBasket(basket, best.id, best.price);
+    basket = addToBasket(basket, best.id, best.price, best.shrinkflated);
     remaining -= best.price;
     stats = calculateBasketStats(basket, npc);
     if (fatalStat(stats, npc.maxThresholds)) return false;
@@ -80,11 +83,16 @@ function simulate(npc: NPC, multiplier: number, seed: number): boolean {
   return allRequirementsMet(calculateBasketStats(basket, npc), basket, npc);
 }
 
-function addToBasket(basket: BasketItem[], foodItemId: string, price: number): BasketItem[] {
+function addToBasket(
+  basket: BasketItem[],
+  foodItemId: string,
+  price: number,
+  shrinkflated?: boolean
+): BasketItem[] {
   const existing = basket.find((b) => b.foodItemId === foodItemId);
   return existing
     ? basket.map((b) => (b.foodItemId === foodItemId ? { ...b, quantity: b.quantity + 1 } : b))
-    : [...basket, { foodItemId, quantity: 1, pricePaidCents: price }];
+    : [...basket, { foodItemId, quantity: 1, pricePaidCents: price, shrinkflated }];
 }
 
 let failures = 0;

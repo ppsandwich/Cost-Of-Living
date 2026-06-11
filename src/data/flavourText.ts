@@ -58,6 +58,8 @@ export const DEATH_MESSAGES: Record<string, (name: string) => string> = {
 
 export const LOSS_MESSAGES: Record<string, string> = {
   timer_expired: "Time's up. The basket contains food, technically, but not a plan.",
+  submitted_failed:
+    "The basket was checked out. The basket was insufficient. The basket apologises.",
   out_of_money:
     "You are out of money and still short on needs. The game is over, which is rude but accurate.",
 };
