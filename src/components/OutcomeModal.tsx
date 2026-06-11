@@ -73,12 +73,14 @@ export function OutcomeModal({
       aria-label="Round won"
       className="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
     >
-      <div className="panel sunburst w-full max-w-sm p-5">
+      <div className="panel relative w-full max-w-sm overflow-hidden p-5">
+        <div aria-hidden className="sunburst-spin absolute inset-[-50%]" />
+        <div className="relative">
         <div className="text-center">
           <div aria-hidden className="text-5xl">
             {npc.emoji}
           </div>
-          <h2 className="mt-1 font-display text-3xl uppercase tracking-wide text-good">
+          <h2 className="wobble mt-1 font-display text-3xl uppercase tracking-wide text-good">
             Round clear!
           </h2>
           <p className="mt-2 text-sm font-semibold">{winLine}</p>
@@ -114,6 +116,7 @@ export function OutcomeModal({
           Next round:{" "}
           <BudgetCountdown fromCents={state.roundBudgetCents} toCents={nextBudgetCents} /> budget
         </button>
+        </div>
       </div>
     </div>
   );

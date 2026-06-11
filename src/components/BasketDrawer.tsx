@@ -29,13 +29,14 @@ export function BasketDrawer({
   const [open, setOpen] = useState(false);
   const itemCount = basket.reduce((n, b) => n + b.quantity, 0);
   const overThreshold = fatalStat(stats, npc.maxThresholds) !== null;
-  const readyToWin = !overThreshold && allRequirementsMet(stats, basket, npc);
+  const overBudget = remainingBudgetCents < 0;
+  const readyToWin = !overThreshold && !overBudget && allRequirementsMet(stats, basket, npc);
 
   return (
     <div className="border-t-[3px] border-ink bg-receipt shadow-[0_-4px_12px_rgba(51,36,28,0.2)] lg:rounded-2xl lg:border-[3px] lg:shadow-[4px_4px_0_rgba(51,36,28,0.25)]">
       {/* meters and danger trackers live with the basket now */}
       <div className="border-b-2 border-dashed border-ink/25 px-3 pb-2 pt-2.5">
-        <StatsPanel stats={stats} npc={npc} />
+        <StatsPanel stats={stats} npc={npc} basket={basket} />
       </div>
 
       {open && (
@@ -95,8 +96,10 @@ export function BasketDrawer({
           className="btn flex min-h-12 w-full items-center justify-between gap-2 bg-paper px-2.5 text-left"
         >
           <span className="block min-w-0 truncate font-display text-lg leading-tight">
-            🧺 {itemCount} item{itemCount === 1 ? "" : "s"} · {formatCents(remainingBudgetCents)}{" "}
-            left
+            🧺 {itemCount} item{itemCount === 1 ? "" : "s"} ·{" "}
+            <span className={overBudget ? "text-danger" : ""}>
+              {formatCents(remainingBudgetCents)} {overBudget ? "over budget!" : "left"}
+            </span>
           </span>
           <span aria-hidden className="font-display text-faded">
             {open ? "▼" : "▲"}
@@ -106,12 +109,17 @@ export function BasketDrawer({
         <button
           type="button"
           onClick={onCheckout}
+          disabled={!readyToWin}
           className={`btn min-h-12 w-full text-base uppercase text-white ${
-            overThreshold ? "bg-danger" : readyToWin ? "wobble bg-good" : "bg-faded"
+            overThreshold || overBudget ? "bg-danger" : readyToWin ? "wobble bg-good" : "bg-faded"
           }`}
-          aria-label="Check out the basket"
+          aria-label={
+            readyToWin
+              ? "Check out the basket"
+              : "Check out — locked until every objective is met"
+          }
         >
-          {overThreshold ? "⚠ Check out" : "Check out"}
+          {overThreshold || overBudget ? "⚠ Check out" : "Check out"}
         </button>
       </div>
     </div>

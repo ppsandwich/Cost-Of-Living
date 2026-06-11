@@ -66,7 +66,7 @@ export const LOSS_MESSAGES: Record<string, string> = {
 
 export const WIN_MESSAGES = [
   (n: string) => `You did it. ${n} is fed, broadly content, and only mildly suspicious of the lentils.`,
-  (n: string) => `${n} survives another week of groceries. The receipt is a small war memorial.`,
+  (n: string) => `${n} survives another week of groceries.`,
   (n: string) => `Needs met. ${n} would clap, but they're holding the shopping.`,
   (n: string) => `${n} is fed and happy. Capitalism blinks first, this round.`,
 ];

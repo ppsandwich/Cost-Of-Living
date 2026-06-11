@@ -13,8 +13,8 @@ const TUTORIAL_STEPS = [
   "Fill the nutrition and happiness meters before time runs out.",
   "Tick off their must-haves: two wants and one hard no.",
   "Greyed-out items are things they can't eat — the till refuses them.",
-  "You can go over the calorie/fat/sugar/carb/salt limits, but checking out over any limit is fatal. Trim the basket first.",
-  "Hit Check out when everything's met. Win, and the next budget shrinks.",
+  "Going over a calorie/fat/sugar/carb/salt limit locks the till — trim the basket before time runs out, or it ends badly.",
+  "Check out unlocks once everything is met and the budget balances. Win, and the next budget shrinks.",
 ];
 
 export function StartScreen({

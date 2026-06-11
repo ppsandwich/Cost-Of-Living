@@ -15,19 +15,12 @@ function hotPill(hot: boolean): string {
   return hot ? "w-fit rounded-md bg-danger px-1 py-0.5 font-bold text-white" : "";
 }
 
-/** Cheap prices tag green, blending to orange as they climb. */
-function priceColor(cents: number): string {
-  const t = Math.min(1, Math.max(0, (cents - 150) / (500 - 150)));
-  return `color-mix(in oklab, #e0760f ${Math.round(t * 100)}%, var(--color-good))`;
-}
-
 interface FoodCardProps {
   food: FoodItem;
   storeItem: StoreItem;
   impact: ItemImpact;
   inBasket: number;
   remainingQuantity: number;
-  affordable: boolean;
   /** NPC wants this food matches, e.g. Salty/Sweet, with tick state. */
   wantMatches: WantMatch[];
   /** Set when the food crosses the NPC's dietary line. */
@@ -42,7 +35,6 @@ export function FoodCard({
   impact,
   inBasket,
   remainingQuantity,
-  affordable,
   wantMatches,
   mustNotLabel,
   onAdd,
@@ -52,7 +44,7 @@ export function FoodCard({
   const soldOut = remainingQuantity <= 0;
   const forbidden = mustNotLabel !== null;
   const inBasketMode = inBasket > 0;
-  const buyable = affordable && !soldOut && !forbidden;
+  const buyable = !soldOut && !forbidden;
 
   // show: worth mentioning · hot: red flag for the danger thresholds
   const macroBits = [
@@ -159,10 +151,7 @@ export function FoodCard({
           )}
         </button>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <span
-            className="price-tag px-1.5 py-0.5 text-base tabular-nums text-white"
-            style={{ background: priceColor(storeItem.currentPriceCents) }}
-          >
+          <span className="text-lg font-extrabold leading-none tabular-nums text-ink">
             {formatCents(storeItem.currentPriceCents)}
           </span>
           <button
@@ -179,20 +168,10 @@ export function FoodCard({
                   ? `${food.name} — they can't eat this`
                   : soldOut
                     ? `${food.name} sold out`
-                    : !affordable
-                      ? `${food.name} unaffordable`
-                      : `Add ${food.name} for ${formatCents(storeItem.currentPriceCents)}`
+                    : `Add ${food.name} for ${formatCents(storeItem.currentPriceCents)}`
             }
           >
-            {inBasketMode
-              ? "Remove"
-              : forbidden
-                ? "Can't eat"
-                : soldOut
-                  ? "Gone"
-                  : affordable
-                    ? "Add"
-                    : "Too dear"}
+            {inBasketMode ? "Remove" : forbidden ? "Can't eat" : soldOut ? "Gone" : "Add"}
           </button>
         </div>
       </div>

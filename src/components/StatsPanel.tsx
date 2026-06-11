@@ -1,5 +1,8 @@
 import type { NPC, NutritionStats } from "@/types/npc";
+import type { BasketItem } from "@/types/game";
 import { DANGER_STATS, dangerRatio } from "@/game/thresholds";
+import { getRequirementsStatus } from "@/game/requirements";
+import { WANT_BADGE } from "@/data/labels";
 import { WARNING_FEEDBACK } from "@/data/flavourText";
 
 function GoalMeter({
@@ -17,7 +20,7 @@ function GoalMeter({
 }) {
   const percent = Math.min(100, (value / (target * 1.4)) * 100);
   const targetPercent = (target / (target * 1.4)) * 100;
-  const met = value >= target;
+  const met = Math.round(value) >= target;
   return (
     <div>
       <div className="flex items-baseline justify-between">
@@ -64,12 +67,21 @@ function riskColor(ratio: number): string {
   return `color-mix(in oklab, var(--color-danger) ${redShare}%, var(--color-faded))`;
 }
 
-export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) {
+export function StatsPanel({
+  stats,
+  npc,
+  basket,
+}: {
+  stats: NutritionStats;
+  npc: NPC;
+  basket: BasketItem[];
+}) {
   const risks = DANGER_STATS.map((stat) => ({
     stat,
     ratio: dangerRatio(stats, npc.maxThresholds, stat),
   }));
   const worst = risks.filter((r) => r.ratio >= 0.8).sort((a, b) => b.ratio - a.ratio)[0];
+  const wants = getRequirementsStatus(basket, npc).wants;
 
   return (
     <section aria-label="Needs and risk" className="space-y-2.5">
@@ -88,9 +100,6 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
         fillClass="bg-happy"
       />
       <div className="flex flex-wrap items-center gap-1 pt-0.5">
-        <span className="font-display text-[11.5px] uppercase tracking-wider text-faded">
-          Danger
-        </span>
         {risks.map(({ stat, ratio }) => {
           const percent = Math.round(ratio * 100);
           const alarm = ratio >= 1;
@@ -109,11 +118,23 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
             </span>
           );
         })}
+        {wants.map(({ want, satisfied }) => (
+          <span
+            key={want}
+            className={`rounded-md border-2 px-1 py-0.5 text-xs font-bold uppercase leading-none ${
+              satisfied
+                ? "border-ink bg-good text-white"
+                : "border-ink/15 bg-paper text-faded"
+            }`}
+          >
+            {WANT_BADGE[want] ?? "Variety"} {satisfied ? "✓" : "✗"}
+          </span>
+        ))}
       </div>
       {worst && (
         <p className="text-xs font-bold text-danger" role="alert">
           {worst.ratio >= 1
-            ? "⚠ Over the limit. Checking out like this ends one way, and it isn't dinner."
+            ? "⚠ Over the limit. The till refuses the basket until it comes back down."
             : WARNING_FEEDBACK[worst.stat]}
         </p>
       )}

@@ -22,6 +22,12 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [state.status, state.roundNumber]);
 
+  // A fresh round starts at the top of the shelves
+  useEffect(() => {
+    if (state.status !== "playing") return;
+    window.scrollTo(0, 0);
+  }, [state.status, state.roundNumber]);
+
   // Persist records (external system) whenever a round resolves
   useEffect(() => {
     if (state.status !== "round_won" && state.status !== "lost") return;
@@ -74,7 +80,6 @@ export default function Home() {
             inventory={state.inventory}
             basket={state.basket}
             npc={state.npc}
-            remainingBudgetCents={state.remainingBudgetCents}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
             onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
           />
