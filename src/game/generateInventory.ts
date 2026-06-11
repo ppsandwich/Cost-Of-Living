@@ -119,7 +119,9 @@ export function generateInventory(
     }
   }
 
-  const priceMult = powerUpPriceMultiplier(powerUps);
+  // Inflation: prices creep ~2% per round, compounding the squeeze
+  const inflation = 1 + 0.02 * (roundNumber - 1);
+  const priceMult = powerUpPriceMultiplier(powerUps) * inflation;
   const quantityBonus = powerUpQuantityBonus(powerUps);
   const items: StoreItem[] = shuffle(rng, [...chosen.values()]).map((food) => ({
     foodItemId: food.id,

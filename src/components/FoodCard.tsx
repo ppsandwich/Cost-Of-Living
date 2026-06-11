@@ -28,8 +28,11 @@ interface FoodCardProps {
   zeroed: ZeroedMacros;
   /** Set when the food crosses the NPC's dietary line. */
   mustNotLabel: string | null;
+  /** Bulk Buyer: a one-shot bonus add is available for this item. */
+  canBulkAdd: boolean;
   onAdd: () => void;
   onRemove: () => void;
+  onBulkAdd: () => void;
 }
 
 export function FoodCard({
@@ -41,8 +44,10 @@ export function FoodCard({
   wantMatches,
   zeroed,
   mustNotLabel,
+  canBulkAdd,
   onAdd,
   onRemove,
+  onBulkAdd,
 }: FoodCardProps) {
   const [expanded, setExpanded] = useState(false);
   const soldOut = remainingQuantity <= 0;
@@ -163,6 +168,18 @@ export function FoodCard({
           <span className="text-lg font-extrabold leading-none tabular-nums text-ink">
             {formatCents(storeItem.currentPriceCents)}
           </span>
+          <div className="flex items-center gap-1">
+          {inBasketMode && canBulkAdd && (
+            <button
+              type="button"
+              onClick={onBulkAdd}
+              className="btn min-h-11 bg-good px-2 text-xs uppercase text-white"
+              aria-label={`Bulk Buyer: add one more ${food.name}`}
+              title="Bulk Buyer: once per item per round"
+            >
+              📦 One more
+            </button>
+          )}
           <button
             type="button"
             onClick={inBasketMode ? onRemove : onAdd}
@@ -182,6 +199,7 @@ export function FoodCard({
           >
             {inBasketMode ? "Remove" : forbidden ? "Can't eat" : soldOut ? "Gone" : "Add"}
           </button>
+          </div>
         </div>
       </div>
 

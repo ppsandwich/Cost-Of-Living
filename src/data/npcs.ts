@@ -13,14 +13,14 @@ const defaultSensitivity = {
 export const NPCS: NPC[] = [
   {
     id: "milo",
-    botWinRate: 76,
+    botWinRate: 83,
     name: "Milo",
     emoji: "🧑‍🎓",
     ageLabel: "Uni student",
     description:
       "Has one saucepan and the haunted confidence of someone who thinks sleep counts as dinner.",
     mood: "Trying to remember whether coffee is a meal.",
-    baseBudgetCents: 1710,
+    baseBudgetCents: 1760,
     nutritionTarget: 65,
     happinessTarget: 45,
     maxThresholds: { caloriesMax: 3450, fatMax: 110, sugarMax: 150, carbsMax: 440, sodiumMax: 280 },
@@ -35,7 +35,7 @@ export const NPCS: NPC[] = [
   },
   {
     id: "jan",
-    botWinRate: 98,
+    botWinRate: 97,
     name: "Jan",
     emoji: "👵",
     ageLabel: "Retired",
@@ -60,7 +60,7 @@ export const NPCS: NPC[] = [
   },
   {
     id: "priya",
-    botWinRate: 93,
+    botWinRate: 91,
     name: "Priya",
     emoji: "👩‍👧‍👦",
     ageLabel: "Parent with two kids",
@@ -83,7 +83,7 @@ export const NPCS: NPC[] = [
   },
   {
     id: "theo",
-    botWinRate: 85,
+    botWinRate: 81,
     name: "Theo",
     emoji: "🧑‍🏭",
     ageLabel: "Shift worker",
@@ -106,7 +106,7 @@ export const NPCS: NPC[] = [
   },
   {
     id: "ada",
-    botWinRate: 93,
+    botWinRate: 96,
     name: "Ada",
     emoji: "🧑‍🎨",
     ageLabel: "Freelance illustrator",
@@ -128,14 +128,14 @@ export const NPCS: NPC[] = [
   },
   {
     id: "marcus",
-    botWinRate: 94,
+    botWinRate: 95,
     name: "Marcus",
     emoji: "🏋️",
     ageLabel: "Gym regular, broke",
     description:
       "Vegan, on principle. Needs protein in quantities that alarm cashiers, on a budget that alarms him.",
     mood: "Calculating cost per gram of protein out loud, to no one.",
-    baseBudgetCents: 2340,
+    baseBudgetCents: 2400,
     nutritionTarget: 80,
     happinessTarget: 45,
     maxThresholds: { caloriesMax: 4140, fatMax: 110, sugarMax: 110, carbsMax: 480, sodiumMax: 280 },
@@ -150,7 +150,7 @@ export const NPCS: NPC[] = [
   },
   {
     id: "rosa",
-    botWinRate: 85,
+    botWinRate: 88,
     name: "Rosa",
     emoji: "🧑‍⚕️",
     ageLabel: "Night-shift nurse",
@@ -172,7 +172,7 @@ export const NPCS: NPC[] = [
   },
   {
     id: "bert",
-    botWinRate: 91,
+    botWinRate: 94,
     name: "Bert",
     emoji: "🚐",
     ageLabel: "Lives in a van",
@@ -194,14 +194,14 @@ export const NPCS: NPC[] = [
   },
   {
     id: "yuki",
-    botWinRate: 84,
+    botWinRate: 91,
     name: "Yuki",
     emoji: "🧑‍🔬",
     ageLabel: "Grad student",
     description:
       "Funded by a stipend that was last adjusted when phones had buttons. Will not eat the same thing twice. Cannot afford to eat different things.",
     mood: "Refreshing her bank app as if it might apologise.",
-    baseBudgetCents: 1710,
+    baseBudgetCents: 1760,
     nutritionTarget: 65,
     happinessTarget: 45,
     maxThresholds: { caloriesMax: 3220, fatMax: 100, sugarMax: 130, carbsMax: 400, sodiumMax: 280 },
@@ -215,14 +215,14 @@ export const NPCS: NPC[] = [
   },
   {
     id: "dev",
-    botWinRate: 97,
+    botWinRate: 95,
     name: "Dev",
     emoji: "🧑‍🍼",
     ageLabel: "New parent",
     description:
       "Has not slept since the baby arrived. Shops with one hand, holds the universe together with the other. No pork in the house.",
     mood: "Reading the same shelf label for the fourth time.",
-    baseBudgetCents: 2520,
+    baseBudgetCents: 2580,
     nutritionTarget: 80,
     happinessTarget: 60,
     maxThresholds: { caloriesMax: 3680, fatMax: 120, sugarMax: 150, carbsMax: 460, sodiumMax: 290 },
@@ -237,14 +237,14 @@ export const NPCS: NPC[] = [
   },
   {
     id: "carol",
-    botWinRate: 86,
+    botWinRate: 89,
     name: "Carol",
     emoji: "💼",
     ageLabel: "Office temp",
     description:
       "Doctor said low fat. Heart said cheese. Wallet said neither of you are in charge here.",
     mood: "Comparing two nearly identical breads like it's a hostage negotiation.",
-    baseBudgetCents: 2070,
+    baseBudgetCents: 2000,
     nutritionTarget: 70,
     happinessTarget: 50,
     maxThresholds: { caloriesMax: 3100, fatMax: 100, sugarMax: 130, carbsMax: 380, sodiumMax: 250 },
@@ -259,14 +259,14 @@ export const NPCS: NPC[] = [
   },
   {
     id: "sam",
-    botWinRate: 84,
+    botWinRate: 87,
     name: "Sam",
     emoji: "🛹",
     ageLabel: "Growing teenager",
     description:
       "Eats like a weather event. Went vegan last month; the household budget watches in quiet horror.",
     mood: "Hungry. Was hungry. Will be hungry.",
-    baseBudgetCents: 2070,
+    baseBudgetCents: 2160,
     nutritionTarget: 80,
     happinessTarget: 60,
     maxThresholds: { caloriesMax: 4370, fatMax: 130, sugarMax: 170, carbsMax: 520, sodiumMax: 300 },

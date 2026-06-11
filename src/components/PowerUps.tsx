@@ -8,13 +8,32 @@ export function PowerUpCard({
   size = "small",
 }: {
   powerUpId: PowerUpId;
-  size?: "small" | "large";
+  size?: "small" | "medium" | "large";
 }) {
   const powerUp = POWER_UP_BY_ID[powerUpId];
   const rare = powerUp.rarity === "rare";
   const rareBg = rare
     ? "border-happy [background:linear-gradient(135deg,#fff8e0,#ffe9a8_45%,#fff8e0)]"
     : "border-ink bg-receipt";
+  if (size === "medium") {
+    return (
+      <span
+        className={`relative flex h-full flex-col items-center gap-1 rounded-xl border-2 px-1 pb-2 pt-3 shadow-[2px_2px_0_rgba(51,36,28,0.2)] ${rareBg}`}
+      >
+        {rare && (
+          <span className="sticker absolute -top-2 left-1/2 -translate-x-1/2 rounded-md bg-brand px-1 py-px font-display text-[8px] uppercase tracking-wide text-white">
+            Rare!
+          </span>
+        )}
+        <span aria-hidden className="text-2xl leading-none">
+          {powerUp.icon}
+        </span>
+        <span className="text-center font-display text-[10.4px] uppercase leading-tight">
+          {powerUp.name}
+        </span>
+      </span>
+    );
+  }
   if (size === "large") {
     return (
       <span

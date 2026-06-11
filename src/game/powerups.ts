@@ -1,5 +1,7 @@
 import type { DangerThresholds } from "@/types/npc";
 import type { PowerUpId } from "@/data/powerups";
+import { POWER_UPS } from "@/data/powerups";
+import type { RNG } from "./seededRandom";
 
 export function hasPowerUp(powerUps: PowerUpId[], id: PowerUpId): boolean {
   return powerUps.includes(id);
@@ -71,3 +73,21 @@ export function powerUpExtraSpecials(powerUps: PowerUpId[]): number {
 
 /** Shoplifter: chance the first add of an item counts double. */
 export const SHOPLIFTER_CHANCE = 0.2;
+
+/** Rare power-ups show up about a third as often as common ones. */
+const RARE_WEIGHT = 0.35;
+
+/** Draw distinct power-ups, rarity-weighted, excluding those already owned. */
+export function drawPowerUps(rng: RNG, exclude: PowerUpId[], count: number): PowerUpId[] {
+  const picks: PowerUpId[] = [];
+  let pool = POWER_UPS.filter((p) => !exclude.includes(p.id));
+  while (picks.length < count && pool.length > 0) {
+    const weights = pool.map((p) => (p.rarity === "rare" ? RARE_WEIGHT : 1));
+    let roll = rng() * weights.reduce((a, b) => a + b, 0);
+    let index = 0;
+    while (index < pool.length - 1 && (roll -= weights[index]) > 0) index++;
+    picks.push(pool[index].id);
+    pool = pool.filter((_, i) => i !== index);
+  }
+  return picks;
+}

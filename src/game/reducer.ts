@@ -6,9 +6,9 @@ import { basketFoods, calculateBasketStats, EMPTY_STATS } from "./calculateStats
 import { generateInventory } from "./generateInventory";
 import { budgetMultiplierForRound, ROUND_TIMER_SECONDS, selectNPC } from "./progression";
 import type { PowerUpId } from "@/data/powerups";
-import { POWER_UPS } from "@/data/powerups";
 import {
   adjustThresholds,
+  drawPowerUps,
   hasPowerUp,
   powerUpExtraBudgetCents,
   powerUpExtraSeconds,
@@ -23,6 +23,7 @@ import { fatalStat, warningStats } from "./thresholds";
 export type GameAction =
   | { type: "START_RUN"; seed: number; bestScore: number; highestRound: number }
   | { type: "ADD_ITEM"; foodItemId: string }
+  | { type: "BULK_ADD"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
   | { type: "CHECKOUT" }
   | { type: "CHOOSE_POWERUP"; powerUpId: PowerUpId }
@@ -46,6 +47,7 @@ export const INITIAL_STATE: GameState = {
   previousNPCIds: [],
   powerUps: [],
   powerUpChoices: null,
+  bulkAddsUsed: [],
   score: 0,
   totalScore: 0,
   bestScore: 0,
@@ -94,6 +96,7 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     npc,
     inventory: generateInventory(npc, roundBudgetCents, seed, roundNumber, state.powerUps),
     basket: [],
+    bulkAddsUsed: [],
     stats: { ...EMPTY_STATS },
     roundBudgetCents,
     remainingBudgetCents: roundBudgetCents,
@@ -109,12 +112,7 @@ function setupRound(state: GameState, roundNumber: number): GameState {
 /** Two random not-yet-owned power-ups to choose between after a win. */
 function rollPowerUpChoices(state: GameState): PowerUpId[] | null {
   const rng = createRng((roundSeed(state.seed, state.roundNumber) ^ 0x9e3779b9) >>> 0);
-  const pool = POWER_UPS.map((p) => p.id).filter((id) => !state.powerUps.includes(id));
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
-  }
-  const choices = pool.slice(0, 2);
+  const choices = drawPowerUps(rng, state.powerUps, 2);
   return choices.length > 0 ? choices : null;
 }
 
@@ -261,6 +259,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // the basket is trimmed back within budget
       const next: GameState = { ...state, basket, stats, remainingBudgetCents };
       return { ...next, lastFeedback: feedbackFor(next, action.foodItemId) };
+    }
+
+    case "BULK_ADD": {
+      // Bulk Buyer: one bonus add per item per round, from the card
+      if (state.status !== "playing" || !state.npc) return state;
+      if (!hasPowerUp(state.powerUps, "bulk_buyer")) return state;
+      if (state.bulkAddsUsed.includes(action.foodItemId)) return state;
+      if (!state.basket.some((b) => b.foodItemId === action.foodItemId)) return state;
+      const added = gameReducer(state, { type: "ADD_ITEM", foodItemId: action.foodItemId });
+      if (added === state) return state;
+      return { ...added, bulkAddsUsed: [...state.bulkAddsUsed, action.foodItemId] };
     }
 
     case "REMOVE_ITEM": {

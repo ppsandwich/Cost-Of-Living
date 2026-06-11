@@ -84,8 +84,10 @@ export default function Home() {
             basket={state.basket}
             npc={state.npc}
             powerUps={state.powerUps}
+            bulkAddsUsed={state.bulkAddsUsed}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
             onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
+            onBulkAdd={(foodItemId) => dispatch({ type: "BULK_ADD", foodItemId })}
           />
         </div>
 
