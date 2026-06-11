@@ -51,6 +51,8 @@ function simulate(npc: NPC, multiplier: number, seed: number): boolean {
     for (const item of inventory) {
       if (quantityRemaining(item, basket) <= 0) continue;
       if (item.currentPriceCents > remaining) continue;
+      // no sane shopper drops over half the round's budget on one item
+      if (item.currentPriceCents > budget * 0.55) continue;
       const food = FOOD_BY_ID[item.foodItemId];
       const impact = computeImpact(food, npc, prior, item.shrinkflated);
       if (impact.mustNotViolation) continue; // a sane shopper reads the list

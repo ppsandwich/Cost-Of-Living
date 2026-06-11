@@ -52,6 +52,8 @@ export interface FoodItem {
   id: string;
   name: string;
   emoji: string;
+  /** Premium: pricier but better. Expired: cheap, joyless, and slightly less nutritious. */
+  variant?: "premium" | "expired";
   category: FoodCategory;
   basePriceCents: number;
   calories: number;

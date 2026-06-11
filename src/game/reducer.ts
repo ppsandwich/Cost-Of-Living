@@ -45,6 +45,14 @@ function roundSeed(baseSeed: number, roundNumber: number): number {
   return (baseSeed + roundNumber * 7919) >>> 0;
 }
 
+/** The budget the next round will open with — mirrors setupRound exactly. */
+export function previewNextBudgetCents(state: GameState): number {
+  const roundNumber = state.roundNumber + 1;
+  const previous = state.npc ? [...state.previousNPCIds, state.npc.id] : state.previousNPCIds;
+  const npc = selectNPC(previous, roundSeed(state.seed, roundNumber));
+  return Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber));
+}
+
 function setupRound(state: GameState, roundNumber: number): GameState {
   const seed = roundSeed(state.seed, roundNumber);
   const budgetMultiplier = budgetMultiplierForRound(roundNumber);

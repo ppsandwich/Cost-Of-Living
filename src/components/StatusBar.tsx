@@ -48,8 +48,8 @@ export function StatusBar({
           >
             <div className="relative h-11">
               <span
-                className={`absolute bottom-0 -translate-x-1/2 font-pixel text-4xl leading-none tabular-nums ${
-                  timeLow ? "timer-low font-bold text-danger" : "text-ink"
+                className={`absolute bottom-0 -translate-x-1/2 text-3xl font-extrabold leading-none tabular-nums ${
+                  timeLow ? "timer-low text-danger" : "text-ink"
                 }`}
                 style={{
                   left: `clamp(2.5rem, ${timePercent}%, calc(100% - 2.5rem))`,

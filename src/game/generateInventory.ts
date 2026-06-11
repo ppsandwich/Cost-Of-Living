@@ -3,6 +3,7 @@ import type { NPC } from "@/types/npc";
 import type { StoreItem } from "@/types/game";
 import { FOOD_ITEMS } from "@/data/foodItems";
 import { hasEquipmentMismatch, PREFERENCE_TAG, violatesMustNot } from "./applyFoodItem";
+import { exceedsAnyLimitAlone } from "./thresholds";
 import { createRng, randomBetween, randomInt, shuffle, type RNG } from "./seededRandom";
 
 export const INVENTORY_SIZE = 16;
@@ -20,6 +21,11 @@ function usableBy(food: FoodItem, npc: NPC): boolean {
   return !violatesMustNot(food, npc) && !hasEquipmentMismatch(food, npc);
 }
 
+/** The shelf never stocks something that alone would already be over a limit. */
+function shelfSafe(food: FoodItem, npc: NPC): boolean {
+  return !exceedsAnyLimitAlone(food, npc.maxThresholds);
+}
+
 /** Chance each of the 5 shrinkflation slots fires, rising with the round. */
 function shrinkflationChance(roundNumber: number): number {
   return Math.min(0.8, 0.06 + 0.07 * (roundNumber - 1));
@@ -34,8 +40,13 @@ export function generateInventory(
   const rng = createRng(seed);
   const chosen = new Map<string, FoodItem>();
 
+  // Guaranteed slots only ever pick standard items: a premium "protein
+  // source" nobody can afford or an expired "cheap option" that delivers
+  // nothing would be a fake safety net. Variants arrive via random fill.
   const pickFirst = (pool: FoodItem[], predicate: (f: FoodItem) => boolean) => {
-    const candidate = shuffle(rng, pool).find((f) => !chosen.has(f.id) && predicate(f));
+    const candidate = shuffle(rng, pool).find(
+      (f) => !chosen.has(f.id) && !f.variant && shelfSafe(f, npc) && predicate(f)
+    );
     if (candidate) chosen.set(candidate.id, candidate);
   };
 
@@ -80,7 +91,9 @@ export function generateInventory(
   }
 
   // 1–5 items the NPC can't eat, shown disabled on the shelf
-  const forbiddenPool = FOOD_ITEMS.filter((f) => violatesMustNot(f, npc) && !chosen.has(f.id));
+  const forbiddenPool = FOOD_ITEMS.filter(
+    (f) => violatesMustNot(f, npc) && shelfSafe(f, npc) && !chosen.has(f.id)
+  );
   const forbiddenCount = Math.max(
     1,
     Math.min(forbiddenPool.length, randomInt(rng, 1, 5), INVENTORY_SIZE - chosen.size)
@@ -92,7 +105,9 @@ export function generateInventory(
   // Fill the rest with food the NPC can actually eat
   for (const food of shuffle(rng, FOOD_ITEMS)) {
     if (chosen.size >= INVENTORY_SIZE) break;
-    if (!chosen.has(food.id) && !violatesMustNot(food, npc)) chosen.set(food.id, food);
+    if (!chosen.has(food.id) && !violatesMustNot(food, npc) && shelfSafe(food, npc)) {
+      chosen.set(food.id, food);
+    }
   }
 
   const items: StoreItem[] = shuffle(rng, [...chosen.values()]).map((food) => ({

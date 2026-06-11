@@ -21,19 +21,6 @@ function priceColor(cents: number): string {
   return `color-mix(in oklab, #e0760f ${Math.round(t * 100)}%, var(--color-good))`;
 }
 
-/** Tiny inline bar showing a gain's size at a glance. */
-function GainBar({ value, max, barClass }: { value: number; max: number; barClass: string }) {
-  const width = Math.min(1, Math.abs(value) / max) * 100;
-  return (
-    <span
-      aria-hidden
-      className="inline-block h-1.5 w-8 shrink-0 overflow-hidden rounded-full border border-ink/15 bg-ink/10 sm:w-10"
-    >
-      <span className={`block h-full rounded-full ${barClass}`} style={{ width: `${width}%` }} />
-    </span>
-  );
-}
-
 interface FoodCardProps {
   food: FoodItem;
   storeItem: StoreItem;
@@ -102,9 +89,22 @@ export function FoodCard({
       <div className="flex items-center gap-2.5">
         <span
           aria-hidden
-          className="grid size-12 shrink-0 place-items-center rounded-xl border-2 border-ink/15 bg-paper text-3xl"
+          className="relative grid size-12 shrink-0 place-items-center rounded-xl border-2 border-ink/15 bg-paper text-3xl"
         >
-          {food.emoji}
+          <span
+            className={
+              food.variant === "expired"
+                ? "[filter:grayscale(1)_sepia(0.6)_brightness(0.85)]"
+                : ""
+            }
+          >
+            {food.emoji}
+          </span>
+          {food.variant === "premium" && (
+            <span className="absolute -right-1.5 -top-1.5 text-base drop-shadow-[1px_1px_0_rgba(51,36,28,0.4)]">
+              ✨
+            </span>
+          )}
         </span>
         <button
           type="button"
@@ -114,27 +114,13 @@ export function FoodCard({
           aria-label={`${food.name}, ${formatCents(storeItem.currentPriceCents)}. Details`}
         >
           <div className="truncate font-display text-sm leading-tight">{food.name}</div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-bold">
-            <span className="flex items-center gap-1 whitespace-nowrap">
-              <span className={impact.nutritionGain > 0 ? "text-good" : "text-faded"}>
-                🥦 +{Math.round(impact.nutritionGain)}
-              </span>
-              <GainBar
-                value={impact.nutritionGain}
-                max={40}
-                barClass={impact.nutritionGain > 0 ? "bg-good" : "bg-faded"}
-              />
-            </span>
-            <span className="flex items-center gap-1 whitespace-nowrap">
-              <span className={impact.happinessGain >= 0 ? "text-happy" : "text-danger"}>
-                😊 {impact.happinessGain >= 0 ? "+" : ""}
-                {Math.round(impact.happinessGain)}
-              </span>
-              <GainBar
-                value={impact.happinessGain}
-                max={30}
-                barClass={impact.happinessGain >= 0 ? "bg-happy" : "bg-danger"}
-              />
+          <div className="text-xs font-bold">
+            <span className={impact.nutritionGain > 0 ? "text-good" : "text-faded"}>
+              🥦 +{Math.round(impact.nutritionGain)}
+            </span>{" "}
+            <span className={impact.happinessGain >= 0 ? "text-happy" : "text-danger"}>
+              😊 {impact.happinessGain >= 0 ? "+" : ""}
+              {Math.round(impact.happinessGain)}
             </span>
           </div>
           {!forbidden && wantMatches.length > 0 && (
@@ -160,7 +146,7 @@ export function FoodCard({
             </div>
           )}
           {macroBits.length > 0 && (
-            <div className="mt-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 font-pixel text-sm leading-none text-faded">
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs font-bold leading-none text-faded">
               {macroBits.map((m) => (
                 <span
                   key={m.text}
@@ -174,7 +160,7 @@ export function FoodCard({
         </button>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <span
-            className="price-tag px-1.5 py-0.5 text-xl tabular-nums text-white"
+            className="price-tag px-1.5 py-0.5 text-base tabular-nums text-white"
             style={{ background: priceColor(storeItem.currentPriceCents) }}
           >
             {formatCents(storeItem.currentPriceCents)}
@@ -227,7 +213,7 @@ export function FoodCard({
               ⚠ They don&apos;t have the kit to cook this properly.
             </p>
           )}
-          <dl className="mt-1.5 grid grid-cols-3 gap-x-2 gap-y-1 font-pixel text-base leading-tight text-faded">
+          <dl className="mt-1.5 grid grid-cols-3 gap-x-2 gap-y-1 text-xs font-semibold leading-tight text-faded">
             <div className={hotPill(food.calories >= 700)}>cals {food.calories}</div>
             <div>protein {food.protein}</div>
             <div className={hotPill(food.fat >= 35)}>fat {food.fat}</div>

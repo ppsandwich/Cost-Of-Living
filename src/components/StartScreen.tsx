@@ -11,7 +11,7 @@ interface StartScreenProps {
 const TUTORIAL_STEPS = [
   "Meet the NPC. They have needs, tastes, and a budget.",
   "Fill the nutrition and happiness meters before time runs out.",
-  "Tick all three of their shopping list: two wants, one hard no.",
+  "Tick off their must-haves: two wants and one hard no.",
   "Greyed-out items are things they can't eat — the till refuses them.",
   "You can go over the calorie/fat/sugar/carb/salt limits, but checking out over any limit is fatal. Trim the basket first.",
   "Hit Check out when everything's met. Win, and the next budget shrinks.",
@@ -70,7 +70,7 @@ export function StartScreen({
         )}
 
         {(bestScore > 0 || highestRound > 0) && (
-          <p className="mt-4 font-pixel text-xl text-faded">
+          <p className="mt-4 text-sm font-bold text-faded">
             HI-SCORE {bestScore} · BEST ROUND {highestRound}
           </p>
         )}
