@@ -20,7 +20,17 @@ function usableBy(food: FoodItem, npc: NPC): boolean {
   return !violatesMustNot(food, npc) && !hasEquipmentMismatch(food, npc);
 }
 
-export function generateInventory(npc: NPC, roundBudgetCents: number, seed: number): StoreItem[] {
+/** Chance each of the 5 shrinkflation slots fires, rising with the round. */
+function shrinkflationChance(roundNumber: number): number {
+  return Math.min(0.8, 0.06 + 0.07 * (roundNumber - 1));
+}
+
+export function generateInventory(
+  npc: NPC,
+  roundBudgetCents: number,
+  seed: number,
+  roundNumber = 1
+): StoreItem[] {
   const rng = createRng(seed);
   const chosen = new Map<string, FoodItem>();
 
@@ -82,9 +92,27 @@ export function generateInventory(npc: NPC, roundBudgetCents: number, seed: numb
     quantityAvailable: food.maxQuantity ?? 1,
   }));
 
-  // Specials: a few price stickers per round
+  // Shrinkflation: 0-5 edible items lose half their benefit, same price.
+  // Each of 5 slots fires independently, so the average climbs with rounds.
+  let shrinkCount = 0;
+  for (let i = 0; i < 5; i++) {
+    if (rng() < shrinkflationChance(roundNumber)) shrinkCount++;
+  }
+  const shrinkCandidates = shuffle(
+    rng,
+    items.filter((item) => !violatesMustNot(FOOD_ITEMS.find((f) => f.id === item.foodItemId)!, npc))
+  );
+  for (const item of shrinkCandidates.slice(0, shrinkCount)) {
+    item.shrinkflated = true;
+    item.specialLabel = "Shrinkflated";
+  }
+
+  // Specials: a few price stickers per round (shrinkflated items excluded)
   const specialCount = 2 + Math.floor(rng() * 2);
-  const specialIndices = shuffle(rng, items.map((_, i) => i)).slice(0, specialCount);
+  const specialIndices = shuffle(
+    rng,
+    items.map((_, i) => i).filter((i) => !items[i].shrinkflated)
+  ).slice(0, specialCount);
   const specials: { label: string; apply: (item: StoreItem) => void }[] = [
     { label: "Half price", apply: (s) => (s.currentPriceCents = roundTo5Cents(s.currentPriceCents * 0.5)) },
     { label: "Clearance", apply: (s) => (s.currentPriceCents = roundTo5Cents(s.currentPriceCents * 0.7)) },
@@ -96,7 +124,6 @@ export function generateInventory(npc: NPC, roundBudgetCents: number, seed: numb
         s.currentPriceCents = roundTo5Cents(s.currentPriceCents * 0.9);
       },
     },
-    { label: "Shrinkflated", apply: (s) => (s.currentPriceCents = roundTo5Cents(s.currentPriceCents * 1.1)) },
   ];
   for (const index of specialIndices) {
     const special = specials[Math.floor(rng() * specials.length)];

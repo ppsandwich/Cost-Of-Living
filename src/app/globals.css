@@ -15,10 +15,6 @@
   --color-lcd: #8df0a8;
   --color-lcd-amber: #ffd23f;
 
-  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-lilita), "Arial Black", sans-serif;
-  --font-pixel: var(--font-vt323), ui-monospace, monospace;
-
   /* Default type scale × 1.15 — text only, spacing stays put */
   --text-xs: 0.8625rem;
   --text-sm: 1.006rem;
@@ -31,29 +27,20 @@
   --text-5xl: 3.45rem;
 }
 
+/* Font tokens reference next/font variables set on <html>, so they must be
+   declared inline — see tailwindcss.com/docs/theme#referencing-other-variables */
+@theme inline {
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-sour-gummy), "Arial Black", sans-serif;
+  --font-pixel: var(--font-vt323), ui-monospace, monospace;
+  --font-title: var(--font-freckle), "Arial Black", sans-serif;
+}
+
 body {
   background-color: var(--color-paper);
-  /* faint grocery-floor checkerboard */
-  background-image:
-    linear-gradient(
-      45deg,
-      rgba(51, 36, 28, 0.04) 25%,
-      transparent 25%,
-      transparent 75%,
-      rgba(51, 36, 28, 0.04) 75%
-    ),
-    linear-gradient(
-      45deg,
-      rgba(51, 36, 28, 0.04) 25%,
-      transparent 25%,
-      transparent 75%,
-      rgba(51, 36, 28, 0.04) 75%
-    );
-  background-size: 28px 28px;
-  background-position:
-    0 0,
-    14px 14px;
   color: var(--color-ink);
+  /* a stray wide row should never let the page pan sideways on phones */
+  overflow-x: clip;
 }
 
 /* ── Cartoon panels & buttons ─────────────────────────────── */
@@ -65,15 +52,14 @@ body {
   box-shadow: 4px 4px 0 rgba(51, 36, 28, 0.25);
 }
 
-/* A card the NPC must not eat: unmissably red */
-.panel-danger {
-  background: #fdf0ed;
-  border-color: var(--color-danger);
-  box-shadow: 4px 4px 0 rgba(214, 60, 46, 0.35);
+/* Sour Gummy is a variable font; keep display text chunky by default */
+.font-display {
+  font-weight: 700;
 }
 
 .btn {
   font-family: var(--font-display);
+  font-weight: 700;
   letter-spacing: 0.03em;
   border: 3px solid var(--color-ink);
   border-radius: 0.875rem;

@@ -14,6 +14,7 @@ interface StoreListProps {
   npc: NPC;
   remainingBudgetCents: number;
   onAdd: (foodItemId: string) => void;
+  onRemove: (foodItemId: string) => void;
 }
 
 export function StoreList({
@@ -22,6 +23,7 @@ export function StoreList({
   npc,
   remainingBudgetCents,
   onAdd,
+  onRemove,
 }: StoreListProps) {
   const prior = basketFoods(basket);
   const status = getRequirementsStatus(basket, npc);
@@ -36,7 +38,7 @@ export function StoreList({
         {inventory.map((storeItem) => {
           const food = FOOD_BY_ID[storeItem.foodItemId];
           if (!food) return null;
-          const impact = computeImpact(food, npc, prior);
+          const impact = computeImpact(food, npc, prior, storeItem.shrinkflated);
           const wantMatches = npc.wants
             .filter((want) => {
               const tag = PREFERENCE_TAG[want];
@@ -59,6 +61,7 @@ export function StoreList({
               wantMatches={wantMatches}
               mustNotLabel={impact.mustNotViolation ? MUST_NOT_BADGE[npc.mustNot] : null}
               onAdd={() => onAdd(storeItem.foodItemId)}
+              onRemove={() => onRemove(storeItem.foodItemId)}
             />
           );
         })}

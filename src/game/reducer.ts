@@ -14,6 +14,7 @@ export type GameAction =
   | { type: "START_RUN"; seed: number; bestScore: number; highestRound: number }
   | { type: "ADD_ITEM"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
+  | { type: "CHECKOUT" }
   | { type: "TICK" }
   | { type: "NEXT_ROUND" };
 
@@ -55,7 +56,7 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     roundNumber,
     budgetMultiplier,
     npc,
-    inventory: generateInventory(npc, roundBudgetCents, seed),
+    inventory: generateInventory(npc, roundBudgetCents, seed, roundNumber),
     basket: [],
     stats: { ...EMPTY_STATS },
     roundBudgetCents,
@@ -101,7 +102,10 @@ function winRound(state: GameState): GameState {
   };
 }
 
-function loseRound(state: GameState, endReason: "timer_expired" | "out_of_money"): GameState {
+function loseRound(
+  state: GameState,
+  endReason: "timer_expired" | "out_of_money" | "submitted_failed"
+): GameState {
   return {
     ...state,
     status: "lost",
@@ -110,11 +114,37 @@ function loseRound(state: GameState, endReason: "timer_expired" | "out_of_money"
   };
 }
 
+/**
+ * Settle the round: death first if any threshold is exceeded, then a win
+ * if every requirement is met, otherwise the given loss reason.
+ */
+function evaluateRound(
+  state: GameState,
+  failReason: "timer_expired" | "out_of_money" | "submitted_failed"
+): GameState {
+  const npc = state.npc!;
+  const fatal = fatalStat(state.stats, npc.maxThresholds);
+  if (fatal) {
+    return {
+      ...state,
+      status: "lost",
+      endReason: "npc_died",
+      diedFromStat: fatal,
+      bestScore: Math.max(state.bestScore, state.totalScore),
+    };
+  }
+  if (allRequirementsMet(state.stats, state.basket, npc)) {
+    return winRound(state);
+  }
+  return loseRound(state, failReason);
+}
+
 function feedbackFor(state: GameState, foodItemId: string): string {
   const npc = state.npc!;
   const food = FOOD_BY_ID[foodItemId];
   const prior = basketFoods(state.basket).slice(0, -1);
-  const impact = computeImpact(food, npc, prior);
+  const shrinkflated = state.inventory.find((i) => i.foodItemId === foodItemId)?.shrinkflated;
+  const impact = computeImpact(food, npc, prior, shrinkflated);
 
   const warnings = warningStats(state.stats, npc.maxThresholds);
   if (warnings.length > 0) return WARNING_FEEDBACK[warnings[0]];
@@ -168,6 +198,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
               foodItemId: action.foodItemId,
               quantity: 1,
               pricePaidCents: storeItem.currentPriceCents,
+              shrinkflated: storeItem.shrinkflated,
             },
           ];
 
@@ -175,27 +206,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const remainingBudgetCents = state.remainingBudgetCents - storeItem.currentPriceCents;
       let next: GameState = { ...state, basket, stats, remainingBudgetCents };
 
-      const fatal = fatalStat(stats, state.npc.maxThresholds);
-      if (fatal) {
-        return {
-          ...next,
-          status: "lost",
-          endReason: "npc_died",
-          diedFromStat: fatal,
-          bestScore: Math.max(state.bestScore, state.totalScore),
-        };
-      }
-
-      // Meters full, wants ticked, diet respected: checkout happens by itself
-      if (allRequirementsMet(stats, basket, state.npc)) {
-        return winRound(next);
-      }
-
       next = { ...next, lastFeedback: feedbackFor(next, action.foodItemId) };
 
-      // Out of valid purchases with the round not yet won: it's over
-      if (!canAffordAnything(next.inventory, basket, remainingBudgetCents, state.npc)) {
-        return loseRound(next, "out_of_money");
+      // Out of valid purchases: settle the round — unless a threshold is
+      // exceeded, since removing items can still bring the basket back
+      if (
+        !canAffordAnything(next.inventory, basket, remainingBudgetCents, state.npc) &&
+        !fatalStat(stats, state.npc.maxThresholds)
+      ) {
+        return evaluateRound(next, "out_of_money");
       }
       return next;
     }
@@ -211,25 +230,25 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             )
           : state.basket.filter((b) => b.foodItemId !== action.foodItemId);
       const stats = calculateBasketStats(basket, state.npc);
-      const next: GameState = {
+      return {
         ...state,
         basket,
         stats,
         remainingBudgetCents: state.remainingBudgetCents + existing.pricePaidCents,
         lastFeedback: null,
       };
-      // Removing a repetition penalty can lift happiness over the line
-      if (allRequirementsMet(stats, basket, state.npc)) {
-        return winRound(next);
-      }
-      return next;
+    }
+
+    case "CHECKOUT": {
+      if (state.status !== "playing" || !state.npc) return state;
+      return evaluateRound(state, "submitted_failed");
     }
 
     case "TICK": {
       if (state.status !== "playing") return state;
       const timeRemainingSeconds = state.timeRemainingSeconds - 1;
       if (timeRemainingSeconds <= 0) {
-        return loseRound({ ...state, timeRemainingSeconds: 0 }, "timer_expired");
+        return evaluateRound({ ...state, timeRemainingSeconds: 0 }, "timer_expired");
       }
       return { ...state, timeRemainingSeconds };
     }

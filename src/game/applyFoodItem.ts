@@ -83,11 +83,19 @@ function isTreatLike(food: FoodItem): boolean {
   );
 }
 
+/** Shrinkflated packets deliver half their usual benefit. */
+export const SHRINKFLATION_MULTIPLIER = 0.5;
+
 /**
  * Compute the nutrition and happiness an NPC gets from one unit of a food,
  * given the foods already in the basket (for variety/repetition effects).
  */
-export function computeImpact(food: FoodItem, npc: NPC, priorFoods: FoodItem[]): ItemImpact {
+export function computeImpact(
+  food: FoodItem,
+  npc: NPC,
+  priorFoods: FoodItem[],
+  shrinkflated = false
+): ItemImpact {
   const s = npc.sensitivity;
   const restrictions = npc.restrictions;
 
@@ -163,9 +171,11 @@ export function computeImpact(food: FoodItem, npc: NPC, priorFoods: FoodItem[]):
       equipmentMultiplier -
     restrictionPenalty;
 
+  const shrinkMult = shrinkflated ? SHRINKFLATION_MULTIPLIER : 1;
+
   return {
-    nutritionGain: Math.round(nutritionGain * 10) / 10,
-    happinessGain: Math.round(happinessGain * 10) / 10,
+    nutritionGain: Math.round(nutritionGain * shrinkMult * 10) / 10,
+    happinessGain: Math.round(happinessGain * shrinkMult * 10) / 10,
     equipmentMismatch,
     mustNotViolation,
     repetitionApplied: sameCategoryCount >= 2,

@@ -93,7 +93,7 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
         </span>
         {risks.map(({ stat, ratio }) => {
           const percent = Math.round(ratio * 100);
-          const alarm = ratio >= 0.8;
+          const alarm = ratio >= 1;
           return (
             <span
               key={stat}
@@ -112,7 +112,9 @@ export function StatsPanel({ stats, npc }: { stats: NutritionStats; npc: NPC }) 
       </div>
       {worst && (
         <p className="text-xs font-bold text-danger" role="alert">
-          {WARNING_FEEDBACK[worst.stat]}
+          {worst.ratio >= 1
+            ? "⚠ Over the limit. Checking out like this ends one way, and it isn't dinner."
+            : WARNING_FEEDBACK[worst.stat]}
         </p>
       )}
     </section>

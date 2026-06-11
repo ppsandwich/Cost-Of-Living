@@ -1,12 +1,10 @@
 import type { NPC } from "@/types/npc";
-import { budgetPressureLabel } from "@/game/progression";
-import { formatCents } from "@/utils/money";
+import { budgetPressureLabel, ROUND_TIMER_SECONDS } from "@/game/progression";
 
 interface StatusBarProps {
   npc: NPC;
   roundNumber: number;
   budgetMultiplier: number;
-  remainingBudgetCents: number;
   timeRemainingSeconds: number;
 }
 
@@ -14,18 +12,20 @@ export function StatusBar({
   npc,
   roundNumber,
   budgetMultiplier,
-  remainingBudgetCents,
   timeRemainingSeconds,
 }: StatusBarProps) {
   const minutes = Math.floor(timeRemainingSeconds / 60);
   const seconds = timeRemainingSeconds % 60;
   const timeLow = timeRemainingSeconds <= 15;
-  const budgetLow = remainingBudgetCents < 300;
+  const timePercent = Math.max(
+    0,
+    Math.min(100, (timeRemainingSeconds / ROUND_TIMER_SECONDS) * 100)
+  );
 
   return (
     <header className="sticky top-0 z-30">
       <div className="bg-receipt px-3 pb-2 pt-2">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-2 lg:max-w-6xl">
+        <div className="mx-auto flex max-w-md items-center justify-between gap-3 lg:max-w-6xl">
           <div className="flex min-w-0 items-center gap-2">
             <span
               aria-hidden
@@ -41,30 +41,29 @@ export function StatusBar({
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5">
-            <div className="lcd px-2 py-1 text-center">
-              <div className="text-[10.4px] font-bold uppercase tracking-widest text-receipt/60">
-                Budget
-              </div>
-              <div
-                className={`text-2xl tabular-nums ${budgetLow ? "text-danger" : "text-lcd"}`}
-              >
-                {formatCents(remainingBudgetCents)}
-              </div>
-            </div>
-            <div
-              className={`lcd px-2 py-1 text-center ${timeLow ? "timer-low" : ""}`}
-              role="timer"
-              aria-label={`${timeRemainingSeconds} seconds remaining`}
-            >
-              <div className="text-[10.4px] font-bold uppercase tracking-widest text-receipt/60">
-                Time
-              </div>
-              <div
-                className={`text-2xl tabular-nums ${timeLow ? "text-danger" : "text-lcd-amber"}`}
+          <div
+            className="min-w-0 flex-1"
+            role="timer"
+            aria-label={`${timeRemainingSeconds} seconds remaining`}
+          >
+            <div className="relative h-11">
+              <span
+                className={`absolute bottom-0 -translate-x-1/2 font-pixel text-4xl leading-none tabular-nums ${
+                  timeLow ? "timer-low font-bold text-danger" : "text-ink"
+                }`}
+                style={{
+                  left: `clamp(2.5rem, ${timePercent}%, calc(100% - 2.5rem))`,
+                  transition: "left 1s linear",
+                }}
               >
                 {minutes}:{seconds.toString().padStart(2, "0")}
-              </div>
+              </span>
+            </div>
+            <div className="meter-track h-3.5 overflow-hidden">
+              <div
+                className={`meter-fill h-full ${timeLow ? "bg-danger" : "bg-happy"}`}
+                style={{ width: `${timePercent}%`, transition: "width 1s linear" }}
+              />
             </div>
           </div>
         </div>

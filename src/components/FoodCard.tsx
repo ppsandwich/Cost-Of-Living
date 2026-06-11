@@ -27,7 +27,7 @@ function GainBar({ value, max, barClass }: { value: number; max: number; barClas
   return (
     <span
       aria-hidden
-      className="inline-block h-1.5 w-10 shrink-0 overflow-hidden rounded-full border border-ink/15 bg-ink/10"
+      className="inline-block h-1.5 w-8 shrink-0 overflow-hidden rounded-full border border-ink/15 bg-ink/10 sm:w-10"
     >
       <span className={`block h-full rounded-full ${barClass}`} style={{ width: `${width}%` }} />
     </span>
@@ -43,9 +43,10 @@ interface FoodCardProps {
   affordable: boolean;
   /** NPC wants this food matches, e.g. Salty/Sweet, with tick state. */
   wantMatches: WantMatch[];
-  /** Set when the food crosses the NPC's dietary line — shown loudly. */
+  /** Set when the food crosses the NPC's dietary line. */
   mustNotLabel: string | null;
   onAdd: () => void;
+  onRemove: () => void;
 }
 
 export function FoodCard({
@@ -58,10 +59,12 @@ export function FoodCard({
   wantMatches,
   mustNotLabel,
   onAdd,
+  onRemove,
 }: FoodCardProps) {
   const [expanded, setExpanded] = useState(false);
   const soldOut = remainingQuantity <= 0;
   const forbidden = mustNotLabel !== null;
+  const inBasketMode = inBasket > 0;
   const buyable = affordable && !soldOut && !forbidden;
 
   // show: worth mentioning · hot: red flag for the danger thresholds
@@ -75,20 +78,24 @@ export function FoodCard({
 
   return (
     <li
-      className={`panel relative overflow-hidden p-2.5 ${forbidden ? "panel-danger" : ""} ${
-        buyable || forbidden ? "" : "opacity-55 grayscale-[0.6]"
+      className={`panel relative overflow-hidden p-2.5 ${
+        buyable || inBasketMode ? "" : "opacity-55 grayscale-[0.6]"
       }`}
     >
       {forbidden && (
         <div
           role="alert"
-          className="-mx-2.5 -mt-2.5 mb-2 flex items-center gap-1.5 bg-danger px-3 py-1 font-display text-xs uppercase tracking-wide text-white"
+          className="-mx-2.5 -mt-2.5 mb-2 flex items-center gap-1.5 bg-faded px-3 py-1 font-display text-xs uppercase tracking-wide text-white"
         >
           <span aria-hidden>🚫</span> Can&apos;t eat: {mustNotLabel}
         </div>
       )}
       {storeItem.specialLabel && (
-        <span className="sticker absolute left-9 top-[-2px] z-10 rounded-md bg-brand px-1.5 py-0.5 font-display text-[11.5px] uppercase tracking-wide text-white">
+        <span
+          className={`sticker absolute left-9 top-[-2px] z-10 rounded-md px-1.5 py-0.5 font-display text-[11.5px] uppercase tracking-wide text-white ${
+            storeItem.shrinkflated ? "bg-brand" : "bg-good"
+          }`}
+        >
           {storeItem.specialLabel}
         </span>
       )}
@@ -107,24 +114,28 @@ export function FoodCard({
           aria-label={`${food.name}, ${formatCents(storeItem.currentPriceCents)}. Details`}
         >
           <div className="truncate font-display text-sm leading-tight">{food.name}</div>
-          <div className="flex items-center gap-1.5 text-xs font-bold">
-            <span className={impact.nutritionGain > 0 ? "text-good" : "text-faded"}>
-              🥦 +{impact.nutritionGain}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs font-bold">
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <span className={impact.nutritionGain > 0 ? "text-good" : "text-faded"}>
+                🥦 +{Math.round(impact.nutritionGain)}
+              </span>
+              <GainBar
+                value={impact.nutritionGain}
+                max={40}
+                barClass={impact.nutritionGain > 0 ? "bg-good" : "bg-faded"}
+              />
             </span>
-            <GainBar
-              value={impact.nutritionGain}
-              max={40}
-              barClass={impact.nutritionGain > 0 ? "bg-good" : "bg-faded"}
-            />
-            <span className={impact.happinessGain >= 0 ? "text-happy" : "text-danger"}>
-              😊 {impact.happinessGain >= 0 ? "+" : ""}
-              {impact.happinessGain}
+            <span className="flex items-center gap-1 whitespace-nowrap">
+              <span className={impact.happinessGain >= 0 ? "text-happy" : "text-danger"}>
+                😊 {impact.happinessGain >= 0 ? "+" : ""}
+                {Math.round(impact.happinessGain)}
+              </span>
+              <GainBar
+                value={impact.happinessGain}
+                max={30}
+                barClass={impact.happinessGain >= 0 ? "bg-happy" : "bg-danger"}
+              />
             </span>
-            <GainBar
-              value={impact.happinessGain}
-              max={30}
-              barClass={impact.happinessGain >= 0 ? "bg-happy" : "bg-danger"}
-            />
           </div>
           {!forbidden && wantMatches.length > 0 && (
             <div className="mt-0.5 flex flex-wrap gap-1">
@@ -170,30 +181,32 @@ export function FoodCard({
           </span>
           <button
             type="button"
-            onClick={onAdd}
-            disabled={!buyable}
+            onClick={inBasketMode ? onRemove : onAdd}
+            disabled={!inBasketMode && !buyable}
             className={`btn min-h-11 min-w-[4.5rem] px-2 text-sm uppercase text-white ${
-              forbidden ? "bg-danger" : "bg-brand"
+              inBasketMode ? "bg-ink" : forbidden ? "bg-faded" : "bg-brand"
             }`}
             aria-label={
-              forbidden
-                ? `${food.name} — they can't eat this`
-                : soldOut
-                  ? `${food.name} sold out`
-                  : !affordable
-                    ? `${food.name} unaffordable`
-                    : `Add ${food.name} for ${formatCents(storeItem.currentPriceCents)}`
+              inBasketMode
+                ? `Remove one ${food.name} from the basket`
+                : forbidden
+                  ? `${food.name} — they can't eat this`
+                  : soldOut
+                    ? `${food.name} sold out`
+                    : !affordable
+                      ? `${food.name} unaffordable`
+                      : `Add ${food.name} for ${formatCents(storeItem.currentPriceCents)}`
             }
           >
-            {forbidden
-              ? "Can't eat"
-              : soldOut
-                ? "Gone"
-                : affordable
-                  ? inBasket > 0
-                    ? `Add ·${inBasket}`
-                    : "Add"
-                  : "Too dear"}
+            {inBasketMode
+              ? "Remove"
+              : forbidden
+                ? "Can't eat"
+                : soldOut
+                  ? "Gone"
+                  : affordable
+                    ? "Add"
+                    : "Too dear"}
           </button>
         </div>
       </div>
@@ -201,8 +214,13 @@ export function FoodCard({
       {expanded && (
         <div className="mt-2 border-t-2 border-dashed border-ink/20 pt-2 text-xs">
           <p className="font-semibold italic">{food.flavour}</p>
+          {storeItem.shrinkflated && (
+            <p className="mt-1 font-bold text-brand-dark">
+              📉 Shrinkflated: same price, half the nutrition and happiness.
+            </p>
+          )}
           {forbidden && (
-            <p className="mt-1 font-bold text-danger">⚠ {mustNotLabel} The till won&apos;t even ring it up.</p>
+            <p className="mt-1 font-bold text-faded">⚠ {mustNotLabel} The till won&apos;t even ring it up.</p>
           )}
           {!forbidden && impact.equipmentMismatch && (
             <p className="mt-1 font-bold text-danger">

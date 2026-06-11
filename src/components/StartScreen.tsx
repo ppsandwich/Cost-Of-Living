@@ -12,9 +12,9 @@ const TUTORIAL_STEPS = [
   "Meet the NPC. They have needs, tastes, and a budget.",
   "Fill the nutrition and happiness meters before time runs out.",
   "Tick all three of their shopping list: two wants, one hard no.",
-  "Red items are things they can't eat — the till refuses them.",
-  "Don't overload calories, fat, sugar, carbs or salt — that's fatal.",
-  "Meters full and list ticked? The basket checks out on its own.",
+  "Greyed-out items are things they can't eat — the till refuses them.",
+  "You can go over the calorie/fat/sugar/carb/salt limits, but checking out over any limit is fatal. Trim the basket first.",
+  "Hit Check out when everything's met. Win, and the next budget shrinks.",
 ];
 
 export function StartScreen({
@@ -35,14 +35,11 @@ export function StartScreen({
           <p aria-hidden className="text-5xl drop-shadow-[2px_2px_0_rgba(51,36,28,0.4)]">
             🛒
           </p>
-          <h1 className="mt-1 font-display text-4xl uppercase leading-none tracking-wide text-receipt [text-shadow:3px_3px_0_var(--color-ink)]">
+          <h1 className="mt-1 font-title text-4xl font-bold uppercase leading-none tracking-wide text-brand [text-shadow:3px_3px_0_var(--color-ink)]">
             Cost of
             <br />
             Living
           </h1>
-          <div className="sticker mx-auto mt-3 inline-block rounded-lg bg-good px-3 py-1 font-display text-sm uppercase tracking-widest text-white">
-            Open 90 sec
-          </div>
         </div>
 
         <p className="mx-auto mt-4 max-w-xs text-sm font-bold text-ink/70">
