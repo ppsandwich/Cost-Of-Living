@@ -3,6 +3,7 @@ import type { GameState } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { WIN_MESSAGES } from "@/data/flavourText";
 import { previewNextBudgetCents } from "@/game/reducer";
+import { ratingStars, roundScoreBreakdown } from "@/game/scoring";
 import type { PowerUpId } from "@/data/powerups";
 import { POWER_UPS } from "@/data/powerups";
 import { PowerUpChoice } from "./PowerUps";
@@ -67,6 +68,26 @@ export function OutcomeModal({
   onChoosePowerUp: (id: PowerUpId) => void;
 }) {
   const mustChoose = state.powerUpChoices !== null && state.powerUpChoices.length > 0;
+  const [scoreOpen, setScoreOpen] = useState(false);
+  // JS-driven star reveal so the one-by-one entry works even where CSS
+  // animations are disabled (e.g. reduced-motion systems)
+  const totalStars = state.roundHistory.length
+    ? ratingStars(state.roundHistory[state.roundHistory.length - 1].rating)
+    : 0;
+  const [shownStars, setShownStars] = useState(0);
+  useEffect(() => {
+    if (shownStars >= totalStars) return;
+    const timer = setTimeout(() => setShownStars((n) => n + 1), shownStars === 0 ? 350 : 380);
+    return () => clearTimeout(timer);
+  }, [shownStars, totalStars]);
+  const breakdown = roundScoreBreakdown({
+    stats: state.stats,
+    npc: state.npc!,
+    basket: state.basket,
+    remainingBudgetCents: state.remainingBudgetCents,
+    timeRemainingSeconds: state.timeRemainingSeconds,
+    roundNumber: state.roundNumber,
+  });
   const poolExhausted = POWER_UPS.every((p) => state.powerUps.includes(p.id));
   const npc = state.npc!;
   const winLine = WIN_MESSAGES[state.roundNumber % WIN_MESSAGES.length](npc.name);
@@ -92,8 +113,25 @@ export function OutcomeModal({
           </h2>
           <p className="mt-2 text-sm font-semibold">{winLine}</p>
           {lastResult && (
-            <div className="sticker mx-auto mt-3 inline-block rounded-lg bg-tag px-3 py-1 font-display text-sm uppercase">
-              ★ {lastResult.rating} ★
+            <div className="sticker mx-auto mt-3 inline-block rounded-lg bg-tag px-3 py-1 text-center font-display text-sm uppercase">
+              <div
+                aria-label={`${ratingStars(lastResult.rating)} of 3 stars`}
+                className="text-base leading-none"
+              >
+                {Array.from({ length: ratingStars(lastResult.rating) }, (_, i) => (
+                  <span
+                    key={i}
+                    aria-hidden
+                    className={i < shownStars ? "star-pop" : "invisible"}
+                  >
+                    ★
+                  </span>
+                ))}
+                <span aria-hidden className="text-ink/40">
+                  {"☆".repeat(3 - ratingStars(lastResult.rating))}
+                </span>
+              </div>
+              {lastResult.rating}
             </div>
           )}
         </div>
@@ -107,6 +145,68 @@ export function OutcomeModal({
             <span className="text-faded">RUN TOTAL</span>
             <span className="tabular-nums">{state.totalScore}</span>
           </div>
+          <button
+            type="button"
+            onClick={() => setScoreOpen((o) => !o)}
+            aria-expanded={scoreOpen}
+            className="mt-1 flex w-full items-center justify-between text-xs font-bold uppercase tracking-wide text-faded hover:text-ink"
+          >
+            How was this scored?
+            <span aria-hidden>{scoreOpen ? "▲" : "▼"}</span>
+          </button>
+          {scoreOpen && (
+            <div className="mt-2 space-y-0.5 border-t border-dashed border-ink/25 pt-2 text-xs font-semibold">
+              <div className="flex justify-between gap-2">
+                <span>
+                  Nutrition <span className="text-faded">(capped at 1.5× target)</span>
+                </span>
+                <span className="tabular-nums">+{breakdown.nutritionScore}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>
+                  Happiness <span className="text-faded">(capped at 1.5× target)</span>
+                </span>
+                <span className="tabular-nums">+{breakdown.happinessScore}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>
+                  Change left <span className="text-faded">($1 = 5 pts)</span>
+                </span>
+                <span className="tabular-nums">+{breakdown.remainingBudgetBonus}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>
+                  Time left <span className="text-faded">(1 per second)</span>
+                </span>
+                <span className="tabular-nums">+{breakdown.timeBonus}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>
+                  Variety <span className="text-faded">(8 × {breakdown.categoryCount} aisles)</span>
+                </span>
+                <span className="tabular-nums">+{breakdown.varietyBonus}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>
+                  Round bonus <span className="text-faded">(25 × round {state.roundNumber})</span>
+                </span>
+                <span className="tabular-nums">+{breakdown.roundBonus}</span>
+              </div>
+              <div className="flex justify-between gap-2">
+                <span>
+                  Danger penalty{" "}
+                  <span className="text-faded">(−15 × {breakdown.warningCount} warnings)</span>
+                </span>
+                <span className={`tabular-nums ${breakdown.dangerPenalty > 0 ? "text-danger" : ""}`}>
+                  −{breakdown.dangerPenalty}
+                </span>
+              </div>
+              <div className="flex justify-between gap-2 border-t border-dashed border-ink/25 pt-1 font-bold">
+                <span>Total</span>
+                <span className="tabular-nums">{breakdown.total}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="mt-2 text-center text-2xl" aria-label="Final basket">
