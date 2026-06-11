@@ -15,6 +15,7 @@ const TUTORIAL_STEPS = [
   "Greyed-out items are things they can't eat — the till refuses them.",
   "Going over a calorie/fat/sugar/carb/salt limit locks the till — trim the basket before time runs out, or it ends badly.",
   "Check out unlocks once everything is met and the budget balances. Win, and the next budget shrinks.",
+  "Clear round 20 and you win the game.",
 ];
 
 export function StartScreen({

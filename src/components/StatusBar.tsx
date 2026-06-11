@@ -1,5 +1,5 @@
 import type { NPC } from "@/types/npc";
-import { budgetPressureLabel } from "@/game/progression";
+import { budgetPressureLabel, FINAL_ROUND } from "@/game/progression";
 
 interface StatusBarProps {
   npc: NPC;
@@ -38,7 +38,7 @@ export function StatusBar({
             <div className="min-w-0">
               <div className="truncate font-display text-base leading-tight">{npc.name}</div>
               <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand">
-                Round {roundNumber} · {budgetPressureLabel(budgetMultiplier)}
+                Round {roundNumber}/{FINAL_ROUND} · {budgetPressureLabel(budgetMultiplier)}
               </div>
             </div>
           </div>
