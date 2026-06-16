@@ -143,6 +143,10 @@ body {
   animation: spin-slow 45s linear infinite;
 }
 
+.round-clear-burst {
+  inset: -125%;
+}
+
 @keyframes spin-slow {
   to {
     transform: rotate(360deg);

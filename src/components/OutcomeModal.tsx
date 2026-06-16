@@ -102,7 +102,7 @@ export function OutcomeModal({
       className="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
     >
       <div className="panel relative w-full max-w-sm overflow-hidden p-5">
-        <div aria-hidden className="sunburst-spin absolute inset-[-50%]" />
+        <div aria-hidden className="sunburst-spin round-clear-burst absolute" />
         <div className="relative">
         <div className="text-center">
           <div aria-hidden className="text-5xl">
