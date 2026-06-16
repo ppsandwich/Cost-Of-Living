@@ -32,7 +32,6 @@ export function StartScreen({
   return (
     <main className="relative grid min-h-dvh place-items-center overflow-hidden px-4 py-8">
       <div aria-hidden className="sunburst-spin absolute inset-[-75%]" />
-      <div aria-hidden className="title-grocery-bg" />
       <div className="relative w-full max-w-md text-center">
         {/* Shop sign */}
         <div className="panel relative mx-auto max-w-xs bg-brand px-4 pb-5 pt-6">
