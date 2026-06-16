@@ -38,9 +38,15 @@ export function StartScreen({
           <div className="absolute inset-x-0 -top-0.5">
             <div className="awning-scallops h-2.5" />
           </div>
-          <p aria-hidden className="text-5xl drop-shadow-[2px_2px_0_rgba(51,36,28,0.4)]">
-            🛒
-          </p>
+          <div aria-hidden className="title-cart-fire">
+            <span className="cart-flame cart-flame-back">🔥</span>
+            <span className="cart-flame cart-flame-main">🔥</span>
+            <span className="cart-flame cart-flame-side">🔥</span>
+            <span className="cart-spark cart-spark-one">✦</span>
+            <span className="cart-spark cart-spark-two">✦</span>
+            <span className="cart-spark cart-spark-three">✦</span>
+            <span className="title-cart-icon">🛒</span>
+          </div>
           <h1 className="mt-1 font-title text-5xl font-bold leading-none text-brand [text-shadow:2px_2px_0_rgba(51,36,28,0.35)]">
             Cost of
             <br />
