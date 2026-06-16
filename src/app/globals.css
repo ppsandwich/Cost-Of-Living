@@ -82,6 +82,15 @@ body {
   font-weight: 400;
 }
 
+.countdown-number {
+  text-shadow:
+    0 0.06em 0 var(--color-ink),
+    0.06em 0.08em 0 rgba(51, 36, 28, 0.35),
+    0 0 0.22em rgba(255, 250, 240, 0.55);
+  transform-origin: center;
+  animation: countdown-pop 1s cubic-bezier(0.18, 1.38, 0.32, 1) both;
+}
+
 /* ── Supermarket awning (header trim) ─────────────────────── */
 
 .awning-stripes {
@@ -241,6 +250,25 @@ body {
 @keyframes spin-slow {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes countdown-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.38) rotate(-8deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.12) rotate(4deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.72) rotate(7deg);
   }
 }
 

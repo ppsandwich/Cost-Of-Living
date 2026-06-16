@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { gameReducer, INITIAL_STATE } from "@/game/reducer";
 import { dismissTutorial, recordRunProgress, useRecords } from "@/utils/records";
 import { StatusBar } from "@/components/StatusBar";
@@ -11,9 +11,16 @@ import { OutcomeModal } from "@/components/OutcomeModal";
 import { RunSummary } from "@/components/RunSummary";
 import { StartScreen } from "@/components/StartScreen";
 import { PowerUpShelf } from "@/components/PowerUps";
+import { CountdownInterstitial } from "@/components/CountdownInterstitial";
+
+interface PendingCountdown {
+  id: number;
+  onComplete: () => void;
+}
 
 export default function Home() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
+  const [pendingCountdown, setPendingCountdown] = useState<PendingCountdown | null>(null);
   const records = useRecords();
 
   // Round countdown
@@ -44,15 +51,33 @@ export default function Home() {
       highestRound: records.highestRound,
     });
 
+  const withCountdown = useCallback((onComplete: () => void) => {
+    setPendingCountdown({
+      id: Date.now(),
+      onComplete: () => {
+        setPendingCountdown(null);
+        onComplete();
+      },
+    });
+  }, []);
+
   if (state.status === "idle" || !state.npc) {
     return (
-      <StartScreen
-        bestScore={records.bestScore}
-        highestRound={records.highestRound}
-        showTutorial={!records.tutorialDismissed}
-        onDismissTutorial={dismissTutorial}
-        onStart={startRun}
-      />
+      <>
+        <StartScreen
+          bestScore={records.bestScore}
+          highestRound={records.highestRound}
+          showTutorial={!records.tutorialDismissed}
+          onDismissTutorial={dismissTutorial}
+          onStart={() => withCountdown(startRun)}
+        />
+        {pendingCountdown && (
+          <CountdownInterstitial
+            key={pendingCountdown.id}
+            onComplete={pendingCountdown.onComplete}
+          />
+        )}
+      </>
     );
   }
 
@@ -108,12 +133,15 @@ export default function Home() {
       {state.status === "round_won" && (
         <OutcomeModal
           state={state}
-          onNextRound={() => dispatch({ type: "NEXT_ROUND" })}
+          onNextRound={() => withCountdown(() => dispatch({ type: "NEXT_ROUND" }))}
           onChoosePowerUp={(powerUpId) => dispatch({ type: "CHOOSE_POWERUP", powerUpId })}
         />
       )}
       {state.status === "lost" && <RunSummary state={state} onReplay={startRun} />}
       {state.status === "game_won" && <RunSummary state={state} won onReplay={startRun} />}
+      {pendingCountdown && (
+        <CountdownInterstitial key={pendingCountdown.id} onComplete={pendingCountdown.onComplete} />
+      )}
     </div>
   );
 }

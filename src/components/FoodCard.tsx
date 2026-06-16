@@ -86,15 +86,6 @@ export function FoodCard({
           <span aria-hidden>🚫</span> Can&apos;t eat: {mustNotLabel}
         </div>
       )}
-      {storeItem.specialLabel && (
-        <span
-          className={`sticker absolute left-9 top-[-2px] z-10 rounded-md px-1.5 py-0.5 font-display text-[11.5px] uppercase tracking-wide text-white ${
-            storeItem.shrinkflated ? "bg-brand" : "bg-good"
-          }`}
-        >
-          {storeItem.specialLabel}
-        </span>
-      )}
       <div className="flex items-center gap-2.5">
         <span
           aria-hidden
@@ -168,9 +159,20 @@ export function FoodCard({
           )}
         </button>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <span className="text-lg font-extrabold leading-none tabular-nums text-ink">
-            {formatCents(storeItem.currentPriceCents)}
-          </span>
+          <div className="flex max-w-[8.75rem] items-center justify-end gap-1.5">
+            {storeItem.specialLabel && (
+              <span
+                className={`sticker min-w-0 truncate rounded-md px-1.5 py-0.5 font-display text-[11.5px] uppercase tracking-wide text-white ${
+                  storeItem.shrinkflated ? "bg-brand" : "bg-good"
+                }`}
+              >
+                {storeItem.specialLabel}
+              </span>
+            )}
+            <span className="shrink-0 text-lg font-extrabold leading-none tabular-nums text-ink">
+              {formatCents(storeItem.currentPriceCents)}
+            </span>
+          </div>
           <div className="flex items-center gap-1">
           {inBasketMode && canBulkAdd && (
             <button
