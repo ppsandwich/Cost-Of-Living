@@ -147,6 +147,18 @@ body {
   inset: -125%;
 }
 
+.title-grocery-bg {
+  position: absolute;
+  inset: -7rem;
+  background-image: url("/title-grocery-grid.svg");
+  background-position: 0 0;
+  background-repeat: repeat;
+  background-size: 28rem 28rem;
+  opacity: 0.2;
+  mix-blend-mode: multiply;
+  animation: grocery-grid-slide 42s linear infinite;
+}
+
 .title-cart-fire {
   position: relative;
   isolation: isolate;
@@ -236,6 +248,12 @@ body {
 @keyframes spin-slow {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes grocery-grid-slide {
+  to {
+    background-position: 28rem 28rem;
   }
 }
 
