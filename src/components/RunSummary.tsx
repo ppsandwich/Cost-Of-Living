@@ -59,7 +59,7 @@ export function RunSummary({
           </div>
           <div className="flex justify-between">
             <span className="text-faded">FINAL NPC</span>
-            <span>{npc.name.toUpperCase()}</span>
+            <span className="font-knewave">{npc.name.toUpperCase()}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-faded">RUN SCORE</span>
@@ -83,7 +83,7 @@ export function RunSummary({
         <button
           type="button"
           onClick={onReplay}
-          className="btn mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
+          className="btn font-knewave mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
         >
           Play again
         </button>

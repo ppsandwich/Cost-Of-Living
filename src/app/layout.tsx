@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito, Oleo_Script, Sour_Gummy } from "next/font/google";
+import { Knewave, Nunito, Oleo_Script, Sour_Gummy } from "next/font/google";
 import "./globals.css";
 
 const display = Sour_Gummy({
@@ -16,6 +16,12 @@ const title = Oleo_Script({
   weight: ["400", "700"],
   subsets: ["latin"],
   variable: "--font-oleo",
+});
+
+const accent = Knewave({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-knewave",
 });
 
 export const metadata: Metadata = {
@@ -38,7 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} ${title.variable} h-full antialiased`}
+      className={`${display.variable} ${body.variable} ${title.variable} ${accent.variable} h-full antialiased`}
     >
       <body className="min-h-full font-sans">{children}</body>
     </html>

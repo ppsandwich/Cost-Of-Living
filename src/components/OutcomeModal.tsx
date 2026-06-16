@@ -233,7 +233,7 @@ export function OutcomeModal({
           type="button"
           onClick={onNextRound}
           disabled={mustChoose}
-          className="btn mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
+          className="btn font-knewave mt-4 min-h-13 w-full bg-brand py-2.5 text-base uppercase text-white"
         >
           {mustChoose ? (
             "Pick a power-up first"

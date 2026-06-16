@@ -77,6 +77,11 @@ body {
   cursor: not-allowed;
 }
 
+.font-knewave {
+  font-family: var(--font-knewave), "Arial Black", sans-serif;
+  font-weight: 400;
+}
+
 /* ── Supermarket awning (header trim) ─────────────────────── */
 
 .awning-stripes {

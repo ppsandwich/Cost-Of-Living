@@ -36,7 +36,7 @@ export function StatusBar({
               {npc.emoji}
             </span>
             <div className="min-w-0">
-              <div className="truncate font-display text-base leading-tight">{npc.name}</div>
+              <div className="font-knewave truncate text-base leading-tight">{npc.name}</div>
               <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand">
                 Round {roundNumber}/{FINAL_ROUND} · {budgetPressureLabel(budgetMultiplier)}
               </div>

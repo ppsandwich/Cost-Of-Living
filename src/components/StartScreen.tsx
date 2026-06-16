@@ -50,7 +50,7 @@ export function StartScreen({
           <h1 className="mt-1 font-title text-5xl font-bold leading-none text-brand [text-shadow:2px_2px_0_rgba(51,36,28,0.35)]">
             Cost of
             <br />
-            Living
+            <span className="font-knewave">Living</span>
           </h1>
         </div>
 
@@ -90,7 +90,7 @@ export function StartScreen({
         <button
           type="button"
           onClick={onStart}
-          className="btn mt-5 min-h-14 w-full bg-good text-xl uppercase tracking-wide text-white"
+          className="btn font-knewave mt-5 min-h-14 w-full bg-good text-xl uppercase tracking-wide text-white"
         >
           Start shopping
         </button>

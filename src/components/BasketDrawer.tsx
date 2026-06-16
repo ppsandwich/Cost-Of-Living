@@ -110,7 +110,7 @@ export function BasketDrawer({
           type="button"
           onClick={onCheckout}
           disabled={!readyToWin}
-          className={`btn min-h-12 w-full text-base uppercase text-white ${
+          className={`btn font-knewave min-h-12 w-full text-base uppercase text-white ${
             overThreshold || overBudget ? "bg-danger" : readyToWin ? "wobble bg-good" : "bg-faded"
           }`}
           aria-label={

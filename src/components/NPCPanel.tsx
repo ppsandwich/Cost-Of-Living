@@ -27,7 +27,7 @@ export function NPCPanel({ npc, basket }: { npc: NPC; basket: BasketItem[] }) {
         aria-label={`${npc.name}'s must haves — toggle details about ${npc.name}`}
       >
         <h2 className="font-display text-[12.7px] uppercase tracking-wider text-brand">
-          {npc.name}&apos;s must haves
+          <span className="font-knewave">{npc.name}</span>&apos;s must haves
         </h2>
         <span aria-hidden className="font-display text-faded">
           {expanded ? "▲" : "▼"}
@@ -49,7 +49,7 @@ export function NPCPanel({ npc, basket }: { npc: NPC; basket: BasketItem[] }) {
             </span>
             <div className="min-w-0">
               <div className="truncate">
-                <span className="font-display text-base">{npc.name}</span>
+                <span className="font-knewave text-base">{npc.name}</span>
                 <span className="ml-1.5 text-xs font-bold text-faded">{npc.ageLabel}</span>
               </div>
               <div className="text-xs font-semibold text-faded">
