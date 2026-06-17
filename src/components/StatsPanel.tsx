@@ -1,5 +1,6 @@
 import type { NPC, NutritionStats } from "@/types/npc";
 import type { BasketItem } from "@/types/game";
+import type { CSSProperties } from "react";
 import { DANGER_STATS, dangerRatio } from "@/game/thresholds";
 import { getRequirementsStatus } from "@/game/requirements";
 import { WANT_BADGE } from "@/data/labels";
@@ -20,11 +21,10 @@ function GoalMeter({
 }) {
   const percent = Math.min(100, (value / (target * 1.4)) * 100);
   const targetPercent = (target / (target * 1.4)) * 100;
-  const met = Math.round(value) >= target;
   return (
     <div className="flex items-center gap-2">
       <span className="w-24 shrink-0 font-display text-xs uppercase tracking-wide">
-        <span aria-hidden>{emoji}</span> {label} {met && <span aria-hidden>✓</span>}
+        <span aria-hidden>{emoji}</span> {label}
       </span>
       <div
         className="meter-track relative h-5 min-w-0 flex-1 overflow-hidden"
@@ -109,6 +109,7 @@ export function StatsPanel({
             const percent = Math.round(ratio * 100);
             const cappedPercent = Math.min(100, percent);
             const alarm = ratio >= 1;
+            const labelOnLeft = cappedPercent >= 78;
             return (
               <span
                 key={stat}
@@ -133,9 +134,15 @@ export function StatsPanel({
                   }}
                 />
                 <span
-                  className={`relative z-10 block lg:px-1 lg:py-[2px] lg:text-[11px] lg:leading-[0.85rem] ${
-                    ratio >= 0.6 ? "lg:text-white" : "lg:text-ink"
+                  className={`relative z-10 block lg:absolute lg:left-[calc(var(--risk-label-left)+var(--risk-label-gap))] lg:top-1/2 lg:-translate-y-1/2 lg:whitespace-nowrap lg:px-1 lg:py-[2px] lg:text-[11px] lg:leading-[0.85rem] ${
+                    labelOnLeft ? "lg:-translate-x-full lg:text-white" : "lg:text-ink"
                   }`}
+                  style={
+                    {
+                      "--risk-label-left": `${cappedPercent}%`,
+                      "--risk-label-gap": labelOnLeft ? "-2px" : "2px",
+                    } as CSSProperties
+                  }
                 >
                   {alarm && "⚠"}
                   {STAT_LABEL[stat]} {percent}%

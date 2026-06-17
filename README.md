@@ -26,7 +26,7 @@ Deploys to Vercel as a fully static app — no database, no auth, no APIs. Score
 
 ## Versioning
 
-The game version is defined in `src/game/version.ts` and shown on the title screen. The current game version is `1.9`.
+The game version is defined in `src/game/version.ts` and shown on the title screen. The current game version is `1.10`.
 
 When implementing a change, evaluate the version before finishing:
 
