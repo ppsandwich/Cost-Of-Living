@@ -65,6 +65,12 @@ function riskColor(ratio: number): string {
   return `color-mix(in oklab, var(--color-danger) ${redShare}%, var(--color-faded))`;
 }
 
+function riskBarFill(ratio: number): string {
+  if (ratio >= 0.8) return "var(--color-danger)";
+  if (ratio >= 0.6) return "var(--color-happy)";
+  return "#d8d0c2";
+}
+
 export function StatsPanel({
   stats,
   npc,
@@ -123,12 +129,12 @@ export function StatsPanel({
                   className="absolute inset-y-0 left-0 hidden lg:block"
                   style={{
                     width: `${cappedPercent}%`,
-                    backgroundColor: alarm ? "var(--color-danger)" : riskColor(ratio),
+                    backgroundColor: riskBarFill(ratio),
                   }}
                 />
                 <span
                   className={`relative z-10 block lg:px-1 lg:py-[2px] lg:text-[11px] lg:leading-[0.85rem] ${
-                    ratio >= 0.7 ? "lg:text-white" : "lg:text-ink"
+                    ratio >= 0.6 ? "lg:text-white" : "lg:text-ink"
                   }`}
                 >
                   {alarm && "⚠"}
