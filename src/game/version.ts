@@ -1,0 +1,5 @@
+export const GAME_VERSION_MAJOR = 1;
+export const GAME_VERSION_MINOR = 5;
+
+export const GAME_VERSION = `${GAME_VERSION_MAJOR}.${GAME_VERSION_MINOR}`;
+export const GAME_VERSION_LABEL = `v${GAME_VERSION}`;

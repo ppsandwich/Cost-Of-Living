@@ -59,31 +59,20 @@ export default function Home() {
   }, []);
   const endCountdown = useCallback(() => setPendingCountdown(null), []);
 
-  if (state.status === "idle" || !state.npc) {
-    return (
-      <>
-        <StartScreen
-          bestScore={records.bestScore}
-          highestRound={records.highestRound}
-          showTutorial={!records.tutorialDismissed}
-          onDismissTutorial={dismissTutorial}
-          onStart={() => withCountdown(startRun)}
-        />
-        {pendingCountdown && (
-          <CountdownInterstitial
-            key={pendingCountdown.id}
-            onProceed={pendingCountdown.onProceed}
-            onDone={endCountdown}
-          />
-        )}
-      </>
-    );
-  }
-
-  return (
+  const npc = state.npc;
+  const isIdle = state.status === "idle" || !npc;
+  const content = isIdle ? (
+    <StartScreen
+      bestScore={records.bestScore}
+      highestRound={records.highestRound}
+      showTutorial={!records.tutorialDismissed}
+      onDismissTutorial={dismissTutorial}
+      onStart={() => withCountdown(startRun)}
+    />
+  ) : (
     <div className="flex min-h-dvh flex-col">
       <StatusBar
-        npc={state.npc}
+        npc={npc}
         roundNumber={state.roundNumber}
         budgetMultiplier={state.budgetMultiplier}
         timeRemainingSeconds={state.timeRemainingSeconds}
@@ -92,7 +81,7 @@ export default function Home() {
 
       <main className="mx-auto w-full max-w-md flex-1 px-3 pb-3 pt-2 lg:grid lg:max-w-6xl lg:grid-cols-[320px_1fr_340px] lg:items-start lg:gap-4">
         <div className="space-y-3 lg:sticky lg:top-28">
-          <NPCPanel npc={state.npc} basket={state.basket} />
+          <NPCPanel npc={npc} basket={state.basket} />
           <PowerUpShelf key={state.roundNumber} powerUps={state.powerUps} />
           <p
             aria-live="polite"
@@ -107,7 +96,7 @@ export default function Home() {
           <StoreList
             inventory={state.inventory}
             basket={state.basket}
-            npc={state.npc}
+            npc={npc}
             powerUps={state.powerUps}
             bulkAddsUsed={state.bulkAddsUsed}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
@@ -120,7 +109,7 @@ export default function Home() {
           <BasketDrawer
             basket={state.basket}
             stats={state.stats}
-            npc={state.npc}
+            npc={npc}
             remainingBudgetCents={state.remainingBudgetCents}
             onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
@@ -138,6 +127,12 @@ export default function Home() {
       )}
       {state.status === "lost" && <RunSummary state={state} onReplay={startRun} />}
       {state.status === "game_won" && <RunSummary state={state} won onReplay={startRun} />}
+    </div>
+  );
+
+  return (
+    <>
+      {content}
       {pendingCountdown && (
         <CountdownInterstitial
           key={pendingCountdown.id}
@@ -145,6 +140,6 @@ export default function Home() {
           onDone={endCountdown}
         />
       )}
-    </div>
+    </>
   );
 }

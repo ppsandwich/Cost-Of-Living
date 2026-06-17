@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { GAME_VERSION_LABEL } from "@/game/version";
 
 interface StartScreenProps {
   bestScore: number;
@@ -119,6 +120,7 @@ export function StartScreen({
             sandwich.codes
           </a>
         </p>
+        <p className="mt-1 text-[11.5px] font-bold text-faded">{GAME_VERSION_LABEL}</p>
       </div>
     </main>
   );

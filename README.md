@@ -24,6 +24,16 @@ npm start
 
 Deploys to Vercel as a fully static app — no database, no auth, no APIs. Scores and settings persist in LocalStorage.
 
+## Versioning
+
+The game version is defined in `src/game/version.ts` and shown on the title screen. The current game version is `1.5`.
+
+When implementing a change, evaluate the version before finishing:
+
+- Increment the **minor** version for player-visible UI, content, balance, scoring, or gameplay changes.
+- Increment the **major** version for save-breaking changes, major ruleset changes, or changes that substantially redefine the game.
+- Do not bump the game version for docs, tests, refactors, or internal tooling that does not affect the player experience.
+
 ## How it's put together
 
 - **Framework:** Next.js (App Router) + TypeScript + Tailwind CSS
