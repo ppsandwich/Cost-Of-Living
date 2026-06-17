@@ -15,7 +15,7 @@ import { CountdownInterstitial } from "@/components/CountdownInterstitial";
 
 interface PendingCountdown {
   id: number;
-  onComplete: () => void;
+  onProceed: () => void;
 }
 
 export default function Home() {
@@ -54,12 +54,10 @@ export default function Home() {
   const withCountdown = useCallback((onComplete: () => void) => {
     setPendingCountdown({
       id: Date.now(),
-      onComplete: () => {
-        setPendingCountdown(null);
-        onComplete();
-      },
+      onProceed: onComplete,
     });
   }, []);
+  const endCountdown = useCallback(() => setPendingCountdown(null), []);
 
   if (state.status === "idle" || !state.npc) {
     return (
@@ -74,7 +72,8 @@ export default function Home() {
         {pendingCountdown && (
           <CountdownInterstitial
             key={pendingCountdown.id}
-            onComplete={pendingCountdown.onComplete}
+            onProceed={pendingCountdown.onProceed}
+            onDone={endCountdown}
           />
         )}
       </>
@@ -140,7 +139,11 @@ export default function Home() {
       {state.status === "lost" && <RunSummary state={state} onReplay={startRun} />}
       {state.status === "game_won" && <RunSummary state={state} won onReplay={startRun} />}
       {pendingCountdown && (
-        <CountdownInterstitial key={pendingCountdown.id} onComplete={pendingCountdown.onComplete} />
+        <CountdownInterstitial
+          key={pendingCountdown.id}
+          onProceed={pendingCountdown.onProceed}
+          onDone={endCountdown}
+        />
       )}
     </div>
   );

@@ -35,7 +35,7 @@ export function RunSummary({
             {won ? "🏆" : npc.emoji}
           </div>
           <h2
-            className={`mt-1 font-title text-3xl uppercase tracking-wide ${
+            className={`mt-1 font-title text-3xl tracking-wide ${
               won ? "wobble text-good" : "text-brand"
             }`}
           >

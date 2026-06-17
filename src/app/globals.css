@@ -82,6 +82,15 @@ body {
   font-weight: 400;
 }
 
+.countdown-screen {
+  opacity: 1;
+  transition: opacity 0.42s ease-out;
+}
+
+.countdown-screen-fade {
+  opacity: 0;
+}
+
 .countdown-number {
   text-shadow:
     0 0.06em 0 var(--color-ink),
@@ -256,11 +265,11 @@ body {
 @keyframes countdown-pop {
   0% {
     opacity: 0;
-    transform: scale(0.38) rotate(-8deg);
+    transform: scale(0.34) rotate(-8deg);
   }
   18% {
     opacity: 1;
-    transform: scale(1.12) rotate(4deg);
+    transform: scale(1.16) rotate(4deg);
   }
   70% {
     opacity: 1;

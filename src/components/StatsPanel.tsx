@@ -97,37 +97,61 @@ export function StatsPanel({
         target={npc.happinessTarget}
         fillClass="bg-happy"
       />
-      <div className="flex flex-wrap items-center gap-1 pt-0.5">
-        {risks.map(({ stat, ratio }) => {
-          const percent = Math.round(ratio * 100);
-          const alarm = ratio >= 1;
-          return (
+      <div className="space-y-1 pt-0.5">
+        <div className="flex flex-wrap items-center gap-1 lg:flex-col lg:items-stretch">
+          {risks.map(({ stat, ratio }) => {
+            const percent = Math.round(ratio * 100);
+            const cappedPercent = Math.min(100, percent);
+            const alarm = ratio >= 1;
+            return (
+              <span
+                key={stat}
+                className={`relative overflow-hidden rounded-md border-2 px-1 py-0.5 text-xs font-bold leading-none lg:h-4 lg:w-full lg:px-0 lg:py-0 ${
+                  alarm
+                    ? "border-ink bg-danger text-white lg:bg-paper"
+                    : `border-ink/15 bg-paper ${ratio >= 0.7 ? "font-bold" : ""}`
+                }`}
+                style={alarm ? undefined : { color: riskColor(ratio) }}
+                role="meter"
+                aria-valuenow={percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={`${STAT_LABEL[stat]} ${percent}% of limit`}
+              >
+                <span
+                  aria-hidden
+                  className="absolute inset-y-0 left-0 hidden lg:block"
+                  style={{
+                    width: `${cappedPercent}%`,
+                    backgroundColor: alarm ? "var(--color-danger)" : riskColor(ratio),
+                  }}
+                />
+                <span
+                  className={`relative z-10 block lg:px-1 lg:py-[2px] lg:text-[11px] lg:leading-[0.85rem] ${
+                    ratio >= 0.7 ? "lg:text-white" : "lg:text-ink"
+                  }`}
+                >
+                  {alarm && "⚠"}
+                  {STAT_LABEL[stat]} {percent}%
+                </span>
+              </span>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {wants.map(({ want, satisfied }) => (
             <span
-              key={stat}
-              className={`rounded-md border-2 px-1 py-0.5 text-xs font-bold leading-none ${
-                alarm
-                  ? "border-ink bg-danger font-bold text-white"
-                  : `border-ink/15 bg-paper ${ratio >= 0.7 ? "font-bold" : ""}`
+              key={want}
+              className={`rounded-md border-2 px-1 py-0.5 text-xs font-bold uppercase leading-none ${
+                satisfied
+                  ? "border-ink bg-good text-white"
+                  : "border-ink/15 bg-paper text-faded"
               }`}
-              style={alarm ? undefined : { color: riskColor(ratio) }}
             >
-              {alarm && "⚠"}
-              {STAT_LABEL[stat]} {percent}%
+              {WANT_BADGE[want] ?? "Variety"} {satisfied ? "✓" : "✗"}
             </span>
-          );
-        })}
-        {wants.map(({ want, satisfied }) => (
-          <span
-            key={want}
-            className={`rounded-md border-2 px-1 py-0.5 text-xs font-bold uppercase leading-none ${
-              satisfied
-                ? "border-ink bg-good text-white"
-                : "border-ink/15 bg-paper text-faded"
-            }`}
-          >
-            {WANT_BADGE[want] ?? "Variety"} {satisfied ? "✓" : "✗"}
-          </span>
-        ))}
+          ))}
+        </div>
       </div>
       {worst && (
         <p className="text-xs font-bold text-danger" role="alert">

@@ -108,7 +108,7 @@ export function OutcomeModal({
           <div aria-hidden className="text-5xl">
             {npc.emoji}
           </div>
-          <h2 className="wobble mt-1 font-title text-3xl uppercase tracking-wide text-good">
+          <h2 className="wobble mt-1 font-title text-3xl tracking-wide text-good">
             Round clear!
           </h2>
           <p className="mt-2 text-sm font-semibold">{winLine}</p>

@@ -1,37 +1,50 @@
 import { useEffect, useState } from "react";
 
 interface CountdownInterstitialProps {
-  onComplete: () => void;
+  onProceed: () => void;
+  onDone: () => void;
 }
 
-export function CountdownInterstitial({ onComplete }: CountdownInterstitialProps) {
-  const [count, setCount] = useState(3);
+export function CountdownInterstitial({ onProceed, onDone }: CountdownInterstitialProps) {
+  const [label, setLabel] = useState("3");
+  const [fading, setFading] = useState(false);
 
   useEffect(() => {
-    const two = window.setTimeout(() => setCount(2), 1000);
-    const one = window.setTimeout(() => setCount(1), 2000);
-    const done = window.setTimeout(onComplete, 3000);
+    const two = window.setTimeout(() => setLabel("2"), 1000);
+    const one = window.setTimeout(() => setLabel("1"), 2000);
+    const go = window.setTimeout(() => setLabel("GO!"), 3000);
+    const fade = window.setTimeout(() => {
+      setFading(true);
+      onProceed();
+    }, 3400);
+    const done = window.setTimeout(onDone, 3850);
 
     return () => {
       window.clearTimeout(two);
       window.clearTimeout(one);
+      window.clearTimeout(go);
+      window.clearTimeout(fade);
       window.clearTimeout(done);
     };
-  }, [onComplete]);
+  }, [onDone, onProceed]);
 
   return (
     <div
       role="status"
       aria-live="assertive"
-      aria-label={`Starting in ${count}`}
-      className="fixed inset-0 z-[80] grid place-items-center bg-brand"
+      aria-label={label === "GO!" ? "Go" : `Starting in ${label}`}
+      className={`countdown-screen fixed inset-0 z-[80] grid place-items-center bg-brand ${
+        fading ? "countdown-screen-fade" : ""
+      }`}
     >
       <span
-        key={count}
+        key={label}
         aria-hidden
-        className="countdown-number font-knewave text-[min(44vw,18rem)] leading-none text-tag"
+        className={`countdown-number font-knewave leading-none text-tag ${
+          label === "GO!" ? "text-[min(32vw,12rem)]" : "text-[min(44vw,18rem)]"
+        }`}
       >
-        {count}
+        {label}
       </span>
     </div>
   );
