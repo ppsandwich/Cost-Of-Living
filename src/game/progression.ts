@@ -10,10 +10,33 @@ export const ROUND_TIMER_SECONDS = 90;
 /** Clear this round and the run is won. */
 export const FINAL_ROUND = 20;
 
+const BUDGET_MULTIPLIERS = [
+  1,
+  0.94,
+  0.88,
+  0.82,
+  0.76,
+  0.7,
+  0.64,
+  0.58,
+  0.52,
+  0.47,
+  0.42,
+  0.38,
+  0.34,
+  0.31,
+  0.29,
+  0.27,
+  0.25,
+  0.23,
+  0.21,
+  0.2,
+];
+
 export function budgetMultiplierForRound(roundNumber: number): number {
-  // Steeper than the PRD's original curve: collected power-ups carry a
-  // run, so the money has to get worse faster to keep rounds honest
-  return Math.max(0.55, 1 - (roundNumber - 1) * 0.06);
+  // Power-ups compound over a run, so the budget has to keep falling
+  // after the midgame instead of flattening at a fixed floor.
+  return BUDGET_MULTIPLIERS[Math.min(roundNumber, FINAL_ROUND) - 1] ?? 0.2;
 }
 
 export function budgetPressureLabel(multiplier: number): string {

@@ -137,7 +137,7 @@ export function generateSolvableRound(
 ): SolvableRound {
   let budget = budgetCents;
   let inventory = generateInventory(npc, budget, seed, roundNumber, powerUps);
-  for (let attempt = 0; attempt < 12; attempt++) {
+  for (let attempt = 0; attempt < 24; attempt++) {
     if (canClear(npc, inventory, budget, powerUps)) {
       return { inventory, budgetCents: budget, rescueCents: budget - budgetCents };
     }
