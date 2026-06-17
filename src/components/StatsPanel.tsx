@@ -66,8 +66,8 @@ function riskColor(ratio: number): string {
 }
 
 function riskBarFill(ratio: number): string {
-  if (ratio >= 0.8) return "var(--color-danger)";
-  if (ratio >= 0.6) return "var(--color-happy)";
+  if (ratio > 1) return "var(--color-danger)";
+  if (ratio > 0.7) return "var(--color-happy)";
   return "#d8d0c2";
 }
 
@@ -108,7 +108,7 @@ export function StatsPanel({
           {risks.map(({ stat, ratio }) => {
             const percent = Math.round(ratio * 100);
             const cappedPercent = Math.min(100, percent);
-            const alarm = ratio >= 1;
+            const alarm = ratio > 1;
             const labelOnLeft = cappedPercent >= 78;
             return (
               <span

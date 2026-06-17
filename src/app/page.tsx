@@ -133,7 +133,7 @@ export default function Home() {
       {state.status === "round_won" && (
         <OutcomeModal
           state={state}
-          onNextRound={() => withCountdown(() => dispatch({ type: "NEXT_ROUND" }))}
+          onNextRound={() => dispatch({ type: "NEXT_ROUND" })}
           onChoosePowerUp={(powerUpId) => dispatch({ type: "CHOOSE_POWERUP", powerUpId })}
         />
       )}
