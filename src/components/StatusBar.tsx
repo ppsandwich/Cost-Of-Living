@@ -7,6 +7,10 @@ interface StatusBarProps {
   budgetMultiplier: number;
   timeRemainingSeconds: number;
   roundDurationSeconds: number;
+  muted: boolean;
+  onToggleMute: () => void;
+  onPause: () => void;
+  canPause: boolean;
 }
 
 export function StatusBar({
@@ -15,6 +19,10 @@ export function StatusBar({
   budgetMultiplier,
   timeRemainingSeconds,
   roundDurationSeconds,
+  muted,
+  onToggleMute,
+  onPause,
+  canPause,
 }: StatusBarProps) {
   const minutes = Math.floor(timeRemainingSeconds / 60);
   const seconds = timeRemainingSeconds % 60;
@@ -67,6 +75,29 @@ export function StatusBar({
                 style={{ width: `${timePercent}%`, transition: "width 1s linear" }}
               />
             </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={onToggleMute}
+              aria-pressed={muted}
+              aria-label={muted ? "Unmute sounds" : "Mute sounds"}
+              title={muted ? "Unmute" : "Mute"}
+              className="btn grid size-11 place-items-center bg-paper text-lg"
+            >
+              <span aria-hidden>{muted ? "🔇" : "🔊"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={onPause}
+              disabled={!canPause}
+              aria-label="Pause game"
+              title="Pause"
+              className="btn grid size-11 place-items-center bg-paper text-lg"
+            >
+              <span aria-hidden>⏸</span>
+            </button>
           </div>
         </div>
       </div>

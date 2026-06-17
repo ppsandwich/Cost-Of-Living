@@ -12,6 +12,7 @@ import { RunSummary } from "@/components/RunSummary";
 import { StartScreen } from "@/components/StartScreen";
 import { PowerUpShelf } from "@/components/PowerUps";
 import { CountdownInterstitial } from "@/components/CountdownInterstitial";
+import { PauseModal } from "@/components/PauseModal";
 
 interface PendingCountdown {
   id: number;
@@ -21,14 +22,17 @@ interface PendingCountdown {
 export default function Home() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
   const [pendingCountdown, setPendingCountdown] = useState<PendingCountdown | null>(null);
+  const [muted, setMuted] = useState(false);
+  const [paused, setPaused] = useState(false);
   const records = useRecords();
 
   // Round countdown
   useEffect(() => {
     if (state.status !== "playing") return;
+    if (paused) return;
     const interval = setInterval(() => dispatch({ type: "TICK" }), 1000);
     return () => clearInterval(interval);
-  }, [state.status, state.roundNumber]);
+  }, [paused, state.status, state.roundNumber]);
 
   // A fresh round starts at the top of the shelves
   useEffect(() => {
@@ -43,13 +47,15 @@ export default function Home() {
     recordRunProgress(state.totalScore, state.successfulRounds);
   }, [state.status, state.totalScore, state.successfulRounds]);
 
-  const startRun = () =>
+  const startRun = () => {
+    setPaused(false);
     dispatch({
       type: "START_RUN",
       seed: Date.now() % 2147483647,
       bestScore: records.bestScore,
       highestRound: records.highestRound,
     });
+  };
 
   const withCountdown = useCallback((onComplete: () => void) => {
     setPendingCountdown({
@@ -77,6 +83,12 @@ export default function Home() {
         budgetMultiplier={state.budgetMultiplier}
         timeRemainingSeconds={state.timeRemainingSeconds}
         roundDurationSeconds={state.roundDurationSeconds}
+        muted={muted}
+        onToggleMute={() => setMuted((m) => !m)}
+        onPause={() => {
+          if (state.status === "playing") setPaused(true);
+        }}
+        canPause={state.status === "playing" && !pendingCountdown}
       />
 
       <main className="mx-auto w-full max-w-md flex-1 px-3 pb-3 pt-2 lg:grid lg:max-w-6xl lg:grid-cols-[320px_1fr_340px] lg:items-start lg:gap-4">
@@ -132,7 +144,13 @@ export default function Home() {
 
   return (
     <>
-      {content}
+      <div
+        className={paused ? "blur-sm transition-[filter]" : "transition-[filter]"}
+        aria-hidden={paused}
+      >
+        {content}
+      </div>
+      {paused && <PauseModal onResume={() => setPaused(false)} />}
       {pendingCountdown && (
         <CountdownInterstitial
           key={pendingCountdown.id}
