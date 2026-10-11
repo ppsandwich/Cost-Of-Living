@@ -35,7 +35,8 @@ export function StoreList({
 }: StoreListProps) {
   return (
     <section aria-label="Store shelves">
-      <h2 className="mb-2 font-display text-lg">
+      <h2 className="mb-3 flex items-center gap-2 font-title text-2xl">
+        <span aria-hidden className="shelf-heading-icon">🛒</span>
         {canShop ? "Today’s shelves" : "Inspect the shelves"}
       </h2>
       {!canShop && (

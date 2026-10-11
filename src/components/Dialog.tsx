@@ -7,10 +7,13 @@ export function Dialog({
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const id = useId();
   useEffect(() => {
     const dialog = ref.current!;
     dialog.showModal();
+    titleRef.current?.focus({ preventScroll: true });
+    dialog.scrollTop = 0;
     return () => dialog.close();
   }, []);
   return (
@@ -18,9 +21,9 @@ export function Dialog({
       ref={ref}
       aria-labelledby={id}
       onCancel={(e) => e.preventDefault()}
-      className="panel fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-md overflow-y-auto p-5 backdrop:bg-ink/70"
+      className="panel dialog-enter fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-md overflow-y-auto p-5 backdrop:bg-ink/70"
     >
-      <h2 id={id} className="font-title text-3xl text-brand">
+      <h2 ref={titleRef} tabIndex={-1} id={id} className="font-title text-3xl text-brand focus:outline-none">
         {title}
       </h2>
       {children}

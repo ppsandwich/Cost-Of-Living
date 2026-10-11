@@ -95,7 +95,7 @@ export const NPCS: NPC[] = [
   {
     id: "bert",
     name: "Bert",
-    emoji: "🚐",
+    emoji: "🧔",
     ageLabel: "Lives in a van",
     description:
       "His kitchen is a camp stove and a kettle. His fridge is still on the wish list.",
@@ -134,7 +134,7 @@ export const NPCS: NPC[] = [
   {
     id: "carol",
     name: "Carol",
-    emoji: "💼",
+    emoji: "👩‍💼",
     ageLabel: "Office temp",
     description:
       "Wants a familiar lunch and something sweet. Her lunch break is short; her list of things to do is not.",
@@ -147,7 +147,7 @@ export const NPCS: NPC[] = [
   {
     id: "sam",
     name: "Sam",
-    emoji: "🛹",
+    emoji: "🧑",
     ageLabel: "Growing teenager",
     description:
       "Eats like a weather event. Went vegan last month; the household budget watches in quiet horror.",

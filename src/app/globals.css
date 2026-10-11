@@ -377,6 +377,168 @@ body {
   animation: wobble 2.5s ease-in-out infinite;
 }
 
+/* Shelf tickets, flavour stickers and character reactions. */
+.food-card {
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  animation: shelf-arrive 350ms ease-out backwards;
+}
+.food-card:nth-child(2) { animation-delay: 50ms; }
+.food-card:nth-child(3) { animation-delay: 100ms; }
+.food-card:nth-child(4) { animation-delay: 150ms; }
+.food-card-selected {
+  border-color: var(--color-good);
+  background: #f1f7e9;
+  box-shadow: 4px 4px 0 #237a5433;
+}
+.food-card-unavailable { background: var(--color-paper); }
+.food-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 1rem;
+  background: var(--color-paper);
+  font-size: 2rem;
+  box-shadow: 2px 2px 0 #33241c22;
+  transition: transform 180ms ease;
+}
+.price-ticket {
+  padding: .25rem .5rem;
+  border-block: 2px dashed #33241c55;
+  background: var(--color-tag);
+  transform: rotate(3deg);
+}
+.taste-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .2rem;
+  padding: .1rem .4rem;
+  border: 2px solid #33241c88;
+  border-radius: .4rem;
+  background: #eee2c9;
+  color: var(--color-ink);
+  font: 700 .75rem var(--font-display);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  box-shadow: 1px 2px 0 #33241c22;
+  transform: rotate(-2deg);
+}
+.taste-badge:nth-child(even) { transform: rotate(2deg); }
+.taste-sweet { background: #f8d3df; }
+.taste-salty { background: #d9eaf7; }
+.taste-fresh { background: #d9edc3; }
+.taste-comfort { background: #eee0f7; }
+.taste-spicy { background: #ffd7bd; }
+.taste-crunchy { background: #f7e5ad; }
+.taste-match {
+  background: var(--color-good);
+  color: white;
+  border-color: var(--color-ink);
+  box-shadow: 1px 2px 0 var(--color-ink);
+}
+.npc-panel {
+  background: linear-gradient(160deg, #fff0bd, var(--color-receipt) 55%);
+}
+.npc-avatar {
+  position: relative;
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  border: 3px solid var(--color-ink);
+  border-radius: 45% 55% 48% 52%;
+  background: repeating-conic-gradient(#ffd23f 0deg 30deg, #ffe58a 30deg 60deg);
+  box-shadow: 3px 4px 0 #33241c33;
+  animation: avatar-hello 650ms ease-out both;
+}
+.npc-face {
+  display: block;
+  font-size: 3.1rem;
+  line-height: 1;
+  transform-origin: 50% 85%;
+  animation: avatar-idle 7s ease-in-out infinite;
+}
+.npc-avatar-spark {
+  position: absolute;
+  right: -.3rem;
+  bottom: -.1rem;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 50%;
+  background: var(--color-receipt);
+  color: var(--color-brand-dark);
+  font-size: 1rem;
+}
+.npc-avatar-happy { background: #d9edc3; }
+.npc-avatar-compact { width: 2.5rem; height: 2.5rem; }
+.npc-avatar-compact .npc-face { font-size: 1.65rem; animation: none; }
+.npc-mood {
+  position: relative;
+  padding: .65rem .75rem;
+  border: 2px solid var(--color-ink);
+  border-radius: .25rem 1rem 1rem;
+  background: white;
+  font-style: italic;
+  animation: shelf-arrive 250ms ease-out;
+}
+.npc-celebration {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-block: .75rem;
+  padding: 1rem .5rem;
+  border: 2px solid #33241c33;
+  border-radius: 1rem;
+  background: var(--color-paper);
+  text-align: center;
+}
+.npc-celebration-won { background: #fff0bd; }
+.meal-chip {
+  padding: .15rem .4rem;
+  border: 2px solid #33241c44;
+  border-radius: .5rem;
+  background: var(--color-paper);
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+.meal-chip-covered {
+  border-color: var(--color-good);
+  background: #e4f0d7;
+  color: var(--color-good-dark);
+}
+.planning-panel { border-top: 7px solid var(--color-brand); }
+.shelf-heading-icon { display: inline-block; transform: rotate(-9deg); }
+.check-stamp { animation: check-stamp 350ms ease-out; }
+.dialog-enter[open] { animation: shelf-arrive 250ms ease-out; }
+@media (hover: hover) {
+  .food-card:hover { box-shadow: 5px 6px 0 #33241c33; }
+  .food-card:hover .food-icon { transform: rotate(-6deg) scale(1.06); }
+}
+@keyframes shelf-arrive {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes check-stamp {
+  0% { transform: scale(.75) rotate(-10deg); }
+  55% { transform: scale(1.13) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes avatar-hello {
+  0% { transform: scale(.75) rotate(-12deg); }
+  55% { transform: scale(1.08) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes avatar-idle {
+  0%, 75%, 100% { transform: rotate(0); }
+  82% { transform: rotate(-7deg); }
+  90% { transform: rotate(6deg); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

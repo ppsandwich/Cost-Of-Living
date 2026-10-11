@@ -3,6 +3,16 @@ import type { FoodItem } from "@/types/food";
 import type { StoreItem } from "@/types/game";
 import { mealRoles, MEAL_LABELS } from "@/game/meals";
 import { formatCents } from "@/utils/money";
+
+const TASTE_TAGS = [
+  { tag: "sweet", label: "Sweet", emoji: "🍬" },
+  { tag: "salty", label: "Salty", emoji: "🧂" },
+  { tag: "fresh", label: "Fresh", emoji: "🌿" },
+  { tag: "comfort", label: "Comfort", emoji: "🛋️" },
+  { tag: "spicy", label: "Spicy", emoji: "🌶️" },
+  { tag: "crunchy", label: "Crunchy", emoji: "🥨" },
+  { tag: "family_friendly", label: "Familiar", emoji: "🏠" },
+] as const;
 interface FoodCardProps {
   food: FoodItem;
   storeItem: StoreItem;
@@ -36,7 +46,7 @@ export function FoodCard({
   const roles = mealRoles(food);
   return (
     <li
-      className={`panel relative overflow-hidden p-3 ${unavailable ? "bg-paper" : ""}`}
+      className={`panel food-card relative p-3 ${unavailable ? "food-card-unavailable" : ""} ${inBasket ? "food-card-selected" : ""}`}
     >
       {unavailable && (
         <p className="mb-2 text-xs font-bold text-faded">
@@ -44,7 +54,7 @@ export function FoodCard({
         </p>
       )}
       <div className="flex items-center gap-3">
-        <span aria-hidden className="text-3xl">
+        <span key={inBasket} aria-hidden className={`food-icon ${inBasket ? "check-stamp" : ""}`}>
           {food.emoji}
         </span>
         <button
@@ -60,23 +70,30 @@ export function FoodCard({
               : "Taste or extra"}
           </span>
         </button>
-        <span className="font-display text-lg tabular-nums">
+        <span className="price-ticket shrink-0 font-display text-lg tabular-nums">
           {formatCents(storeItem.currentPriceCents)}
         </span>
       </div>
       {storeItem.specialLabel && (
-        <span className="mt-2 inline-block rounded bg-tag px-2 py-1 text-xs font-bold">
+        <span className="sticker mt-3 inline-block rounded bg-tag px-2 py-1 text-xs font-bold">
           {storeItem.specialLabel}
         </span>
       )}
       {priceHint && (
         <p className="mt-2 text-xs font-bold text-good">🔎 {priceHint}</p>
       )}
-      {wantMatches.length > 0 && (
-        <p className="mt-2 text-xs font-bold">
-          Matches: {wantMatches.join(" · ")}
-        </p>
-      )}
+      <div className="mt-3 flex flex-wrap gap-2" aria-label="Taste tags">
+        {TASTE_TAGS.filter(({ tag }) => food.tags.includes(tag)).map(({ tag, label, emoji }) => (
+          <span
+            key={tag}
+            className={`taste-badge taste-${tag} ${wantMatches.includes(label) && !unavailable ? "taste-match" : ""}`}
+            title={wantMatches.includes(label) && !unavailable ? `Matches their want: ${label.toLowerCase()}` : label}
+          >
+            <span aria-hidden>{emoji}</span> {label}
+            {wantMatches.includes(label) && !unavailable && <><span aria-hidden> ★</span><span className="sr-only"> — matches their want</span></>}
+          </span>
+        ))}
+      </div>
       {expanded && (
         <div className="mt-2 space-y-2 border-t-2 border-dashed border-ink/20 pt-2 text-sm">
           <p>{food.flavour}</p>
@@ -102,9 +119,8 @@ export function FoodCard({
         </div>
       )}
       <div className="mt-3 flex items-center gap-2">
-        <span className="min-w-0 flex-1 text-xs font-bold">
-          {inBasket ? `${inBasket} in basket · ` : ""}
-          {remainingQuantity} left on shelf
+        <span className="min-w-0 flex-1 text-xs font-bold text-good">
+          {inBasket > 0 && <span key={inBasket} className="check-stamp inline-block">✓ In your basket</span>}
         </span>
         {inBasket > 0 && (
           <button

@@ -1,6 +1,6 @@
 # Cost of Living
 
-A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.0** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
+A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.1** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
 
 ## Play loop
 

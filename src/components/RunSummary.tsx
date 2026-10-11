@@ -1,6 +1,7 @@
 import type { GameState } from "@/types/game";
 import { LearningReceipt } from "./LearningReceipt";
 import { Dialog } from "./Dialog";
+import { NPCelebration } from "./NPCAvatar";
 export function RunSummary({
   state,
   won = false,
@@ -14,6 +15,7 @@ export function RunSummary({
 }) {
   return (
     <Dialog title={won ? "Final lunch sorted!" : "The shop has closed"}>
+      <NPCelebration npc={state.npc!} won={won} />
       <p className="mt-2 text-sm">
         {won
           ? "You reached the end of the shopping challenge."

@@ -20,9 +20,12 @@ export function PlanningPanel({
     <section
       id="shopping-plan"
       aria-label="Plan your shop"
-      className="panel scroll-mt-28 space-y-3 bg-receipt p-4"
+      className="panel planning-panel scroll-mt-28 space-y-3 bg-receipt p-4"
     >
-      <p className="text-xs font-bold text-brand-dark">Plan → shop → reflect</p>
+      <p className="flex items-center gap-2 font-display text-xs text-brand-dark">
+        <span className="sticker rounded-md bg-tag px-2 py-1 text-ink">1. Plan</span>
+        <span>→ 2. Shop → 3. Reflect</span>
+      </p>
       <h2 className="font-title text-2xl">A little trolley strategy</h2>
       <p className="text-sm font-semibold">
         Plan a lunch for {state.npc!.name} with{" "}

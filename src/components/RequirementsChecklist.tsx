@@ -6,10 +6,11 @@ import { MUST_NOT_LABEL, WANT_EMOJI, WANT_LABEL } from "@/data/labels";
 function TickBox({ state }: { state: "done" | "todo" | "never" }) {
   return (
     <span
+      key={state}
       aria-hidden
       className={`grid size-8 shrink-0 place-items-center rounded-lg border-[3px] border-ink font-display text-lg leading-none ${
         state === "done"
-          ? "bg-good text-white"
+          ? "check-stamp bg-good text-white"
           : state === "never"
             ? "bg-faded text-white"
             : "bg-receipt text-transparent"

@@ -1,5 +1,6 @@
 import type { NPC } from "@/types/npc";
 import { budgetPressureLabel, FINAL_ROUND } from "@/game/progression";
+import { NPCAvatar } from "./NPCAvatar";
 
 interface StatusBarProps {
   npc: NPC;
@@ -39,12 +40,7 @@ export function StatusBar({
       <div className="bg-receipt px-3 pb-2 pt-2">
         <div className="mx-auto flex max-w-md items-center justify-between gap-3 lg:max-w-6xl">
           <div className="flex min-w-0 items-center gap-2">
-            <span
-              aria-hidden
-              className="grid size-10 shrink-0 place-items-center rounded-full border-[3px] border-ink bg-tag text-xl shadow-[2px_2px_0_rgba(51,36,28,0.25)]"
-            >
-              {npc.emoji}
-            </span>
+            <NPCAvatar npc={npc} compact />
             <div className="min-w-0">
               <div className="font-knewave truncate text-base leading-tight">
                 {npc.name}
@@ -57,7 +53,7 @@ export function StatusBar({
           </div>
 
           {clockLabel ? (
-            <p className="flex-1 text-center font-display text-base">
+            <p className="flex-1 text-center font-display text-xs sm:text-base">
               {clockLabel}
             </p>
           ) : (

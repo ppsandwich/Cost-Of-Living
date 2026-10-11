@@ -12,10 +12,10 @@ export function StatsPanel({
   return (
     <section aria-label="Lunch components">
       <h2 className="mb-1 font-display text-sm">The lunch brief</h2>
-      <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold">
+      <ul className="flex flex-wrap gap-1.5 text-xs font-bold">
         {MEAL_ROLES.map((role) => (
-          <li key={role} className={coverage[role] ? "text-good" : "text-ink"}>
-            <span aria-hidden>{coverage[role] ? "✓" : "○"}</span>{" "}
+          <li key={role} className={`meal-chip ${coverage[role] ? "meal-chip-covered" : ""}`}>
+            <span key={String(coverage[role])} className={coverage[role] ? "check-stamp inline-block" : ""} aria-hidden>{coverage[role] ? "✓" : "○"}</span>{" "}
             {MEAL_LABELS[role]}
             <span className="sr-only">
               {coverage[role] ? ": covered" : ": still needed"}

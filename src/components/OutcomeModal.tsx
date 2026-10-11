@@ -6,6 +6,7 @@ import { formatCents } from "@/utils/money";
 import { PowerUpChoice } from "./PowerUps";
 import { LearningReceipt } from "./LearningReceipt";
 import { Dialog } from "./Dialog";
+import { NPCelebration } from "./NPCAvatar";
 export function OutcomeModal({
   state,
   onNextRound,
@@ -21,6 +22,7 @@ export function OutcomeModal({
   const mustChoose = Boolean(state.powerUpChoices?.length);
   return (
     <Dialog title="Lunch sorted!">
+      <NPCelebration npc={state.npc!} />
       <p className="mt-2 text-sm">
         {state.npc!.name}&apos;s brief is covered. The trolley can relax.
       </p>
