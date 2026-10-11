@@ -1,5 +1,12 @@
 import type { DietaryMustNot, FoodPreference } from "@/types/npc";
+import type { FoodCategory } from "@/types/food";
 import { VARIETY_CATEGORY_MIN } from "@/game/requirements";
+
+export const AISLE_LABEL: Record<FoodCategory, string> = {
+  fruit: "Fruit", vegetable: "Vegetables", grain: "Bread and grains",
+  protein: "Protein foods", dairy: "Dairy", snack: "Snacks", frozen: "Frozen food",
+  ready_meal: "Ready meals", drink: "Drinks", pantry: "Pantry food", treat: "Treats",
+};
 
 /** Checklist wording for each want. */
 export const WANT_LABEL: Record<FoodPreference, string> = {
@@ -10,7 +17,7 @@ export const WANT_LABEL: Record<FoodPreference, string> = {
   likes_spicy_food: "Something spicy",
   likes_crunchy_food: "Something crunchy",
   likes_familiar_food: "Something familiar",
-  likes_variety: `Variety: ${VARIETY_CATEGORY_MIN}+ aisles`,
+  likes_variety: `Food from ${VARIETY_CATEGORY_MIN}+ aisles`,
 };
 
 /** Short badge text shown on matching food cards (variety is basket-wide). */
@@ -38,7 +45,7 @@ export const WANT_EMOJI: Record<FoodPreference, string> = {
 /** Checklist wording for the hard dietary line. */
 export const MUST_NOT_LABEL: Record<DietaryMustNot, string> = {
   vegetarian: "Vegetarian — no meat",
-  vegan: "Vegan — nothing animal",
+  vegan: "Vegan — no animal foods",
   no_pork: "No pork",
   nut_allergy: "Nut allergy — no nuts",
   dairy_allergy: "Dairy allergy — no dairy",
@@ -47,10 +54,10 @@ export const MUST_NOT_LABEL: Record<DietaryMustNot, string> = {
 
 /** What a violating food card screams. */
 export const MUST_NOT_BADGE: Record<DietaryMustNot, string> = {
-  vegetarian: "Meat — they're vegetarian",
-  vegan: "Animal product — they're vegan",
-  no_pork: "Pork — off the list",
-  nut_allergy: "Nuts — allergic!",
-  dairy_allergy: "Dairy — allergic!",
-  egg_allergy: "Egg — allergic!",
+  vegetarian: "Contains meat; they’re vegetarian",
+  vegan: "Contains animal foods; they’re vegan",
+  no_pork: "No pork for this person",
+  nut_allergy: "Nut allergy",
+  dairy_allergy: "Dairy allergy",
+  egg_allergy: "Egg allergy",
 };

@@ -16,7 +16,7 @@ export function missingRequirements(state: GameState): string[] {
       .wants.filter((w) => !w.satisfied)
       .map((w) => WANT_LABEL[w.want]),
     ...(state.remainingBudgetCents < 0
-      ? [`Reduce spending by ${formatCents(-state.remainingBudgetCents)}`]
+      ? [`Spend less by ${formatCents(-state.remainingBudgetCents)}`]
       : []),
   ];
 }
@@ -47,7 +47,7 @@ export function improvementTip(state: GameState): string {
     consider(
       trimmed,
       entry.pricePaidCents,
-      `Put back one pack of ${FOOD_BY_ID[entry.foodItemId].name} and save ${formatCents(entry.pricePaidCents)}. The lunch brief still works.`,
+      `Put back one pack of ${FOOD_BY_ID[entry.foodItemId].name} and save ${formatCents(entry.pricePaidCents)}. Checklist still complete.`,
     );
     for (const item of state.inventory) {
       if (
@@ -68,13 +68,13 @@ export function improvementTip(state: GameState): string {
       consider(
         trial,
         savings,
-        `Swap one pack of ${FOOD_BY_ID[entry.foodItemId].name} for ${FOOD_BY_ID[item.foodItemId].name} to save ${formatCents(savings)} and still meet the whole brief.`,
+        `Swap one pack of ${FOOD_BY_ID[entry.foodItemId].name} for ${FOOD_BY_ID[item.foodItemId].name}. Save ${formatCents(savings)}; checklist still complete.`,
       );
     }
   }
   if (best.message) return best.message;
   if (state.endReason === "goals_met")
-    return "Every part of the brief is covered. Try a different combination and compare its cost; this basket is not necessarily the cheapest.";
+    return "Can a different basket finish the checklist for less? Try again and compare.";
   const witness = findClearingBasket(
     npc,
     state.inventory,
@@ -84,6 +84,6 @@ export function improvementTip(state: GameState): string {
     (b) => !state.basket.some((current) => current.foodItemId === b.foodItemId),
   );
   return next
-    ? `On your retry, look at ${FOOD_BY_ID[next.foodItemId].name}. It is part of one basket that meets this brief within budget.`
-    : "Start with the lunch components, then check the two wants. Leave time to check out.";
+    ? `Try ${FOOD_BY_ID[next.foodItemId].name}. It can help you finish the checklist within budget.`
+    : "Pick a base, protein food and fruit or veg. Check both food wishes and leave time to check out.";
 }

@@ -42,7 +42,7 @@ export function BasketDrawer({
           </h2>
           {basket.length === 0 ? (
             <p className="py-2 text-center text-sm font-semibold text-faded">
-              Nothing yet. The shelves await.
+              Nothing yet. What will you pick?
             </p>
           ) : (
             <ul className="divide-y divide-dashed divide-ink/15">
@@ -120,7 +120,7 @@ export function BasketDrawer({
           aria-label={
             readyToWin
               ? "Check out the basket"
-              : "Check out — locked until every objective is met"
+              : "Check out — finish the checklist and stay within budget first"
           }
         >
           {overBudget ? "⚠ Check out" : "Check out"}

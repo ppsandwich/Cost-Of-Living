@@ -15,11 +15,11 @@ export function budgetMultiplierForRound(roundNumber: number): number {
 }
 
 export function budgetPressureLabel(multiplier: number): string {
-  if (multiplier >= 0.95) return "Manageable";
-  if (multiplier >= 0.85) return "Tight";
-  if (multiplier >= 0.75) return "Grim";
-  if (multiplier >= 0.65) return "Hostile";
-  return "Checkout Goblin Mode";
+  if (multiplier >= 0.95) return "Steady budget";
+  if (multiplier >= 0.85) return "Tight budget";
+  if (multiplier >= 0.75) return "Tighter budget";
+  if (multiplier >= 0.65) return "Small budget";
+  return "Tiny budget";
 }
 
 /** Introduce people with fewer kitchen constraints early; seeded noise varies the order. */

@@ -112,7 +112,7 @@ export function PowerUpShelf({
   const open = openId ? POWER_UP_BY_ID[openId] : null;
 
   return (
-    <section aria-label="Collected power-ups" className="panel p-3">
+    <section aria-label="Your power-ups" className="panel p-3">
       <div className="flex items-start gap-2">
         <h2 className="mt-1 shrink-0 font-display text-[12.7px] uppercase tracking-wider text-brand-dark">
           Power-ups
@@ -146,7 +146,7 @@ export function PowerUpShelf({
               onClick={onUseEscapeRope}
               className="btn mt-2 min-h-10 w-full bg-danger text-xs uppercase text-white"
             >
-              Use rain check
+              Skip this shop
             </button>
           )}
         </div>
@@ -159,14 +159,16 @@ export function PowerUpShelf({
 export function PowerUpChoice({
   choices,
   onChoose,
+  compact = false,
 }: {
   choices: PowerUpId[];
   onChoose: (id: PowerUpId) => void;
+  compact?: boolean;
 }) {
   return (
-    <div className="mt-4">
+    <div className={compact ? "compact-powerups" : "mt-4"}>
       <h3 className="text-center font-display text-sm uppercase tracking-wider text-brand-dark">
-        Choose an upgrade
+        Choose a power-up
       </h3>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {choices.map((id) => (
@@ -177,7 +179,16 @@ export function PowerUpChoice({
             className="text-left transition-transform hover:-translate-y-0.5 active:translate-y-0"
             aria-label={`Choose ${POWER_UP_BY_ID[id].name}: ${POWER_UP_BY_ID[id].description}`}
           >
-            <PowerUpCard powerUpId={id} size="large" />
+            {compact ? (
+              <span className="compact-powerup">
+                <span className="flex items-center gap-1 font-display">
+                  <span aria-hidden>{POWER_UP_BY_ID[id].icon}</span>
+                  {POWER_UP_BY_ID[id].name}
+                  {POWER_UP_BY_ID[id].rarity === "rare" && <span className="text-brand-dark">★</span>}
+                </span>
+                <span className="mt-1 block">{POWER_UP_BY_ID[id].description}</span>
+              </span>
+            ) : <PowerUpCard powerUpId={id} size="large" />}
           </button>
         ))}
       </div>

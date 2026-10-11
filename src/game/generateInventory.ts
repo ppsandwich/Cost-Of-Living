@@ -72,10 +72,11 @@ export function generateInventory(
   ).slice(0, 2 + powerUpExtraSpecials(powerUps));
   for (const item of specials) {
     item.currentPriceCents = roundPrice(item.currentPriceCents * 0.7);
-    item.specialLabel = "Manager’s special";
+    item.specialLabel = "On sale";
+    item.onSale = true;
   }
   for (const item of items)
     if (!item.specialLabel && item.currentPriceCents > roundBudgetCents)
-      item.specialLabel = "Over the whole budget";
+      item.specialLabel = "Costs more than your budget";
   return items;
 }

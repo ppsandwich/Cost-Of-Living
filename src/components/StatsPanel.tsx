@@ -10,8 +10,8 @@ export function StatsPanel({
 }) {
   const coverage = mealCoverage(basket, npc);
   return (
-    <section aria-label="Lunch components">
-      <h2 className="mb-1 font-display text-sm">The lunch brief</h2>
+    <section aria-label="Parts of lunch">
+      <h2 className="mb-1 font-display text-sm">Lunch checklist</h2>
       <ul className="flex flex-wrap gap-1.5 text-xs font-bold">
         {MEAL_ROLES.map((role) => (
           <li key={role} className={`meal-chip ${coverage[role] ? "meal-chip-covered" : ""}`}>

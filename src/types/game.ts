@@ -14,6 +14,7 @@ export interface StoreItem {
   currentPriceCents: number;
   quantityAvailable: number;
   specialLabel?: string;
+  onSale?: boolean;
 }
 export interface BasketItem {
   foodItemId: string;
@@ -58,7 +59,6 @@ export interface GameState {
   roundHistory: RoundResult[];
   seed: number;
   estimateCents: number | null;
-  prediction: string;
   previousAttempt: Attempt | null;
   /** Immutable start of this shop; its own roundStart is null. */
   roundStart: GameState | null;

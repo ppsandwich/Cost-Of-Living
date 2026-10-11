@@ -6,7 +6,7 @@ export function PauseModal({ onResume }: { onResume: () => void }) {
         onClick={onResume}
         className="btn mt-5 min-h-12 w-full bg-good text-white"
       >
-        Resume
+        Keep shopping
       </button>
     </Dialog>
   );

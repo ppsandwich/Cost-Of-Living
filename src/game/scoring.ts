@@ -27,7 +27,7 @@ export function calculateRoundScore(input: RoundScoreInput): number {
 }
 export function ratingForRound(input: RoundScoreInput): string {
   return input.remainingBudgetCents >= 300
-    ? "Brief met, change kept"
+    ? "Lunch sorted, money saved"
     : "Lunch sorted";
 }
 export function ratingStars(): 3 {

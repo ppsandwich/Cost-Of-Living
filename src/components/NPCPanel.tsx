@@ -9,7 +9,7 @@ export function NPCPanel({ npc, basket }: { npc: NPC; basket: BasketItem[] }) {
   const coverage = mealCoverage(basket, npc);
   const briefMet = getRequirementsStatus(basket, npc).allMet && MEAL_ROLES.every((role) => coverage[role]);
   return (
-    <section aria-label={`${npc.name}'s brief`} className="panel npc-panel space-y-3 p-4">
+    <section aria-label={`${npc.name}'s lunch checklist`} className="panel npc-panel space-y-3 p-4">
       <div className="flex items-center gap-3">
         <NPCAvatar npc={npc} happy={briefMet} />
         <div className="min-w-0">
@@ -19,13 +19,13 @@ export function NPCPanel({ npc, basket }: { npc: NPC; basket: BasketItem[] }) {
         </div>
       </div>
       <p key={String(briefMet)} className="npc-mood text-sm">
-        {briefMet ? "That’s my lunch brief covered. Let’s check the budget!" : npc.mood}
+        {briefMet ? "That’s my lunch sorted. Is it within budget?" : npc.mood}
       </p>
       <p className="text-sm">{npc.description}</p>
       <RequirementsChecklist npc={npc} basket={basket} />
       <p className="border-t-2 border-dashed border-ink/20 pt-2 text-xs">
-        <strong>Available:</strong> {[...npcEquipment(npc)].join(", ")}. Shelves
-        show anything they cannot use.
+        <strong>In their kitchen:</strong> {[...npcEquipment(npc)].join(", ")}. Items they
+        cannot use are marked on the shelves.
       </p>
     </section>
   );

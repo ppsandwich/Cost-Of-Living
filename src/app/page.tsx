@@ -125,12 +125,11 @@ export default function Home() {
             <PlanningPanel
               key={`${state.roundNumber}-${state.previousAttempt ? "retry" : "first"}`}
               state={state}
-              onBegin={(estimateCents, prediction) => {
+              onBegin={(estimateCents) => {
                 const begin = () =>
                   dispatch({
                     type: "BEGIN_SHOPPING",
                     estimateCents,
-                    prediction,
                   });
                 if (state.mode === "standard_run") withCountdown(begin);
                 else begin();
@@ -195,7 +194,7 @@ export default function Home() {
           href="#shopping-plan"
           className="btn fixed inset-x-3 bottom-3 z-30 flex min-h-12 items-center justify-center bg-good text-white lg:hidden"
         >
-          Back to my plan
+          Back to start shopping
         </a>
       )}
       {state.status === "round_won" && (

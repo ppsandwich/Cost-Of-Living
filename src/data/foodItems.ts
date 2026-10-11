@@ -17,7 +17,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "sweet",
     ],
     maxQuantity: 2,
-    flavour: "Nature's snack bar, sold by the smile.",
+    flavour: "A snack with its own wrapper.",
   },
   {
     id: "bag-of-apples",
@@ -33,7 +33,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
       "sweet",
     ],
-    flavour: "Crunchy, wholesome, and faintly smug about it.",
+    flavour: "Crunch loud enough to wake the lunch table.",
   },
   {
     id: "orange-net",
@@ -42,7 +42,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "fruit",
     basePriceCents: 380,
     tags: ["fresh", "vitamin_rich", "high_fibre", "low_prep", "sweet"],
-    flavour: "Vitamin C in a string bag. The net is load-bearing.",
+    flavour: "Juicy fruit. Slightly tricky net.",
   },
   {
     id: "tinned-peaches",
@@ -51,7 +51,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "fruit",
     basePriceCents: 200,
     tags: ["cheap", "sweet", "processed", "high_sugar", "low_prep"],
-    flavour: "Fruit, preserved in syrup and optimism since 1974.",
+    flavour: "Sweet fruit, ready when you are.",
   },
   {
     id: "frozen-berries",
@@ -61,7 +61,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 440,
     tags: ["fresh", "vitamin_rich", "high_fibre", "requires_fridge", "sweet"],
     requiresEquipment: ["freezer"],
-    flavour: "Summer, paused indefinitely.",
+    flavour: "A little bit of summer from the freezer.",
   },
   {
     id: "fruit-salad-pot",
@@ -71,7 +71,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 280,
     tags: ["fresh", "vitamin_rich", "low_prep", "requires_fridge", "sweet"],
     requiresEquipment: ["fridge"],
-    flavour: "Eat today. Ideally an hour ago.",
+    flavour: "Already chopped. Even the fruit is ready for lunch.",
   },
 
   // ── Vegetables (8) ───────────────────────────────────────────
@@ -90,7 +90,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "low_prep",
     ],
     maxQuantity: 2,
-    flavour: "Crunchy, orange, and suspiciously affordable.",
+    flavour: "Orange, crunchy and ready for a dip.",
   },
   {
     id: "frozen-mixed-veg",
@@ -101,7 +101,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     tags: ["cheap", "vitamin_rich", "high_fibre", "mineral_rich", "bland"],
     requiresEquipment: ["freezer", "stove"],
     maxQuantity: 2,
-    flavour: "All the vegetables, none of the personality.",
+    flavour: "A colourful mix waiting in the freezer.",
   },
   {
     id: "tinned-tomatoes",
@@ -112,7 +112,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     tags: ["cheap", "vitamin_rich", "requires_stove"],
     requiresEquipment: ["stove"],
     maxQuantity: 3,
-    flavour: "The foundation of approximately every budget meal ever invented.",
+    flavour: "A tin with big pasta-sauce plans.",
   },
   {
     id: "potatoes-2kg",
@@ -130,7 +130,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "comfort",
     ],
     requiresEquipment: ["stove"],
-    flavour: "A bag of pure potential. Mostly mash-shaped potential.",
+    flavour: "Mash them, bake them, give them a lunch job.",
   },
   {
     id: "bagged-salad",
@@ -140,7 +140,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 310,
     tags: ["fresh", "vitamin_rich", "low_prep", "requires_fridge"],
     requiresEquipment: ["fridge"],
-    flavour: "Will be soup by Thursday whether you like it or not.",
+    flavour: "Leaves that did all the washing before you arrived.",
   },
   {
     id: "broccoli",
@@ -160,7 +160,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 190,
     tags: ["cheap", "fresh", "requires_stove"],
     requiresEquipment: ["stove"],
-    flavour: "Makes everything else taste like you tried.",
+    flavour: "Big flavour. A few tears along the way.",
   },
   {
     id: "tinned-corn",
@@ -170,7 +170,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 200,
     tags: ["cheap", "sweet", "low_prep", "family_friendly"],
     maxQuantity: 2,
-    flavour: "Sweet, yellow, and openable in the dark.",
+    flavour: "Little yellow bites that roll off your fork.",
   },
 
   // ── Grains & pantry (10) ─────────────────────────────────────
@@ -192,7 +192,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     ],
     requiresEquipment: ["kettle"],
     maxQuantity: 3,
-    flavour: "Cheap. Salty. Legally adjacent to dinner.",
+    flavour: "Quick noodles. The fork has some untangling to do.",
   },
   {
     id: "dried-lentils",
@@ -211,7 +211,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     ],
     requiresEquipment: ["stove"],
     maxQuantity: 2,
-    flavour: "Tiny lentils. Surprisingly big saucepan ambitions.",
+    flavour: "Tiny lentils with big saucepan plans.",
   },
   {
     id: "rice-1kg",
@@ -222,7 +222,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     tags: ["cheap", "filling", "high_carb", "requires_stove", "bland"],
     requiresEquipment: ["stove"],
     maxQuantity: 2,
-    flavour: "Feeds a family or one person with commitment issues.",
+    flavour: "A simple start for lots of different meals.",
   },
   {
     id: "white-bread",
@@ -240,7 +240,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "comfort",
     ],
     maxQuantity: 2,
-    flavour: "Soft, square, and reliable. Like a sofa you can toast.",
+    flavour: "Soft, square and ready for sandwich duty.",
   },
   {
     id: "wholemeal-bread",
@@ -250,7 +250,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 270,
     tags: ["filling", "high_fibre", "low_prep", "bland"],
     maxQuantity: 2,
-    flavour: "Bread that has read a book about bread.",
+    flavour: "Same sandwich mission, a different kind of bread.",
   },
   {
     id: "oats",
@@ -261,7 +261,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     tags: ["cheap", "filling", "high_fibre", "mineral_rich", "bland"],
     requiresEquipment: ["kettle"],
     maxQuantity: 2,
-    flavour: "Porridge: the breakfast of people with plans and no money.",
+    flavour: "Just waiting for their porridge moment.",
   },
   {
     id: "pasta-500g",
@@ -278,7 +278,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     ],
     requiresEquipment: ["stove"],
     maxQuantity: 2,
-    flavour: "Twirly carbohydrate. Pairs well with whatever is left.",
+    flavour: "Twirly pasta, ready to catch some sauce.",
   },
   {
     id: "pasta-sauce",
@@ -287,7 +287,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "pantry",
     basePriceCents: 210,
     tags: ["processed", "low_prep", "family_friendly"],
-    flavour: "Tomatoes that have been through marketing.",
+    flavour: "The tomatoes have already done the hard work.",
   },
   {
     id: "peanut-butter",
@@ -303,7 +303,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "low_prep",
       "nuts",
     ],
-    flavour: "Protein you can eat with a spoon while staring out a window.",
+    flavour: "Smooth or crunchy? The lunch-table debate continues.",
   },
   {
     id: "budget-cereal",
@@ -321,7 +321,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
       "crunchy",
     ],
-    flavour: "Fortified with vitamins and pictures of a cartoon bee.",
+    flavour: "Crunch first. Check the milk situation second.",
   },
 
   // ── Protein (10) ─────────────────────────────────────────────
@@ -339,7 +339,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "egg",
     ],
     requiresEquipment: ["stove"],
-    flavour: "Twelve small miracles in a cardboard suit.",
+    flavour: "Twelve eggs, one very careful trip home.",
   },
   {
     id: "tinned-tuna",
@@ -349,7 +349,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 230,
     tags: ["cheap", "high_protein", "low_prep", "meat", "salty"],
     maxQuantity: 3,
-    flavour: "The ocean, flattened and ring-pulled.",
+    flavour: "A small tin with sandwich plans.",
   },
   {
     id: "baked-beans",
@@ -367,7 +367,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "processed",
     ],
     maxQuantity: 3,
-    flavour: "A national institution with a ring pull.",
+    flavour: "Toast has been waiting for this tin.",
   },
   {
     id: "chicken-thighs",
@@ -377,7 +377,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 550,
     tags: ["high_protein", "meat", "fresh", "comfort", "family_friendly"],
     requiresEquipment: ["fridge", "stove"],
-    flavour: "The economist's chicken. Juicier and cheaper, somehow.",
+    flavour: "Ready for the pan and your favourite flavours.",
   },
   {
     id: "beef-mince",
@@ -394,7 +394,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
     ],
     requiresEquipment: ["fridge", "stove"],
-    flavour: "The beginning of about nine different dinners.",
+    flavour: "The start of pasta sauce, tacos and plenty more.",
   },
   {
     id: "tofu",
@@ -404,7 +404,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 360,
     tags: ["high_protein", "fresh", "mineral_rich", "bland"],
     requiresEquipment: ["fridge", "stove"],
-    flavour: "Absorbs flavour, judgement, and marinade equally well.",
+    flavour: "A blank page for your favourite sauce.",
   },
   {
     id: "bacon",
@@ -414,7 +414,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 430,
     tags: ["meat", "pork", "salty", "high_fat", "comfort"],
     requiresEquipment: ["fridge", "stove"],
-    flavour: "Smells like the weekend. Costs like one too.",
+    flavour: "A sizzle from the frying pan.",
   },
   {
     id: "chickpeas-tin",
@@ -431,7 +431,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "bland",
     ],
     maxQuantity: 3,
-    flavour: "Beige spheres of quiet competence.",
+    flavour: "Little round helpers for salads and curries.",
   },
   {
     id: "sausages",
@@ -449,7 +449,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "processed",
     ],
     requiresEquipment: ["fridge", "stove"],
-    flavour: "Contains pork, nostalgia, and approximately 11% mystery.",
+    flavour: "The pan is ready. The sausages are rolling.",
   },
   {
     id: "fish-fingers",
@@ -459,7 +459,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 380,
     tags: ["processed", "family_friendly", "comfort", "crunchy", "meat"],
     requiresEquipment: ["freezer", "oven"],
-    flavour: "Fish, geometry, and childhood in one orange box.",
+    flavour: "Fish in crunchy coats. No actual fingers involved.",
   },
 
   // ── Dairy (5) ────────────────────────────────────────────────
@@ -477,7 +477,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "dairy",
     ],
     requiresEquipment: ["fridge"],
-    flavour: "The backbone of tea, cereal, and civilisation.",
+    flavour: "Cereal is pleased to see this arrive.",
   },
   {
     id: "cheese-block",
@@ -494,7 +494,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "dairy",
     ],
     requiresEquipment: ["fridge"],
-    flavour: "Technically an investment. Emotionally a lifestyle.",
+    flavour: "Slice it, grate it, try not to drop it.",
   },
   {
     id: "yoghurt-tub",
@@ -504,7 +504,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 340,
     tags: ["fresh", "mineral_rich", "low_prep", "requires_fridge", "dairy"],
     requiresEquipment: ["fridge"],
-    flavour: "A tub with ambitions to become breakfast, lunch and a sauce.",
+    flavour: "Ready for fruit, cereal or a spoon.",
   },
   {
     id: "long-life-milk",
@@ -513,7 +513,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "dairy",
     basePriceCents: 210,
     tags: ["cheap", "mineral_rich", "low_prep", "bland", "dairy"],
-    flavour: "Milk that has accepted its circumstances.",
+    flavour: "Happy on the shelf until opened. Then it needs the fridge.",
   },
   {
     id: "butter",
@@ -523,7 +523,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 230,
     tags: ["high_fat", "comfort", "requires_fridge", "dairy"],
     requiresEquipment: ["fridge"],
-    flavour: "A little goes a long way. The toast has put in a request.",
+    flavour: "The toast has put in a request.",
   },
 
   // ── Snacks (8) ───────────────────────────────────────────────
@@ -551,7 +551,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "snack",
     basePriceCents: 270,
     tags: ["salty", "crunchy", "high_protein", "high_fat", "low_prep", "nuts"],
-    flavour: "Protein disguised as a pub snack.",
+    flavour: "A small bag with a loud crunch.",
   },
   {
     id: "crackers",
@@ -560,7 +560,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "snack",
     basePriceCents: 150,
     tags: ["cheap", "bland", "crunchy", "low_prep", "high_carb"],
-    flavour: "The sound of a quiet kitchen at 11pm.",
+    flavour: "Crunchy little platforms for your favourite topping.",
   },
   {
     id: "rice-cakes",
@@ -569,7 +569,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "snack",
     basePriceCents: 150,
     tags: ["bland", "crunchy", "low_prep"],
-    flavour: "Edible packing material with a health halo.",
+    flavour: "Light, crunchy and waiting for a topping.",
   },
   {
     id: "popcorn",
@@ -579,7 +579,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 240,
     tags: ["cheap", "crunchy", "high_fibre", "comfort", "family_friendly"],
     requiresEquipment: ["stove"],
-    flavour: "Cinema vibes for the price of a bus fare.",
+    flavour: "Movie-night sound effects, made in a saucepan.",
   },
   {
     id: "muesli-bars",
@@ -596,7 +596,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "crunchy",
       "nuts",
     ],
-    flavour: "Health food's fun cousin who owes everyone money.",
+    flavour: "A pocket-sized snack with plenty of crunch.",
   },
   {
     id: "corn-chips",
@@ -605,7 +605,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "snack",
     basePriceCents: 230,
     tags: ["salty", "crunchy", "processed", "high_fat", "high_carb", "spicy"],
-    flavour: "Triangles engineered in a lab to defeat self-control.",
+    flavour: "Crunchy triangles looking for a dip.",
   },
   {
     id: "instant-soup",
@@ -616,7 +616,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     tags: ["cheap", "salty", "processed", "comfort", "low_prep"],
     requiresEquipment: ["kettle"],
     maxQuantity: 2,
-    flavour: "A warm hug made of powder and sodium.",
+    flavour: "A warm bowl starts with this little packet.",
   },
 
   // ── Ready meals (6) ──────────────────────────────────────────
@@ -635,7 +635,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
     ],
     requiresEquipment: ["freezer", "microwave"],
-    flavour: "Seven layers of acceptable.",
+    flavour: "Lunch with layers. The oven does the hard part.",
   },
   {
     id: "microwave-curry",
@@ -645,7 +645,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 350,
     tags: ["processed", "spicy", "comfort", "filling", "requires_microwave"],
     requiresEquipment: ["microwave"],
-    flavour: "Pierce film lid. Pierce it again. Reflect.",
+    flavour: "A quick curry waiting for its microwave moment.",
   },
   {
     id: "tinned-spaghetti",
@@ -662,7 +662,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "comfort",
     ],
     maxQuantity: 2,
-    flavour: "Pasta that has given up, in a sauce that hasn't noticed.",
+    flavour: "Pasta and sauce, already on the same team.",
   },
   {
     id: "pot-noodle",
@@ -673,7 +673,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     tags: ["cheap", "processed", "salty", "comfort", "low_prep"],
     requiresEquipment: ["kettle"],
     maxQuantity: 2,
-    flavour: "Just add water and lowered expectations.",
+    flavour: "A noodle puzzle in a pot. Bring a fork.",
   },
   {
     id: "frozen-pizza",
@@ -692,7 +692,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "salty",
     ],
     requiresEquipment: ["freezer", "oven"],
-    flavour: "Disc of joy. Some assembly of dignity required.",
+    flavour: "A freezer find with a cheesy finish.",
   },
   {
     id: "meal-deal-sandwich",
@@ -701,7 +701,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "ready_meal",
     basePriceCents: 340,
     tags: ["fresh", "low_prep", "meat", "egg"],
-    flavour: "Lunch, solved, for the price of a small regret.",
+    flavour: "Sandwich assembly: already done.",
   },
 
   // ── Drinks (4) ───────────────────────────────────────────────
@@ -712,7 +712,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "drink",
     basePriceCents: 260,
     tags: ["sweet", "vitamin_rich", "high_sugar", "low_prep"],
-    flavour: "Sunshine in a carton. Pulp negotiations sold separately.",
+    flavour: "A splash of orange for your cup.",
   },
   {
     id: "instant-coffee",
@@ -722,7 +722,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 320,
     tags: ["comfort", "low_prep", "bland"],
     requiresEquipment: ["kettle"],
-    flavour: "Not food. Still non-negotiable.",
+    flavour: "A jar for the grown-ups who need their morning cup.",
   },
   {
     id: "cola-2l",
@@ -731,7 +731,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "drink",
     basePriceCents: 170,
     tags: ["cheap", "sweet", "processed", "high_sugar", "comfort"],
-    flavour: "Two litres of fizzy consequences.",
+    flavour: "A bottle full of bubbles.",
   },
   {
     id: "tea-bags",
@@ -741,7 +741,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 180,
     tags: ["cheap", "comfort", "low_prep"],
     requiresEquipment: ["kettle"],
-    flavour: "Eighty small ceremonies of coping.",
+    flavour: "Eighty chances to put the kettle on.",
   },
 
   // ── Treats (6) ───────────────────────────────────────────────
@@ -761,7 +761,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "crunchy",
       "family_friendly",
     ],
-    flavour: "The packet says 'share size'. The packet is naive.",
+    flavour: "A crunchy biscuit in a chocolate coat.",
   },
   {
     id: "discount-pudding",
@@ -779,7 +779,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "dairy",
     ],
     requiresEquipment: ["fridge"],
-    flavour: "The $2.20 pudding economy in physical form.",
+    flavour: "Four puddings. Four spoons would be helpful.",
   },
   {
     id: "ice-cream-tub",
@@ -796,7 +796,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "dairy",
     ],
     requiresEquipment: ["freezer"],
-    flavour: "Frozen serotonin. Spoon sold separately.",
+    flavour: "A cold scoop for a sweet finish.",
   },
   {
     id: "chocolate-bar",
@@ -806,7 +806,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     basePriceCents: 180,
     tags: ["dairy", "cheap", "sweet", "comfort", "high_sugar", "low_prep"],
     maxQuantity: 2,
-    flavour: "Pocket-sized morale.",
+    flavour: "A little chocolate break.",
   },
   {
     id: "bakery-doughnuts",
@@ -823,7 +823,7 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
       "egg",
     ],
-    flavour: "Five for $3. The maths is dangerous.",
+    flavour: "Round, sweet and ready to share.",
   },
   {
     id: "fancy-chocolates",
@@ -832,7 +832,7 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "treat",
     basePriceCents: 560,
     tags: ["dairy", "sweet", "comfort", "high_sugar", "high_fat", "nuts"],
-    flavour: "For when you deserve nice things and can't afford them.",
+    flavour: "Fancy packaging. Still worth checking the price.",
   },
 ];
 
@@ -859,42 +859,42 @@ const PREMIUM_ITEMS: FoodItem[] = [
   premiumVariant(
     "chicken-thighs",
     "Free-range chicken",
-    "The chicken had a lovely life. Your wallet, less so.",
+    "Free-range chicken. Compare the price before you pick.",
   ),
   premiumVariant(
     "cheese-block",
     "Aged artisan cheese",
-    "Matured in a cave by someone with strong opinions.",
+    "Cheese with a fancy name and a bigger price tag.",
   ),
   premiumVariant(
     "eggs-dozen",
     "Pasture-raised eggs",
-    "These hens have a better lifestyle than you do.",
+    "A different carton. Check how the price compares.",
   ),
   premiumVariant(
     "bag-of-apples",
     "Heirloom apples",
-    "Apples with a lineage. Possibly a coat of arms.",
+    "An old apple variety with a fancy new label.",
   ),
   premiumVariant(
     "wholemeal-bread",
     "Artisan sourdough",
-    "Fermented for 72 hours and priced accordingly.",
+    "Bread that took its time. Check the price too.",
   ),
   premiumVariant(
     "yoghurt-tub",
     "Greek yoghurt",
-    "Thick enough to stand a spoon in. Authentically smug.",
+    "Thick yoghurt. The spoon is ready.",
   ),
   premiumVariant(
     "beef-mince",
     "Grass-fed mince",
-    "The cow ate better than most of this store's customers.",
+    "A different label on the mince. Compare the cost.",
   ),
   premiumVariant(
     "frozen-berries",
     "Organic berries",
-    "Hand-picked, flash-frozen, financially devastating.",
+    "Fancy berries from the freezer. Check the price per pack.",
   ),
 ];
 

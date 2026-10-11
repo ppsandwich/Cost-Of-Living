@@ -3,6 +3,7 @@ import type { FoodItem } from "@/types/food";
 import type { StoreItem } from "@/types/game";
 import { mealRoles, MEAL_LABELS } from "@/game/meals";
 import { formatCents } from "@/utils/money";
+import { AISLE_LABEL } from "@/data/labels";
 
 const TASTE_TAGS = [
   { tag: "sweet", label: "Sweet", emoji: "🍬" },
@@ -44,13 +45,14 @@ export function FoodCard({
   const [expanded, setExpanded] = useState(false);
   const buyable = canShop && !unavailable && remainingQuantity > 0;
   const roles = mealRoles(food);
+  const tasteTags = TASTE_TAGS.filter(({ tag }) => food.tags.includes(tag));
   return (
     <li
       className={`panel food-card relative p-3 ${unavailable ? "food-card-unavailable" : ""} ${inBasket ? "food-card-selected" : ""}`}
     >
       {unavailable && (
         <p className="mb-2 text-xs font-bold text-faded">
-          Unavailable: {unavailable}
+          Can’t use: {unavailable}
         </p>
       )}
       <div className="flex items-center gap-3">
@@ -67,58 +69,59 @@ export function FoodCard({
           <span className="block text-xs text-faded">
             {roles.length
               ? roles.map((r) => MEAL_LABELS[r]).join(" · ")
-              : "Taste or extra"}
+              : "An extra"}
           </span>
         </button>
-        <span className="price-ticket shrink-0 font-display text-lg tabular-nums">
+        <span className={`price-ticket ${storeItem.onSale ? "price-ticket-sale" : ""} shrink-0 font-display text-lg tabular-nums`}>
           {formatCents(storeItem.currentPriceCents)}
         </span>
       </div>
       {storeItem.specialLabel && (
-        <span className="sticker mt-3 inline-block rounded bg-tag px-2 py-1 text-xs font-bold">
+        <span className={`sticker mt-2 inline-block rounded ${storeItem.onSale ? "bg-tag" : "bg-white"} px-2 py-0.5 text-xs font-bold`}>
           {storeItem.specialLabel}
         </span>
       )}
       {priceHint && (
         <p className="mt-2 text-xs font-bold text-good">🔎 {priceHint}</p>
       )}
-      <div className="mt-3 flex flex-wrap gap-2" aria-label="Taste tags">
-        {TASTE_TAGS.filter(({ tag }) => food.tags.includes(tag)).map(({ tag, label, emoji }) => (
+      {tasteTags.length > 0 && <div className="mt-2 flex flex-wrap gap-2" aria-label="Taste tags">
+        {tasteTags.map(({ tag, label, emoji }) => (
           <span
             key={tag}
             className={`taste-badge taste-${tag} ${wantMatches.includes(label) && !unavailable ? "taste-match" : ""}`}
-            title={wantMatches.includes(label) && !unavailable ? `Matches their want: ${label.toLowerCase()}` : label}
+            title={wantMatches.includes(label) && !unavailable ? `Matches their food wish: ${label.toLowerCase()}` : label}
           >
             <span aria-hidden>{emoji}</span> {label}
-            {wantMatches.includes(label) && !unavailable && <><span aria-hidden> ★</span><span className="sr-only"> — matches their want</span></>}
+            {wantMatches.includes(label) && !unavailable && <><span aria-hidden> ★</span><span className="sr-only"> — matches their food wish</span></>}
           </span>
         ))}
-      </div>
+      </div>}
       {expanded && (
         <div className="mt-2 space-y-2 border-t-2 border-dashed border-ink/20 pt-2 text-sm">
           <p>{food.flavour}</p>
+          <p><strong>Aisle:</strong> {AISLE_LABEL[food.category]}</p>
           <p>
-            <strong>Dietary tags:</strong>{" "}
+            <strong>Contains:</strong>{" "}
             {food.tags
               .filter((tag) =>
                 ["meat", "pork", "dairy", "egg", "nuts"].includes(tag),
               )
-              .join(", ") || "None of the dietary exclusions in this game"}
+              .join(", ") || "No meat, pork, dairy, egg or nuts in this game"}
             .
           </p>
           <p>
             <strong>Equipment:</strong>{" "}
             {food.requiresEquipment?.join(", ") ||
-              "No cooking equipment required"}
+              "None needed"}
             .
           </p>
           <p>
-            One pack can cover the listed components in this shopping puzzle.
-            Extra packs do not add another component.
+            One pack ticks off the parts of lunch listed above. Buying more of the
+            same item does not tick off a new part.
           </p>
         </div>
       )}
-      <div className="mt-3 flex items-center gap-2">
+      {canShop && <div className="mt-3 flex items-center gap-2">
         <span className="min-w-0 flex-1 text-xs font-bold text-good">
           {inBasket > 0 && <span key={inBasket} className="check-stamp inline-block">✓ In your basket</span>}
         </span>
@@ -150,7 +153,7 @@ export function FoodCard({
             One more
           </button>
         )}
-      </div>
+      </div>}
     </li>
   );
 }

@@ -1,13 +1,13 @@
 # Cost of Living
 
-A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.1** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
+A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.2** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
 
 ## Play loop
 
 1. Meet a fictional customer and inspect their dietary boundaries, preferences and kitchen access.
-2. Inspect the exact shop, optionally estimate the spend, and choose a shopping strategy. The clock is off during planning.
+2. Inspect the exact shop and optionally estimate the spend. The clock is off during planning.
 3. Cover a lunch base, a protein option, fruit or vegetables and two customer wants within budget.
-4. Read the learning receipt: actual spend versus estimate, unmet requirements, and a verified saving or a next step.
+4. Read the compact receipt: actual spend versus estimate, unmet requirements, and a verified saving or a next step.
 5. Retry the identical shop, or choose a practical upgrade and continue. Round 20 is the final shop.
 
 **Learning mode** has no timer, no revision penalty and no speed bonus. **Timed challenge** keeps the 90-second clock, countdown, speed bonus and three-second cost for putting an item back. Records are separate for the two modes.

@@ -1,7 +1,7 @@
 import type { GameState } from "@/types/game";
 import { LearningReceipt } from "./LearningReceipt";
 import { Dialog } from "./Dialog";
-import { NPCelebration } from "./NPCAvatar";
+import { NPCAvatar } from "./NPCAvatar";
 export function RunSummary({
   state,
   won = false,
@@ -14,16 +14,15 @@ export function RunSummary({
   onRetry: () => void;
 }) {
   return (
-    <Dialog title={won ? "Final lunch sorted!" : "The shop has closed"}>
-      <NPCelebration npc={state.npc!} won={won} />
+    <Dialog compact title={won ? "Final lunch sorted!" : "Time’s up!"} portrait={<NPCAvatar npc={state.npc!} compact happy={won} />}>
       <p className="mt-2 text-sm">
         {won
-          ? "You reached the end of the shopping challenge."
-          : "Time ran out. Your receipt can help you plan another attempt."}
+          ? "You finished all 20 rounds!"
+          : "Time ran out. Check your receipt and have another go."}
       </p>
-      <LearningReceipt state={state} />
+      <LearningReceipt state={state} compact />
       <p className="text-sm font-bold">
-        {state.successfulRounds} briefs completed · {state.totalScore} points ·{" "}
+        {state.successfulRounds} lunches sorted · {state.totalScore} points ·{" "}
         {state.mode === "learning" ? "Learning" : "Timed"} mode
       </p>
       <button
@@ -33,7 +32,7 @@ export function RunSummary({
         Try this shop again
       </button>
       <button onClick={onReplay} className="btn mt-2 min-h-11 w-full bg-paper">
-        Start a new run
+        Start a new game
       </button>
     </Dialog>
   );

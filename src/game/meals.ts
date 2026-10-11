@@ -8,7 +8,7 @@ export const MEAL_ROLES = ["base", "protein", "produce"] as const;
 export type MealRole = (typeof MEAL_ROLES)[number];
 export const MEAL_LABELS: Record<MealRole, string> = {
   base: "A lunch base",
-  protein: "A protein option",
+  protein: "A protein food",
   produce: "Fruit or vegetables",
 };
 

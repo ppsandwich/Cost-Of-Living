@@ -18,7 +18,7 @@ import { createRng } from "./seededRandom";
 import { quantityRemaining } from "./roundEnd";
 import { allRequirementsMet } from "./requirements";
 import { calculateRoundScore, ratingForRound } from "./scoring";
-import { mealRoles, usableFood } from "./meals";
+import { mealRoles, MEAL_LABELS, usableFood } from "./meals";
 
 export type GameAction =
   | {
@@ -28,7 +28,7 @@ export type GameAction =
       highestRound: number;
       mode: GameMode;
     }
-  | { type: "BEGIN_SHOPPING"; estimateCents: number | null; prediction: string }
+  | { type: "BEGIN_SHOPPING"; estimateCents: number | null }
   | { type: "RETRY_ROUND" }
   | { type: "ADD_ITEM"; foodItemId: string }
   | { type: "BULK_ADD"; foodItemId: string }
@@ -64,7 +64,6 @@ export const INITIAL_STATE: GameState = {
   roundHistory: [],
   seed: 0,
   estimateCents: null,
-  prediction: "",
   previousAttempt: null,
   roundStart: null,
 };
@@ -113,7 +112,6 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     score: 0,
     lastFeedback: null,
     estimateCents: null,
-    prediction: "",
     previousAttempt: null,
     roundStart: null,
     powerUpChoices: null,
@@ -183,7 +181,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         status: "playing",
         estimateCents: action.estimateCents,
-        prediction: action.prediction.slice(0, 180),
       };
     }
     case "RETRY_ROUND": {
@@ -237,8 +234,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         remainingBudgetCents:
           state.remainingBudgetCents - item.currentPriceCents,
         lastFeedback: roles.length
-          ? `${food.name} helps cover ${roles.map((r) => (r === "produce" ? "fruit or vegetables" : r)).join(" and ")}.`
-          : `${food.name}: a choice for taste or an extra. Check the lunch brief too.`,
+          ? `Added ${food.name}. Counts as ${roles.map((r) => MEAL_LABELS[r].toLowerCase()).join(" and ")}.`
+          : `Added ${food.name} as an extra. Check your lunch list too.`,
       };
     }
     case "BULK_ADD": {
@@ -284,7 +281,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         remainingBudgetCents: state.remainingBudgetCents + entry.pricePaidCents,
         timeRemainingSeconds: time,
         lastFeedback:
-          "Basket revised. Check which parts of the brief still need covering.",
+          "Item put back. What’s still on your checklist?",
         ...(time === 0 && state.mode === "standard_run"
           ? { status: "lost" as const, endReason: "timer_expired" as const }
           : {}),

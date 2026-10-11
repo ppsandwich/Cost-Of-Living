@@ -37,11 +37,11 @@ export function StoreList({
     <section aria-label="Store shelves">
       <h2 className="mb-3 flex items-center gap-2 font-title text-2xl">
         <span aria-hidden className="shelf-heading-icon">🛒</span>
-        {canShop ? "Today’s shelves" : "Inspect the shelves"}
+        {canShop ? "Today’s shelves" : "Check the shelves"}
       </h2>
       {!canShop && (
         <p className="mb-3 text-sm">
-          Open any item for details. Shopping begins when your plan is ready.
+          Tap an item’s name to learn more. Start shopping when you’re ready.
         </p>
       )}
       <ul className="space-y-3">
@@ -50,7 +50,7 @@ export function StoreList({
           const unavailable = violatesMustNot(food, npc)
             ? MUST_NOT_BADGE[npc.mustNot]
             : hasEquipmentMismatch(food, npc)
-              ? "Needs equipment they do not have"
+              ? "They don’t have the kitchen equipment for this"
               : null;
           const lowestRoles =
             powerUps.includes("price_compare") && !unavailable
@@ -82,7 +82,7 @@ export function StoreList({
               canShop={canShop}
               priceHint={
                 lowestRoles.length && quantityRemaining(item, basket) > 0
-                  ? `Lowest pack price for: ${lowestRoles.map((r) => MEAL_LABELS[r].toLowerCase()).join(", ")}.`
+                  ? `Cheapest pack for: ${lowestRoles.map((r) => MEAL_LABELS[r].toLowerCase()).join(", ")}.`
                   : null
               }
               canBulkAdd={

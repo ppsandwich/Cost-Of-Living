@@ -13,12 +13,12 @@ interface StartScreenProps {
 }
 
 const TUTORIAL_STEPS = [
-  "Read the lunch brief: a base, a protein option, fruit or vegetables, and two wants.",
-  "Check dietary boundaries and kitchen access. Unusable items stay on the shelf.",
-  "Inspect prices, estimate your spend and choose a plan before shopping.",
-  "Meet the whole brief within budget to unlock checkout.",
-  "Read your receipt, then retry the same shop or choose a practical upgrade.",
-  "Clear the final shop in round 20 to finish the challenge.",
+  "Check the lunch list: a base (like bread or rice), a protein food (like beans or eggs), fruit or veg, and two food wishes.",
+  "Check which foods to avoid and what kitchen equipment they have.",
+  "Look at prices before you shop. Guess your total if you like.",
+  "Tick off the whole checklist without going over budget, then check out.",
+  "Check your receipt for a money-saving tip. Try again or pick a power-up.",
+  "Finish round 20 to win the challenge.",
 ];
 
 export function StartScreen({
@@ -88,8 +88,8 @@ export function StartScreen({
 
         {(bestScore > 0 || highestRound > 0) && (
           <p className="mt-4 text-sm font-bold text-faded">
-            {mode === "learning" ? "LEARNING" : "TIMED"} BEST {bestScore} · MOST
-            BRIEFS {highestRound}
+            {mode === "learning" ? "LEARNING" : "TIMED"} BEST {bestScore} · LUNCHES
+            SORTED {highestRound}
           </p>
         )}
 
@@ -114,8 +114,8 @@ export function StartScreen({
                 </strong>
                 <span className="block text-xs text-faded">
                   {option === "learning"
-                    ? "No clock. Free revisions. Time to think."
-                    : "Plan first, then 90 seconds. Putting items back costs three seconds."}
+                    ? "No timer. Take your time and change your basket freely."
+                    : "Look first, then shop in 90 seconds. Putting an item back costs three seconds."}
                 </span>
               </span>
             </label>
@@ -140,11 +140,11 @@ export function StartScreen({
         )}
 
         <p className="mt-3 text-[12.7px] font-bold text-faded">
-          Practise budgeting, compare choices and learn from your receipt. A
-          shopping puzzle, not nutrition advice.
+          Practise spending, saving and comparing prices. The prices are made up,
+          and this game does not show how much you need to eat.
         </p>
         <p className="mt-1.5 text-[12.7px] font-bold text-faded">
-          This game is a hallucination by{" "}
+          A game by{" "}
           <a
             href="https://sandwich.codes"
             target="_blank"

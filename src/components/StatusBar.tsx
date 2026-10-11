@@ -97,7 +97,7 @@ export function StatusBar({
             >
               <span aria-hidden>{muted ? "🔇" : "🔊"}</span>
             </button>
-            <button
+            {canPause && <button
               type="button"
               onClick={onPause}
               disabled={!canPause}
@@ -106,7 +106,7 @@ export function StatusBar({
               className="btn grid size-11 place-items-center bg-paper text-lg"
             >
               <span aria-hidden>⏸</span>
-            </button>
+            </button>}
           </div>
         </div>
       </div>

@@ -30,7 +30,6 @@ function begin(state: GameState) {
   return gameReducer(state, {
     type: "BEGIN_SHOPPING",
     estimateCents: 1000,
-    prediction: "Start with the lunch components",
   });
 }
 function fill(state: GameState): GameState {
@@ -64,7 +63,6 @@ test("planning stops time and purchases; learning permits revisions without time
     gameReducer(plan, {
       type: "BEGIN_SHOPPING",
       estimateCents: NaN,
-      prediction: "",
     }),
     plan,
   );
