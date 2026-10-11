@@ -1,5 +1,5 @@
 import type { GameState } from "@/types/game";
-import { missingRequirements, improvementTip } from "@/game/feedback";
+import { missingRequirements, improvementTip, challengeAchieved } from "@/game/feedback";
 import { formatCents } from "@/utils/money";
 
 export function LearningReceipt({ state, compact = false }: { state: GameState; compact?: boolean }) {
@@ -40,7 +40,8 @@ export function LearningReceipt({ state, compact = false }: { state: GameState; 
             : `${formatCents(Math.abs(estimateDelta))} ${estimateDelta > 0 ? "more" : "less"}.`}
         </p>
       )}
-      {previous && (
+      {state.retryChallenge && <p className={challengeAchieved(state) ? "saving-badge" : ""}>{challengeAchieved(state) ? `🏅 Smart swap! ${formatCents(state.retryChallenge.baselineSpendCents - spent)} saved.` : `🎯 Target: ${formatCents(state.retryChallenge.targetSpendCents)} or less, with the checklist complete.`}</p>}
+      {previous && !state.retryChallenge && (
         <p>
           {previous.cleared && state.endReason === "goals_met"
             ? delta === 0

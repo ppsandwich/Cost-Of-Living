@@ -1,18 +1,26 @@
 # Cost of Living
 
-A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.2** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
+A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.3** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
 
 ## Play loop
 
-1. Meet a fictional customer and inspect their dietary boundaries, preferences and kitchen access.
+1. Read a visual order ticket: lunch slots, food wishes, foods to avoid and kitchen equipment. Tap the avatar for the character’s story.
 2. Inspect the exact shop and optionally estimate the spend. The clock is off during planning.
 3. Cover a lunch base, a protein option, fruit or vegetables and two customer wants within budget.
 4. Read the compact receipt: actual spend versus estimate, unmet requirements, and a verified saving or a next step.
-5. Retry the identical shop, or choose a practical upgrade and continue. Round 20 is the final shop.
+5. Retry the identical shop or continue along the neighbourhood trail. Power-ups appear at stops 1, 3, 5, 8, 12, 16 and 19; stop 20 finishes the challenge.
 
 **Learning mode** has no timer, no revision penalty and no speed bonus. **Timed challenge** keeps the 90-second clock, countdown, speed bonus and three-second cost for putting an item back. Records are separate for the two modes.
 
 Retries restore the original character, prices, stock, budget and upgrades. They replace the round result rather than adding another win or another upgrade. A previous completed attempt can be compared with the new basket's cost. Historical personal bests remain personal bests.
+
+## Visual shopping
+
+Aisle signs match the categories used by the variety goal. The corner shop, market and supermarket rotate each round, with different colours, signage and quiet optional soundscapes. Sound starts off; enable it from the speaker button. Pausing or muting suspends audio. Reduced-motion preferences disable the decorative animations and shorten the money counter transition.
+
+The basket visibly fills and returns items, the budget meter shows spending and refunds, and short reactions celebrate new food wishes and lunch slots. A two-slot celebration only happens when both slots were previously empty. Prices on sale are yellow; ordinary price tickets are white. Planning has no Add or Pause button.
+
+A saving challenge is offered only when a concrete cheaper basket has been checked against the shop’s stock, kitchen access, food rules, wishes and lunch slots. Accept it with the “Save …?” retry button. The target stays visible while shopping; a completed checkout at or below it earns a comparison badge. It gives no extra win or score, and missing the optional target does not block a valid checkout.
 
 ## Educational model
 

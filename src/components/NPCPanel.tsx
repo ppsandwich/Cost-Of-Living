@@ -1,32 +1,41 @@
+import { useState } from "react";
 import type { NPC } from "@/types/npc";
-import type { BasketItem } from "@/types/game";
+import type { BasketItem, BasketEvent } from "@/types/game";
 import { npcEquipment } from "@/game/applyFoodItem";
-import { RequirementsChecklist } from "./RequirementsChecklist";
 import { NPCAvatar } from "./NPCAvatar";
-import { getRequirementsStatus } from "@/game/requirements";
-import { mealCoverage, MEAL_ROLES } from "@/game/meals";
-export function NPCPanel({ npc, basket }: { npc: NPC; basket: BasketItem[] }) {
-  const coverage = mealCoverage(basket, npc);
-  const briefMet = getRequirementsStatus(basket, npc).allMet && MEAL_ROLES.every((role) => coverage[role]);
+import { allRequirementsMet, getRequirementsStatus } from "@/game/requirements";
+import { MUST_NOT_LABEL, WANT_BADGE, WANT_EMOJI } from "@/data/labels";
+import { formatCents } from "@/utils/money";
+import { StatsPanel } from "./StatsPanel";
+
+export function NPCPanel({ npc, basket, budgetCents, event }: { npc: NPC; basket: BasketItem[]; budgetCents: number; event: BasketEvent | null }) {
+  const [expanded, setExpanded] = useState(false);
+  const status = getRequirementsStatus(basket, npc);
+  const happy = allRequirementsMet(basket, npc);
   return (
-    <section aria-label={`${npc.name}'s lunch checklist`} className="panel npc-panel space-y-3 p-4">
+    <section aria-label={`${npc.name}'s lunch checklist`} className="panel order-ticket p-3">
       <div className="flex items-center gap-3">
-        <NPCAvatar npc={npc} happy={briefMet} />
-        <div className="min-w-0">
-          <p className="text-xs font-extrabold uppercase tracking-wider text-brand-dark">Lunch for</p>
-          <h2 className="font-knewave text-2xl">{npc.name}</h2>
-          <p className="mt-1 text-xs font-bold text-faded">{npc.ageLabel}</p>
+        <button className="avatar-button" aria-expanded={expanded} aria-label={`About ${npc.name}`} onClick={() => setExpanded(!expanded)}>
+          <NPCAvatar npc={npc} happy={happy || Boolean(event?.newWant)} />
+          <span className="avatar-info" aria-hidden>i</span>
+        </button>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold text-brand-dark">Lunch for</p>
+          <h2 className="font-knewave text-xl">{npc.name}</h2>
         </div>
+        <div className="order-budget"><span>Budget</span><strong>{formatCents(budgetCents)}</strong></div>
       </div>
-      <p key={String(briefMet)} className="npc-mood text-sm">
-        {briefMet ? "That’s my lunch sorted. Is it within budget?" : npc.mood}
-      </p>
-      <p className="text-sm">{npc.description}</p>
-      <RequirementsChecklist npc={npc} basket={basket} />
-      <p className="border-t-2 border-dashed border-ink/20 pt-2 text-xs">
-        <strong>In their kitchen:</strong> {[...npcEquipment(npc)].join(", ")}. Items they
-        cannot use are marked on the shelves.
-      </p>
+      {expanded && <div className="mt-3 space-y-1 text-sm"><strong>{npc.ageLabel}</strong><p>{npc.description}</p><p className="italic text-faded">{npc.mood}</p></div>}
+      <div className="my-3"><StatsPanel npc={npc} basket={basket} visual /></div>
+      <div className="flex flex-wrap gap-2" aria-label="Food wishes">
+        {status.wants.map(({ want, satisfied }) => <span key={want} className={`wish-sticker ${satisfied ? "wish-done" : ""}`}>
+          <span key={String(satisfied)} className={satisfied ? "check-stamp inline-block" : ""} aria-hidden>{satisfied ? "✓" : WANT_EMOJI[want]}</span>{" "}
+          {want === "likes_variety" ? "3+ aisles" : WANT_BADGE[want]}
+          <span className="sr-only">{satisfied ? ": done" : ": still needed"}</span>
+        </span>)}
+      </div>
+      <p className="order-rule"><span aria-hidden>🚫</span> {MUST_NOT_LABEL[npc.mustNot]}</p>
+      <p className="text-xs"><strong>Kitchen:</strong> {[...npcEquipment(npc)].join(", ")}</p>
     </section>
   );
 }

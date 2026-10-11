@@ -18,6 +18,9 @@ import { PowerUpShelf } from "@/components/PowerUps";
 import { CountdownInterstitial } from "@/components/CountdownInterstitial";
 import { PauseModal } from "@/components/PauseModal";
 import { PlanningPanel } from "@/components/PlanningPanel";
+import { Journey } from "@/components/Journey";
+import { shopForRound } from "@/game/shops";
+import { useShopAudio } from "@/hooks/useShopAudio";
 import type { GameMode } from "@/types/game";
 import { FINAL_ROUND } from "@/game/progression";
 
@@ -30,10 +33,10 @@ export default function Home() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
   const [pendingCountdown, setPendingCountdown] =
     useState<PendingCountdown | null>(null);
-  const [muted, setMuted] = useState(false);
   const [paused, setPaused] = useState(false);
   const [mode, setMode] = useState<GameMode>("learning");
   const records = useRecords(mode);
+  const { muted, toggle: toggleSound } = useShopAudio(state.basketEvent, state.roundNumber, state.status === "playing" && !paused && !pendingCountdown);
 
   // Round countdown
   useEffect(() => {
@@ -92,7 +95,7 @@ export default function Home() {
       onModeChange={setMode}
     />
   ) : (
-    <div className="flex min-h-dvh flex-col">
+    <div className="game-world flex min-h-dvh flex-col" data-shop={shopForRound(state.roundNumber).id}>
       <StatusBar
         npc={npc}
         clockLabel={
@@ -103,24 +106,24 @@ export default function Home() {
               : undefined
         }
         roundNumber={state.roundNumber}
-        budgetMultiplier={state.budgetMultiplier}
         timeRemainingSeconds={state.timeRemainingSeconds}
         roundDurationSeconds={state.roundDurationSeconds}
         muted={muted}
-        onToggleMute={() => setMuted((m) => !m)}
+        onToggleMute={toggleSound}
         onPause={() => {
           if (state.status === "playing") setPaused(true);
         }}
         canPause={state.status === "playing" && !pendingCountdown}
       />
 
+      <div className="mx-auto w-full max-w-md px-3 lg:max-w-6xl"><Journey state={state} /></div>
       <main
         className={`mx-auto w-full max-w-md flex-1 px-3 pb-3 pt-2 lg:grid lg:max-w-6xl lg:items-start lg:gap-4 ${state.status === "planning" ? "lg:grid-cols-[340px_1fr]" : "lg:grid-cols-[280px_1fr_320px]"}`}
       >
         <div
           className={`space-y-3 ${state.status === "planning" ? "" : "lg:sticky lg:top-28"}`}
         >
-          <NPCPanel npc={npc} basket={state.basket} />
+          <NPCPanel key={npc.id} npc={npc} basket={state.basket} budgetCents={state.roundBudgetCents} event={state.basketEvent} />
           {state.status === "planning" && (
             <PlanningPanel
               key={`${state.roundNumber}-${state.previousAttempt ? "retry" : "first"}`}
@@ -144,20 +147,16 @@ export default function Home() {
             }
             onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })}
           />
-          <p
-            aria-live="polite"
-            className="min-h-5 px-1 text-xs font-semibold italic text-ink/70"
-          >
-            {state.lastFeedback && <>💬 {state.lastFeedback}</>}
-          </p>
+
         </div>
 
         {/* bottom padding keeps the last food card clear of the fixed mobile drawer */}
         <div
-          className={`mt-3 lg:mt-0 lg:pb-0 ${state.status === "planning" ? "pb-24" : "pb-64"}`}
+          className={`min-w-0 mt-3 lg:mt-0 lg:pb-0 ${state.status === "planning" ? "pb-24" : "pb-80"}`}
         >
           <StoreList
             inventory={state.inventory}
+            roundNumber={state.roundNumber}
             canShop={state.status === "playing" && !paused && !pendingCountdown}
             basket={state.basket}
             npc={npc}
@@ -176,6 +175,10 @@ export default function Home() {
         {state.status !== "planning" && (
           <div className="fixed inset-x-0 bottom-0 z-30 lg:sticky lg:top-28">
             <BasketDrawer
+              key={state.roundNumber}
+              roundBudgetCents={state.roundBudgetCents}
+              event={state.basketEvent}
+              challengeTarget={state.retryChallenge?.targetSpendCents}
               basket={state.basket}
               npc={npc}
               remainingBudgetCents={state.remainingBudgetCents}
@@ -200,7 +203,7 @@ export default function Home() {
       {state.status === "round_won" && (
         <OutcomeModal
           state={state}
-          onRetry={() => dispatch({ type: "RETRY_ROUND" })}
+          onRetry={(challenge = false) => dispatch({ type: "RETRY_ROUND", challenge })}
           onNextRound={() => dispatch({ type: "NEXT_ROUND" })}
           onChoosePowerUp={(powerUpId) =>
             dispatch({ type: "CHOOSE_POWERUP", powerUpId })
@@ -211,7 +214,7 @@ export default function Home() {
         <RunSummary
           state={state}
           onReplay={startRun}
-          onRetry={() => dispatch({ type: "RETRY_ROUND" })}
+          onRetry={(challenge = false) => dispatch({ type: "RETRY_ROUND", challenge })}
         />
       )}
       {state.status === "game_won" && (
@@ -219,7 +222,7 @@ export default function Home() {
           state={state}
           won
           onReplay={startRun}
-          onRetry={() => dispatch({ type: "RETRY_ROUND" })}
+          onRetry={(challenge = false) => dispatch({ type: "RETRY_ROUND", challenge })}
         />
       )}
     </div>

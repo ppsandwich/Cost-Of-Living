@@ -1,3 +1,4 @@
+import { POWER_UP_STOPS } from "../src/game/shops";
 /**
  * Solvability check (PRD §29.1 + the round-20 guarantee).
  *
@@ -36,11 +37,11 @@ function simulate(
   seed: number,
   withUpgrades = true,
 ): CellResult {
-  // By round N the player owns N-1 rarity-weighted power-ups
+  // Sample the number of power-ups earned at earlier trail stops.
   const powerUps: PowerUpId[] = drawPowerUps(
     createRng((seed ^ 0x51ed) >>> 0),
     [],
-    withUpgrades ? roundNumber - 1 : 0,
+    withUpgrades ? POWER_UP_STOPS.filter((stop) => stop < roundNumber).length : 0,
   );
   const npc = applyAccessUpgrades(baseNpc, powerUps);
   const budget =

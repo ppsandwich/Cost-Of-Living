@@ -1,3 +1,4 @@
+import { POWER_UP_STOPS, shopForRound } from "../src/game/shops";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gameReducer, INITIAL_STATE } from "../src/game/reducer";
@@ -8,7 +9,7 @@ import {
 } from "../src/game/solver";
 import { allRequirementsMet } from "../src/game/requirements";
 import { mealRoles, usableFood } from "../src/game/meals";
-import { improvementTip, missingRequirements } from "../src/game/feedback";
+import { improvementTip, missingRequirements, findSaving, challengeAchieved } from "../src/game/feedback";
 import { applyAccessUpgrades } from "../src/game/powerups";
 import { calculateRoundScore } from "../src/game/scoring";
 import { POWER_UPS } from "../src/data/powerups";
@@ -302,4 +303,65 @@ test("a low-budget generated shop carries a real solution witness", () => {
   assert.ok(basket);
   assert.ok(basketCost(basket) <= round.budgetCents);
   assert.ok(round.rescueCents > 0);
+});
+
+test("basket events celebrate only newly covered roles and wishes, and return the paid amount", () => {
+  let state = begin(start());
+  state = { ...state, npc: NPCS.find(n => n.id === "ada")!, basket: [], inventory: [
+    { foodItemId: "microwave-curry", currentPriceCents: 300, quantityAvailable: 2 },
+    { foodItemId: "carrots", currentPriceCents: 150, quantityAvailable: 1 },
+  ] };
+  state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "microwave-curry" });
+  assert.deepEqual(state.basketEvent?.newRoles, ["base", "protein"]);
+  state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "microwave-curry" });
+  assert.deepEqual(state.basketEvent?.newRoles, []);
+  const blocked = gameReducer(state, { type: "ADD_ITEM", foodItemId: "microwave-curry" });
+  assert.equal(blocked, state, "sold-out purchases do not trigger animation or sound events");
+  state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "carrots" });
+  assert.equal(state.basketEvent?.newWant, "likes_fresh_food");
+  assert.deepEqual(state.basketEvent?.newRoles, ["produce"]);
+  const remaining = state.remainingBudgetCents;
+  state = gameReducer(state, { type: "REMOVE_ITEM", foodItemId: "carrots" });
+  assert.equal(state.basketEvent?.kind, "remove");
+  assert.equal(state.basketEvent?.cents, 150);
+  assert.equal(state.remainingBudgetCents, remaining + 150);
+});
+
+test("retry challenges have a legal cheaper witness and require a complete checkout for the badge", () => {
+  const original = { ...start(), npc: NPCS.find(n => n.id === "jan")!, roundBudgetCents: 2000, remainingBudgetCents: 2000,
+    inventory: ["white-bread", "baked-beans", "carrots"].map(foodItemId => ({ foodItemId, currentPriceCents: 200, quantityAvailable: 2 })) };
+  const plan = { ...original, roundStart: { ...original, roundStart: null } };
+  let state = begin(plan);
+  for (const foodItemId of ["white-bread", "white-bread", "baked-beans", "carrots"]) state = gameReducer(state, { type: "ADD_ITEM", foodItemId });
+  state = gameReducer(state, { type: "CHECKOUT" });
+  const saving = findSaving(state)!;
+  assert.equal(saving.savings, 200);
+  assert.equal(allRequirementsMet(saving.basket, state.npc!), true);
+  assert.equal(basketCost(saving.basket), 600);
+  const retry = gameReducer(state, { type: "RETRY_ROUND", challenge: true });
+  assert.equal(retry.retryChallenge?.targetSpendCents, 600);
+  assert.deepEqual(retry.inventory, plan.inventory);
+  assert.equal(retry.totalScore, 0);
+  assert.equal(challengeAchieved(retry), false);
+  state = begin(retry);
+  for (const item of saving.basket) state = gameReducer(state, { type: "ADD_ITEM", foodItemId: item.foodItemId });
+  assert.equal(challengeAchieved(state), false, "shopping is not a completed challenge");
+  state = gameReducer(state, { type: "CHECKOUT" });
+  assert.equal(challengeAchieved(state), true);
+  assert.equal(state.successfulRounds, 1, "retry replaces the previous result");
+  assert.equal(challengeAchieved({ ...state, basket: [] }), false, "saving alone cannot earn the badge");
+  assert.equal(findSaving(state), null, "do not invent a target when no saving is verified");
+  assert.equal(gameReducer(state, { type: "RETRY_ROUND", challenge: true }).retryChallenge, null);
+});
+
+test("shop settings rotate and trail reward stops match the actual offers", () => {
+  assert.deepEqual([1, 2, 3, 4].map(round => shopForRound(round).id), ["corner", "market", "supermarket", "corner"]);
+  let state = start();
+  for (let round = 1; round <= FINAL_ROUND; round++) {
+    state = clear(state);
+    assert.equal(Boolean(state.powerUpChoices?.length), POWER_UP_STOPS.includes(round));
+    if (state.powerUpChoices?.length) state = gameReducer(state, { type: "CHOOSE_POWERUP", powerUpId: state.powerUpChoices[0] });
+    if (round < FINAL_ROUND) state = gameReducer(state, { type: "NEXT_ROUND" });
+  }
+  assert.equal(state.status, "game_won");
 });

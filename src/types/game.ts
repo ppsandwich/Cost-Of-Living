@@ -1,5 +1,20 @@
 import type { NPC } from "./npc";
 import type { PowerUpId } from "@/data/powerups";
+import type { MealRole } from "@/game/meals";
+import type { FoodPreference } from "./npc";
+export interface BasketEvent {
+  id: number;
+  kind: "add" | "remove";
+  foodItemId: string;
+  cents: number;
+  newRoles: MealRole[];
+  newWant: FoodPreference | null;
+}
+export interface RetryChallenge {
+  baselineSpendCents: number;
+  targetSpendCents: number;
+  savingCents: number;
+}
 export type GameMode = "standard_run" | "learning";
 export type GameStatus =
   | "idle"
@@ -56,6 +71,8 @@ export interface GameState {
   bestScore: number;
   highestRound: number;
   lastFeedback: string | null;
+  basketEvent: BasketEvent | null;
+  retryChallenge: RetryChallenge | null;
   roundHistory: RoundResult[];
   seed: number;
   estimateCents: number | null;

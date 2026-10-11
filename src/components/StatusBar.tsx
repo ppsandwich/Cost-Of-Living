@@ -1,11 +1,10 @@
 import type { NPC } from "@/types/npc";
-import { budgetPressureLabel, FINAL_ROUND } from "@/game/progression";
+import { FINAL_ROUND } from "@/game/progression";
 import { NPCAvatar } from "./NPCAvatar";
 
 interface StatusBarProps {
   npc: NPC;
   roundNumber: number;
-  budgetMultiplier: number;
   timeRemainingSeconds: number;
   roundDurationSeconds: number;
   muted: boolean;
@@ -18,7 +17,6 @@ interface StatusBarProps {
 export function StatusBar({
   npc,
   roundNumber,
-  budgetMultiplier,
   timeRemainingSeconds,
   roundDurationSeconds,
   muted,
@@ -46,8 +44,7 @@ export function StatusBar({
                 {npc.name}
               </div>
               <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand-dark">
-                Round {roundNumber}/{FINAL_ROUND} ·{" "}
-                {budgetPressureLabel(budgetMultiplier)}
+                Stop {roundNumber}/{FINAL_ROUND}
               </div>
             </div>
           </div>

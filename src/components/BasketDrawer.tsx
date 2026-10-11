@@ -1,15 +1,20 @@
 import { useState } from "react";
 import type { NPC } from "@/types/npc";
-import type { BasketItem } from "@/types/game";
+import type { BasketItem, BasketEvent } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { allRequirementsMet } from "@/game/requirements";
 import { formatCents } from "@/utils/money";
 import { StatsPanel } from "./StatsPanel";
+import { BudgetMeter } from "./BudgetMeter";
+import { ShoppingReaction } from "./ShoppingReaction";
 
 interface BasketDrawerProps {
   basket: BasketItem[];
   npc: NPC;
   remainingBudgetCents: number;
+  roundBudgetCents: number;
+  event: BasketEvent | null;
+  challengeTarget?: number;
   onRemove: (foodItemId: string) => void;
   onAdd: (foodItemId: string) => void;
   onCheckout: () => void;
@@ -19,6 +24,9 @@ export function BasketDrawer({
   basket,
   npc,
   remainingBudgetCents,
+  roundBudgetCents,
+  event,
+  challengeTarget,
   onRemove,
   onAdd,
   onCheckout,
@@ -30,8 +38,9 @@ export function BasketDrawer({
 
   return (
     <div className="border-t-[3px] border-ink bg-receipt shadow-[0_-4px_12px_rgba(51,36,28,0.2)] lg:rounded-2xl lg:border-[3px] lg:shadow-[4px_4px_0_rgba(51,36,28,0.25)]">
-      {/* Lunch coverage stays visible with the basket */}
-      <div className="border-b-2 border-dashed border-ink/25 px-3 pb-2 pt-2.5">
+      <div className="px-3 pt-2">
+        <BudgetMeter budget={roundBudgetCents} remaining={remainingBudgetCents} event={event} target={challengeTarget} />
+        <ShoppingReaction event={event} npc={npc} />
         <StatsPanel npc={npc} basket={basket} />
       </div>
 
@@ -91,16 +100,16 @@ export function BasketDrawer({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
+          aria-label={`Your basket: ${itemCount} items. ${open ? "Hide" : "Show"} receipt`}
           aria-expanded={open}
           className="btn flex min-h-12 w-full items-center justify-between gap-2 bg-paper px-2.5 text-left"
         >
-          <span className="block min-w-0 truncate font-display text-lg leading-tight">
-            🧺 {itemCount} item{itemCount === 1 ? "" : "s"} ·{" "}
-            <span className={overBudget ? "text-danger" : ""}>
-              {formatCents(remainingBudgetCents)}{" "}
-              {overBudget ? "over budget!" : "left"}
-            </span>
+          <span className="basket-still-life" aria-hidden>
+            <span className="basket-outline">🧺</span>
+            {basket.slice(-5).map((entry) => <span key={`${entry.foodItemId}-${entry.quantity}`} className="basket-food">{FOOD_BY_ID[entry.foodItemId].emoji}</span>)}
+            {event?.kind === "remove" && <span key={event.id} className="basket-food-leaving">{FOOD_BY_ID[event.foodItemId].emoji}</span>}
           </span>
+          <span className="shrink-0 font-display text-sm">{itemCount} item{itemCount === 1 ? "" : "s"}</span>
           <span aria-hidden className="font-display text-faded">
             {open ? "▼" : "▲"}
           </span>

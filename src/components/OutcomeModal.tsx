@@ -5,6 +5,7 @@ import { formatCents } from "@/utils/money";
 import { PowerUpChoice } from "./PowerUps";
 import { LearningReceipt } from "./LearningReceipt";
 import { Dialog } from "./Dialog";
+import { findSaving } from "@/game/feedback";
 import { NPCAvatar } from "./NPCAvatar";
 
 export function OutcomeModal({
@@ -13,8 +14,9 @@ export function OutcomeModal({
   state: GameState;
   onNextRound: () => void;
   onChoosePowerUp: (id: PowerUpId) => void;
-  onRetry: () => void;
+  onRetry: (challenge?: boolean) => void;
 }) {
+  const saving = findSaving(state);
   const mustChoose = Boolean(state.powerUpChoices?.length);
   return (
     <Dialog compact title="Lunch sorted!" portrait={<NPCAvatar npc={state.npc!} compact happy />}>
@@ -31,8 +33,8 @@ export function OutcomeModal({
         Retry replaces this score and any power-up just picked.
       </p>
       <div className="grid grid-cols-2 gap-2">
-        <button className="btn min-h-11 bg-paper text-sm" aria-describedby="retry-note" onClick={onRetry}>
-          Try again
+        <button className="btn min-h-11 bg-paper text-sm" aria-describedby="retry-note" aria-label={saving ? `Retry this shop and save ${formatCents(saving.savings)}` : "Try this shop again"} onClick={() => onRetry(Boolean(saving))}>
+          {saving ? `Save ${formatCents(saving.savings)}?` : "Try again"}
         </button>
         <button disabled={mustChoose} onClick={onNextRound} className="btn min-h-11 bg-good text-sm text-white">
           Next shop

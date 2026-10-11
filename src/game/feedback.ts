@@ -21,9 +21,9 @@ export function missingRequirements(state: GameState): string[] {
   ];
 }
 /** Only suggest a saving when the resulting basket still meets the entire brief. */
-export function improvementTip(state: GameState): string {
+export function findSaving(state: GameState) {
   const npc = state.npc!;
-  let best = { savings: 0, message: "" };
+  let best = { savings: 0, message: "", basket: [] as BasketItem[] };
   for (const entry of state.basket) {
     const trimmed = state.basket.flatMap((b) =>
       b.foodItemId !== entry.foodItemId
@@ -42,7 +42,7 @@ export function improvementTip(state: GameState): string {
         state.remainingBudgetCents + savings >= 0 &&
         allRequirementsMet(trial, npc)
       )
-        best = { savings, message };
+        best = { savings, message, basket: trial };
     };
     consider(
       trimmed,
@@ -72,7 +72,13 @@ export function improvementTip(state: GameState): string {
       );
     }
   }
-  if (best.message) return best.message;
+  return best.savings > 0 ? best : null;
+}
+
+export function improvementTip(state: GameState): string {
+  const npc = state.npc!;
+  const saving = findSaving(state);
+  if (saving) return saving.message;
   if (state.endReason === "goals_met")
     return "Can a different basket finish the checklist for less? Try again and compare.";
   const witness = findClearingBasket(
@@ -86,4 +92,10 @@ export function improvementTip(state: GameState): string {
   return next
     ? `Try ${FOOD_BY_ID[next.foodItemId].name}. It can help you finish the checklist within budget.`
     : "Pick a base, protein food and fruit or veg. Check both food wishes and leave time to check out.";
+}
+
+export function challengeAchieved(state: GameState): boolean {
+  return Boolean(state.retryChallenge && state.endReason === "goals_met" && state.npc &&
+    state.remainingBudgetCents >= 0 && allRequirementsMet(state.basket, state.npc) &&
+    state.roundBudgetCents - state.remainingBudgetCents <= state.retryChallenge.targetSpendCents);
 }

@@ -16,9 +16,12 @@ import {
 } from "./powerups";
 import { createRng } from "./seededRandom";
 import { quantityRemaining } from "./roundEnd";
-import { allRequirementsMet } from "./requirements";
+import { allRequirementsMet, getRequirementsStatus } from "./requirements";
 import { calculateRoundScore, ratingForRound } from "./scoring";
-import { mealRoles, MEAL_LABELS, usableFood } from "./meals";
+import { mealRoles, MEAL_LABELS, usableFood, mealCoverage, MEAL_ROLES } from "./meals";
+
+import { POWER_UP_STOPS } from "./shops";
+import { findSaving } from "./feedback";
 
 export type GameAction =
   | {
@@ -29,7 +32,7 @@ export type GameAction =
       mode: GameMode;
     }
   | { type: "BEGIN_SHOPPING"; estimateCents: number | null }
-  | { type: "RETRY_ROUND" }
+  | { type: "RETRY_ROUND"; challenge?: boolean }
   | { type: "ADD_ITEM"; foodItemId: string }
   | { type: "BULK_ADD"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
@@ -61,6 +64,8 @@ export const INITIAL_STATE: GameState = {
   bestScore: 0,
   highestRound: 0,
   lastFeedback: null,
+  basketEvent: null,
+  retryChallenge: null,
   roundHistory: [],
   seed: 0,
   estimateCents: null,
@@ -111,6 +116,8 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     endReason: undefined,
     score: 0,
     lastFeedback: null,
+    basketEvent: null,
+    retryChallenge: null,
     estimateCents: null,
     previousAttempt: null,
     roundStart: null,
@@ -126,7 +133,7 @@ function winRound(state: GameState): GameState {
     state.mode === "learning"
       ? [...state.powerUps, "timewalker" as const]
       : state.powerUps;
-  const choices = final
+  const choices = final || !POWER_UP_STOPS.includes(state.roundNumber)
     ? []
     : drawPowerUps(
         createRng(
@@ -189,8 +196,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         !state.roundStart
       )
         return state;
+      const saving = action.challenge && state.endReason === "goals_met" ? findSaving(state) : null;
+      const spent = state.roundBudgetCents - state.remainingBudgetCents;
       return {
         ...state.roundStart,
+        retryChallenge: saving ? { baselineSpendCents: spent, targetSpendCents: spent - saving.savings, savingCents: saving.savings } : null,
         roundStart: state.roundStart,
         bestScore: state.bestScore,
         highestRound: state.highestRound,
@@ -228,9 +238,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
             },
           ];
       const roles = mealRoles(food);
+      const before = mealCoverage(state.basket, state.npc);
+      const after = mealCoverage(basket, state.npc);
+      const oldWants = getRequirementsStatus(state.basket, state.npc).wants;
+      const newWant = getRequirementsStatus(basket, state.npc).wants.find((w, i) => w.satisfied && !oldWants[i].satisfied)?.want ?? null;
       return {
         ...state,
         basket,
+        basketEvent: { id: (state.basketEvent?.id ?? 0) + 1, kind: "add", foodItemId: food.id, cents: item.currentPriceCents, newRoles: MEAL_ROLES.filter((role) => !before[role] && after[role]), newWant },
         remainingBudgetCents:
           state.remainingBudgetCents - item.currentPriceCents,
         lastFeedback: roles.length
@@ -279,6 +294,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         basket,
         remainingBudgetCents: state.remainingBudgetCents + entry.pricePaidCents,
+        basketEvent: { id: (state.basketEvent?.id ?? 0) + 1, kind: "remove", foodItemId: entry.foodItemId, cents: entry.pricePaidCents, newRoles: [], newWant: null },
         timeRemainingSeconds: time,
         lastFeedback:
           "Item put back. What’s still on your checklist?",

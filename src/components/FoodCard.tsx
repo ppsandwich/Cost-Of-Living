@@ -3,6 +3,7 @@ import type { FoodItem } from "@/types/food";
 import type { StoreItem } from "@/types/game";
 import { mealRoles, MEAL_LABELS } from "@/game/meals";
 import { formatCents } from "@/utils/money";
+import { MEAL_ICONS } from "./StatsPanel";
 import { AISLE_LABEL } from "@/data/labels";
 
 const TASTE_TAGS = [
@@ -48,15 +49,15 @@ export function FoodCard({
   const tasteTags = TASTE_TAGS.filter(({ tag }) => food.tags.includes(tag));
   return (
     <li
-      className={`panel food-card relative p-3 ${unavailable ? "food-card-unavailable" : ""} ${inBasket ? "food-card-selected" : ""}`}
+      className={`panel food-card product-card relative p-3 ${unavailable ? "food-card-unavailable" : ""} ${inBasket ? "food-card-selected" : ""}`}
     >
       {unavailable && (
         <p className="mb-2 text-xs font-bold text-faded">
           Can’t use: {unavailable}
         </p>
       )}
-      <div className="flex items-center gap-3">
-        <span key={inBasket} aria-hidden className={`food-icon ${inBasket ? "check-stamp" : ""}`}>
+      <div className="product-top">
+        <span key={inBasket} aria-hidden className={`food-icon product-art ${inBasket ? "check-stamp" : ""}`}>
           {food.emoji}
         </span>
         <button
@@ -65,10 +66,10 @@ export function FoodCard({
           aria-label={`${food.name}, ${formatCents(storeItem.currentPriceCents)}. Details`}
           className="min-h-11 min-w-0 flex-1 text-left"
         >
-          <span className="block font-display text-base">{food.name}</span>
+          <span className="block font-display text-base leading-tight">{food.name}</span>
           <span className="block text-xs text-faded">
             {roles.length
-              ? roles.map((r) => MEAL_LABELS[r]).join(" · ")
+              ? roles.map((r) => `${MEAL_ICONS[r]} ${r === "produce" ? "Fruit / veg" : r === "base" ? "Base" : "Protein"}`).join(" · ")
               : "An extra"}
           </span>
         </button>
@@ -99,6 +100,7 @@ export function FoodCard({
       {expanded && (
         <div className="mt-2 space-y-2 border-t-2 border-dashed border-ink/20 pt-2 text-sm">
           <p>{food.flavour}</p>
+          {roles.length > 0 && <p><strong>Lunch:</strong> {roles.map((r) => MEAL_LABELS[r]).join(", ")}</p>}
           <p><strong>Aisle:</strong> {AISLE_LABEL[food.category]}</p>
           <p>
             <strong>Contains:</strong>{" "}
@@ -121,9 +123,9 @@ export function FoodCard({
           </p>
         </div>
       )}
-      {canShop && <div className="mt-3 flex items-center gap-2">
+      {canShop && <div className="product-actions mt-3 flex flex-wrap items-center gap-2">
         <span className="min-w-0 flex-1 text-xs font-bold text-good">
-          {inBasket > 0 && <span key={inBasket} className="check-stamp inline-block">✓ In your basket</span>}
+          {inBasket > 0 && <span key={inBasket} className="check-stamp inline-block">✓ In basket</span>}
         </span>
         {inBasket > 0 && (
           <button

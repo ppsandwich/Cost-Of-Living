@@ -13,12 +13,10 @@ interface StartScreenProps {
 }
 
 const TUTORIAL_STEPS = [
-  "Check the lunch list: a base (like bread or rice), a protein food (like beans or eggs), fruit or veg, and two food wishes.",
-  "Check which foods to avoid and what kitchen equipment they have.",
-  "Look at prices before you shop. Guess your total if you like.",
-  "Tick off the whole checklist without going over budget, then check out.",
-  "Check your receipt for a money-saving tip. Try again or pick a power-up.",
-  "Finish round 20 to win the challenge.",
+  "Read the order ticket: a base (like bread), protein (like beans), fruit or veg, and two food wishes.",
+  "Avoid marked foods. Check their kitchen equipment before choosing.",
+  "Fill the checklist without going over budget, then check out.",
+  "Follow 20 neighbourhood stops. Collect power-ups and try a cheaper basket!",
 ];
 
 export function StartScreen({

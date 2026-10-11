@@ -1,6 +1,8 @@
 import type { GameState } from "@/types/game";
 import { LearningReceipt } from "./LearningReceipt";
 import { Dialog } from "./Dialog";
+import { findSaving } from "@/game/feedback";
+import { formatCents } from "@/utils/money";
 import { NPCAvatar } from "./NPCAvatar";
 export function RunSummary({
   state,
@@ -11,8 +13,9 @@ export function RunSummary({
   state: GameState;
   won?: boolean;
   onReplay: () => void;
-  onRetry: () => void;
+  onRetry: (challenge?: boolean) => void;
 }) {
+  const saving = won ? findSaving(state) : null;
   return (
     <Dialog compact title={won ? "Final lunch sorted!" : "Time’s up!"} portrait={<NPCAvatar npc={state.npc!} compact happy={won} />}>
       <p className="mt-2 text-sm">
@@ -26,10 +29,10 @@ export function RunSummary({
         {state.mode === "learning" ? "Learning" : "Timed"} mode
       </p>
       <button
-        onClick={onRetry}
+        onClick={() => onRetry(Boolean(saving))}
         className="btn mt-4 min-h-12 w-full bg-good text-white"
       >
-        Try this shop again
+        {saving ? `Try again: save ${formatCents(saving.savings)}` : "Try this shop again"}
       </button>
       <button onClick={onReplay} className="btn mt-2 min-h-11 w-full bg-paper">
         Start a new game

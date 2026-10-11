@@ -24,25 +24,9 @@ export function PlanningPanel({
         <span>→ 2. Shop → 3. Review</span>
       </p>
       <h2 className="font-title text-2xl">Before you shop</h2>
-      <p className="text-sm font-semibold">
-        Plan a lunch for {state.npc!.name} with{" "}
-        <strong>{formatCents(state.roundBudgetCents)}</strong>. Find a base, a
-        protein food and fruit or vegetables, plus their two food wishes.
-      </p>
-      <p className="text-sm">
-        Check the shelves and prices first.{" "}
-        {state.mode === "learning"
-          ? "No timer. Change your basket as often as you like."
-          : `Your ${state.roundDurationSeconds}-second clock starts when you are ready. Putting an item back takes three seconds.`}
-      </p>
-      {state.previousAttempt && (
-        <p className="rounded-lg border-2 border-dashed border-ink/25 p-2 text-sm">
-          Same shop, another go. Last time:{" "}
-          {formatCents(state.previousAttempt.spentCents)} spent;{" "}
-          {state.previousAttempt.cleared ? "checklist complete" : "checklist unfinished"}.
-          You start with the same prices, items, budget and power-ups.
-        </p>
-      )}
+      <p className="text-sm">{state.mode === "learning" ? "Look around first. No timer." : `${state.roundDurationSeconds} seconds to shop. Putting an item back costs three seconds.`}</p>
+      {state.retryChallenge && <p className="challenge-ticket">🎯 Same checklist. Spend {formatCents(state.retryChallenge.targetSpendCents)} or less.</p>}
+      {state.previousAttempt && !state.retryChallenge && <p className="text-xs">Same shop. Last spend: {formatCents(state.previousAttempt.spentCents)}.</p>}
       <form
         className="space-y-3"
         onSubmit={(e) => {
@@ -77,10 +61,7 @@ export function PlanningPanel({
           {state.mode === "learning" ? "Ready to shop" : "Start the clock"}
         </button>
       </form>
-      <p className="text-xs text-faded">
-        This game is about shopping choices. It does not show how much food a
-        person needs to eat.
-      </p>
+
     </section>
   );
 }

@@ -2,7 +2,7 @@ import type { NPC } from "@/types/npc";
 import type { BasketItem, StoreItem } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { MUST_NOT_BADGE, WANT_BADGE } from "@/data/labels";
+import { MUST_NOT_BADGE, WANT_BADGE, AISLE_LABEL } from "@/data/labels";
 import {
   PREFERENCE_TAG,
   hasEquipmentMismatch,
@@ -10,6 +10,7 @@ import {
 } from "@/game/applyFoodItem";
 import { mealRoles, usableFood, MEAL_LABELS } from "@/game/meals";
 import { quantityInBasket, quantityRemaining } from "@/game/roundEnd";
+import { AISLE_ORDER, AISLE_ICONS, shopForRound } from "@/game/shops";
 import { FoodCard } from "./FoodCard";
 interface StoreListProps {
   inventory: StoreItem[];
@@ -18,6 +19,7 @@ interface StoreListProps {
   powerUps: PowerUpId[];
   bulkAddsUsed: string[];
   canShop: boolean;
+  roundNumber: number;
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
   onBulkAdd: (id: string) => void;
@@ -29,23 +31,28 @@ export function StoreList({
   powerUps,
   bulkAddsUsed,
   canShop,
+  roundNumber,
   onAdd,
   onRemove,
   onBulkAdd,
 }: StoreListProps) {
+  const shop = shopForRound(roundNumber);
+  const aisles = AISLE_ORDER.filter((aisle) => inventory.some((item) => FOOD_BY_ID[item.foodItemId].category === aisle));
+  const visited = new Set(basket.map((item) => FOOD_BY_ID[item.foodItemId].category));
   return (
-    <section aria-label="Store shelves">
-      <h2 className="mb-3 flex items-center gap-2 font-title text-2xl">
-        <span aria-hidden className="shelf-heading-icon">🛒</span>
-        {canShop ? "Today’s shelves" : "Check the shelves"}
-      </h2>
-      {!canShop && (
-        <p className="mb-3 text-sm">
-          Tap an item’s name to learn more. Start shopping when you’re ready.
-        </p>
-      )}
-      <ul className="space-y-3">
-        {inventory.map((item) => {
+    <section aria-label="Store shelves" className={canShop ? "store-shelves" : "store-shelves planning-shelves"}>
+      <div className="shop-front">
+        <span aria-hidden className="shop-front-icon">{shop.icon}</span>
+        <div><p className="text-xs font-bold uppercase tracking-wider">Stop {roundNumber}</p><h2 className="font-title text-3xl">{shop.name}</h2><p className="text-xs">{shop.sign}</p></div>
+      </div>
+      <nav className="aisle-nav" aria-label="Jump to an aisle">
+        {aisles.map((aisle) => <a key={aisle} href={`#aisle-${aisle}`}><span aria-hidden>{AISLE_ICONS[aisle]}</span> {AISLE_LABEL[aisle]}</a>)}
+      </nav>
+      {!canShop && <p className="mb-3 text-xs text-faded">Tap a product for details. Start shopping when you’re ready.</p>}
+      {aisles.map((aisle) => <section className={`aisle aisle-${aisle}`} key={aisle} id={`aisle-${aisle}`} aria-label={`${AISLE_LABEL[aisle]} aisle`}>
+        <h3 className="aisle-sign"><span aria-hidden>{AISLE_ICONS[aisle]}</span> {AISLE_LABEL[aisle]} {visited.has(aisle) && <span className="aisle-picked">✓ In basket</span>}</h3>
+        <ul className="product-shelf">
+        {inventory.filter((item) => FOOD_BY_ID[item.foodItemId].category === aisle).map((item) => {
           const food = FOOD_BY_ID[item.foodItemId];
           const unavailable = violatesMustNot(food, npc)
             ? MUST_NOT_BADGE[npc.mustNot]
@@ -96,7 +103,8 @@ export function StoreList({
             />
           );
         })}
-      </ul>
+        </ul>
+      </section>)}
     </section>
   );
 }
