@@ -1,27 +1,15 @@
 export type PowerUpId =
-  | "iron_stomach"
   | "haggler"
-  | "shoplifter"
-  | "plant_lover"
   | "timewalker"
-  | "sweet_tooth"
   | "deep_pockets"
   | "bulk_buyer"
-  | "label_reader"
-  | "treat_whisperer"
-  | "protein_shaker"
-  | "cast_iron_arteries"
   | "coupon_clipper"
-  | "camp_chef"
   | "superstore"
-  | "exposure_therapy"
-  | "carb_loading"
-  | "sugar_free"
-  | "zero_carb"
-  | "fat_free"
   | "embezzler"
-  | "dubious_food"
-  | "training_wheels";
+  | "escape_rope"
+  | "shared_kitchen"
+  | "fridge"
+  | "price_compare";
 
 export interface PowerUp {
   id: PowerUpId;
@@ -29,155 +17,88 @@ export interface PowerUp {
   icon: string;
   description: string;
   rarity?: "rare";
+  presentation?: "mutated";
 }
 
 export const POWER_UPS: PowerUp[] = [
   {
-    id: "iron_stomach",
-    name: "Iron Stomach",
-    icon: "🦾",
-    description: "Expired food is 50% more nutritious. Best-before dates fear you.",
-  },
-  {
     id: "haggler",
-    name: "Haggler",
+    name: "Co-op membership",
     icon: "🤝",
-    description: "All food is 10% cheaper. The till operator has given up arguing.",
-  },
-  {
-    id: "shoplifter",
-    name: "Shoplifter",
-    icon: "🧤",
     description:
-      "The first time an item lands in the basket each round, 20% chance its nutrition and happiness count twice.",
-  },
-  {
-    id: "plant_lover",
-    name: "Plant Lover",
-    icon: "🌱",
-    description: "Fresh food provides 20% more nutrition and happiness.",
+      "All shelf prices are 10% lower. Buying together has its benefits.",
   },
   {
     id: "timewalker",
-    name: "Timewalker",
+    name: "Time to shop",
     icon: "⏳",
-    description: "Every round lasts 20 seconds longer.",
-  },
-  {
-    id: "sweet_tooth",
-    name: "Sweet Tooth",
-    icon: "🍭",
-    description: "Sugar limits are 25% higher. Dessert is a food group now.",
+    description:
+      "20 extra seconds in timed rounds. Someone else is doing the school pickup.",
   },
   {
     id: "deep_pockets",
-    name: "Deep Pockets",
-    icon: "👛",
-    description: "Every round's budget is $2.00 bigger. Found it down the sofa.",
+    name: "Grocery voucher",
+    icon: "🎟️",
+    description: "An extra $2 for each shop. A little breathing room.",
   },
   {
     id: "bulk_buyer",
-    name: "Bulk Buyer",
+    name: "Group order",
     icon: "📦",
-    description: "Every item's purchase limit is one higher.",
-  },
-  {
-    id: "label_reader",
-    name: "Label Reader",
-    icon: "🔍",
-    description: "Shrinkflated items lose only a quarter of their value instead of half.",
-  },
-  {
-    id: "treat_whisperer",
-    name: "Treat Whisperer",
-    icon: "🍰",
-    description: "Treats and comfort food give 25% more happiness.",
-  },
-  {
-    id: "protein_shaker",
-    name: "Protein Shaker",
-    icon: "🥤",
-    description: "Protein contributes 50% more nutrition.",
-  },
-  {
-    id: "cast_iron_arteries",
-    name: "Cast-Iron Arteries",
-    icon: "🫀",
-    description: "Fat limits are 25% higher. Butter is on notice.",
+    description:
+      "One extra pack of each item is available. Share the order, expand the options.",
   },
   {
     id: "coupon_clipper",
-    name: "Coupon Clipper",
+    name: "Coupon clipper",
     icon: "✂️",
-    description: "Two extra discount stickers appear in every store.",
-  },
-  {
-    id: "camp_chef",
-    name: "Camp Chef",
-    icon: "🔥",
-    description: "Missing kitchen equipment only half as punishing — improvisation is a skill.",
+    description:
+      "Two extra specials in each shop. Still worth checking the price.",
   },
   {
     id: "superstore",
-    name: "Superstore",
-    icon: "🏬",
-    description: "30% more items on the shelves. The aisle goes on forever.",
-  },
-  {
-    id: "exposure_therapy",
-    name: "Exposure Therapy",
-    icon: "💉",
-    rarity: "rare",
-    description: "Characters no longer have allergies or aversions. Everything is on the menu.",
-  },
-  {
-    id: "carb_loading",
-    name: "Carb Loading",
-    icon: "🍝",
-    description: "Carb limits are 25% higher. The marathon is implied.",
-  },
-  {
-    id: "sugar_free",
-    name: "Sugar Free",
-    icon: "🦷",
-    rarity: "rare",
-    description: "Items no longer contain any sugar. The dentist weeps with joy.",
-  },
-  {
-    id: "zero_carb",
-    name: "Zero Carb",
-    icon: "⚡",
-    rarity: "rare",
-    description: "Items no longer contain carbs. Bread is now a concept.",
-  },
-  {
-    id: "fat_free",
-    name: "Fat Free",
-    icon: "🪶",
-    rarity: "rare",
-    description: "Items no longer contain fat. Everything floats a little.",
+    name: "Transport pass",
+    icon: "🚌",
+    description: "Reach a bigger shop with 30% more choice.",
   },
   {
     id: "embezzler",
-    name: "Embezzler",
-    icon: "🕴️",
+    name: "Savings jar",
+    icon: "🪙",
     rarity: "rare",
-    description: "Half of your surplus rolls into the next round's budget. Nobody checks the books.",
+    description: "Half of the money left carries into the next shop.",
   },
   {
-    id: "dubious_food",
-    name: "Dubious Food",
-    icon: "🤢",
-    description: "Expired items are 50% more prevalent. The clearance shelf overfloweth.",
+    id: "shared_kitchen",
+    name: "Shared kitchen",
+    icon: "🍳",
+    description:
+      "Access to a stove, oven, kettle and microwave. Dietary boundaries still apply.",
   },
   {
-    id: "training_wheels",
-    name: "Training Wheels",
-    icon: "🛞",
-    description: "Items that would push you over a macro limit are disabled at the shelf.",
+    id: "fridge",
+    name: "Cold storage",
+    icon: "🧊",
+    description:
+      "Access to a fridge and freezer makes chilled and frozen options usable.",
+  },
+  {
+    id: "price_compare",
+    name: "Price scout",
+    icon: "🔎",
+    description:
+      "Show the cheapest usable option for each lunch component on the shelves.",
+  },
+  {
+    id: "escape_rope",
+    name: "Rain check",
+    icon: "🪢",
+    presentation: "mutated",
+    description:
+      "One use: move to the next shop without a score or a cleared-round credit. Cannot skip the final shop.",
   },
 ];
 
-export const POWER_UP_BY_ID: Record<PowerUpId, PowerUp> = Object.fromEntries(
-  POWER_UPS.map((p) => [p.id, p])
+export const POWER_UP_BY_ID = Object.fromEntries(
+  POWER_UPS.map((p) => [p.id, p]),
 ) as Record<PowerUpId, PowerUp>;

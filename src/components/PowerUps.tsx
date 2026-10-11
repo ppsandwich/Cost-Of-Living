@@ -12,13 +12,22 @@ export function PowerUpCard({
 }) {
   const powerUp = POWER_UP_BY_ID[powerUpId];
   const rare = powerUp.rarity === "rare";
-  const rareBg = rare
-    ? "border-happy [background:linear-gradient(135deg,#fff8e0,#ffe9a8_45%,#fff8e0)]"
-    : "border-ink bg-receipt";
+  const mutated = powerUp.presentation === "mutated";
+  const cardBg = mutated
+    ? "border-danger bg-danger text-white"
+    : rare
+      ? "border-happy [background:linear-gradient(135deg,#fff8e0,#ffe9a8_45%,#fff8e0)]"
+      : "border-ink bg-receipt";
+  const shadow = mutated
+    ? "shadow-[0_0_18px_rgba(214,64,46,0.75),3px_3px_0_rgba(51,36,28,0.25)]"
+    : "shadow-[2px_2px_0_rgba(51,36,28,0.2)]";
+  const largeShadow = mutated
+    ? "shadow-[0_0_22px_rgba(214,64,46,0.85),3px_3px_0_rgba(51,36,28,0.25)]"
+    : "shadow-[3px_3px_0_rgba(51,36,28,0.25)]";
   if (size === "medium") {
     return (
       <span
-        className={`relative flex h-full flex-col items-center gap-1 rounded-xl border-2 px-1 pb-2 pt-3 shadow-[2px_2px_0_rgba(51,36,28,0.2)] ${rareBg}`}
+        className={`relative flex h-full flex-col items-center gap-1 rounded-xl border-2 px-1 pb-2 pt-3 ${shadow} ${cardBg}`}
       >
         {rare && (
           <span className="sticker absolute -top-2 left-1/2 -translate-x-1/2 rounded-md bg-brand px-1 py-px font-display text-[8px] uppercase tracking-wide text-white">
@@ -37,7 +46,7 @@ export function PowerUpCard({
   if (size === "large") {
     return (
       <span
-        className={`relative flex h-full flex-col items-center gap-1 rounded-xl border-[3px] px-2 pb-3 pt-4 shadow-[3px_3px_0_rgba(51,36,28,0.25)] ${rareBg}`}
+        className={`relative flex h-full flex-col items-center gap-1 rounded-xl border-[3px] px-2 pb-3 pt-4 ${largeShadow} ${cardBg}`}
       >
         {rare && (
           <span className="sticker absolute -top-2 left-1/2 -translate-x-1/2 rounded-md bg-brand px-1.5 py-0.5 font-display text-[10.4px] uppercase tracking-wide text-white">
@@ -47,8 +56,14 @@ export function PowerUpCard({
         <span aria-hidden className="text-4xl">
           {powerUp.icon}
         </span>
-        <span className="font-display text-xs uppercase leading-tight">{powerUp.name}</span>
-        <span className="text-center text-[11.5px] font-semibold leading-snug text-ink/70">
+        <span className="font-display text-xs uppercase leading-tight">
+          {powerUp.name}
+        </span>
+        <span
+          className={`text-center text-[11.5px] font-semibold leading-snug ${
+            mutated ? "text-white/85" : "text-ink/70"
+          }`}
+        >
           {powerUp.description}
         </span>
       </span>
@@ -56,7 +71,7 @@ export function PowerUpCard({
   }
   return (
     <span
-      className={`relative flex w-12 flex-col items-center gap-0.5 rounded-lg border-2 px-1 py-1.5 shadow-[2px_2px_0_rgba(51,36,28,0.2)] ${rareBg}`}
+      className={`relative flex w-12 flex-col items-center gap-0.5 rounded-lg border-2 px-1 py-1.5 ${shadow} ${cardBg}`}
     >
       {rare && (
         <span
@@ -81,9 +96,17 @@ export function PowerUpCard({
  * popover. Opens on the most recent pick — remount per round (via key)
  * so each round leads with the newest acquisition.
  */
-export function PowerUpShelf({ powerUps }: { powerUps: PowerUpId[] }) {
+export function PowerUpShelf({
+  powerUps,
+  canUseEscapeRope = false,
+  onUseEscapeRope,
+}: {
+  powerUps: PowerUpId[];
+  canUseEscapeRope?: boolean;
+  onUseEscapeRope?: () => void;
+}) {
   const [openId, setOpenId] = useState<PowerUpId | null>(
-    () => powerUps[powerUps.length - 1] ?? null
+    () => powerUps[powerUps.length - 1] ?? null,
   );
   if (powerUps.length === 0) return null;
   const open = openId ? POWER_UP_BY_ID[openId] : null;
@@ -91,7 +114,7 @@ export function PowerUpShelf({ powerUps }: { powerUps: PowerUpId[] }) {
   return (
     <section aria-label="Collected power-ups" className="panel p-3">
       <div className="flex items-start gap-2">
-        <h2 className="mt-1 shrink-0 font-display text-[12.7px] uppercase tracking-wider text-brand">
+        <h2 className="mt-1 shrink-0 font-display text-[12.7px] uppercase tracking-wider text-brand-dark">
           Power-ups
         </h2>
         <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
@@ -117,6 +140,15 @@ export function PowerUpShelf({ powerUps }: { powerUps: PowerUpId[] }) {
             {open.icon} {open.name}
           </span>{" "}
           <span className="font-semibold text-ink/70">{open.description}</span>
+          {open.id === "escape_rope" && canUseEscapeRope && onUseEscapeRope && (
+            <button
+              type="button"
+              onClick={onUseEscapeRope}
+              className="btn mt-2 min-h-10 w-full bg-danger text-xs uppercase text-white"
+            >
+              Use rain check
+            </button>
+          )}
         </div>
       )}
     </section>
@@ -133,8 +165,8 @@ export function PowerUpChoice({
 }) {
   return (
     <div className="mt-4">
-      <h3 className="text-center font-display text-sm uppercase tracking-wider text-brand">
-        Pick a power-up
+      <h3 className="text-center font-display text-sm uppercase tracking-wider text-brand-dark">
+        Choose an upgrade
       </h3>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {choices.map((id) => (

@@ -13,9 +13,8 @@
 import { NPCS } from "../src/data/npcs";
 import type { PowerUpId } from "../src/data/powerups";
 import {
-  adjustThresholds,
+  applyAccessUpgrades,
   drawPowerUps,
-  hasPowerUp,
   powerUpExtraBudgetCents,
 } from "../src/game/powerups";
 import { budgetMultiplierForRound, FINAL_ROUND } from "../src/game/progression";
@@ -31,37 +30,38 @@ interface CellResult {
   rescueRatio: number;
 }
 
-function simulate(baseNpc: NPC, roundNumber: number, seed: number): CellResult {
+function simulate(
+  baseNpc: NPC,
+  roundNumber: number,
+  seed: number,
+  withUpgrades = true,
+): CellResult {
   // By round N the player owns N-1 rarity-weighted power-ups
   const powerUps: PowerUpId[] = drawPowerUps(
     createRng((seed ^ 0x51ed) >>> 0),
     [],
-    roundNumber - 1
+    withUpgrades ? roundNumber - 1 : 0,
   );
-  const npc: NPC = {
-    ...baseNpc,
-    maxThresholds: adjustThresholds(baseNpc.maxThresholds, powerUps),
-    mustNot: hasPowerUp(powerUps, "exposure_therapy") ? "none" : baseNpc.mustNot,
-  };
+  const npc = applyAccessUpgrades(baseNpc, powerUps);
   const budget =
     Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
     powerUpExtraBudgetCents(powerUps);
   const round = generateSolvableRound(npc, budget, seed, roundNumber, powerUps);
   return {
-    solvable: canClear(npc, round.inventory, round.budgetCents, powerUps),
+    solvable: canClear(npc, round.inventory, round.budgetCents),
     rescueRatio: budget > 0 ? round.rescueCents / budget : 0,
   };
 }
 
 let failures = 0;
 console.log(
-  `Solvability and avg rescue money by NPC and round (${SEEDS_PER_CELL} seeds/cell):\n`
+  `Solvability and avg rescue money by NPC and round (${SEEDS_PER_CELL} seeds/cell):\n`,
 );
 const shownRounds = ROUNDS.filter((r) => r % 2 === 1 || r === FINAL_ROUND);
 console.log(
   "NPC".padEnd(9) +
     shownRounds.map((r) => `r${r}`.padStart(6)).join("") +
-    "   (avg rescue %, ✗ = unsolvable seed)"
+    "   (avg rescue %, ✗ = unsolvable seed)",
 );
 for (const npc of NPCS) {
   let row = npc.id.padEnd(9);
@@ -71,6 +71,8 @@ for (const npc of NPCS) {
     for (let s = 0; s < SEEDS_PER_CELL; s++) {
       const result = simulate(npc, roundNumber, 1000 + s * 7919);
       if (!result.solvable) unsolvable++;
+      if (!simulate(npc, roundNumber, 1000 + s * 7919, false).solvable)
+        unsolvable++;
       rescueSum += result.rescueRatio;
     }
     if (unsolvable > 0) failures++;
@@ -85,6 +87,6 @@ for (const npc of NPCS) {
 console.log(
   failures === 0
     ? "\n✅ Every round 1-20 is provably clearable for every NPC."
-    : `\n⚠️  ${failures} cell(s) had unsolvable rounds — the guarantee is broken.`
+    : `\n⚠️  ${failures} cell(s) had unsolvable rounds — the guarantee is broken.`,
 );
 process.exit(failures === 0 ? 0 : 1);

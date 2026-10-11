@@ -1,5 +1,7 @@
 # PRD: Cost of Living
 
+> Historical v1 design. Version 2 replaces the nutrition/danger model with lunch briefs, planning, practical upgrades and learning receipts. See [README.md](./README.md) for current rules.
+
 ## 1. Product Summary
 
 **Product name:** Cost of Living  

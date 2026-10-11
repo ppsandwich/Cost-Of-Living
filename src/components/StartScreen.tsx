@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { GameMode } from "@/types/game";
 import { GAME_VERSION_LABEL } from "@/game/version";
 
 interface StartScreenProps {
@@ -7,16 +8,17 @@ interface StartScreenProps {
   showTutorial: boolean;
   onDismissTutorial: () => void;
   onStart: () => void;
+  mode: GameMode;
+  onModeChange: (mode: GameMode) => void;
 }
 
 const TUTORIAL_STEPS = [
-  "Meet the NPC. They have needs, tastes, and a budget.",
-  "Fill the nutrition and happiness meters before time runs out.",
-  "Tick off their must-haves: two wants and one hard no.",
-  "Greyed-out items are things they can't eat — the till refuses them.",
-  "Going over a calorie/fat/sugar/carb/salt limit locks the till — trim the basket before time runs out, or it ends badly.",
-  "Check out unlocks once everything is met and the budget balances. Win, and the next budget shrinks.",
-  "Clear round 20 and you win the game.",
+  "Read the lunch brief: a base, a protein option, fruit or vegetables, and two wants.",
+  "Check dietary boundaries and kitchen access. Unusable items stay on the shelf.",
+  "Inspect prices, estimate your spend and choose a plan before shopping.",
+  "Meet the whole brief within budget to unlock checkout.",
+  "Read your receipt, then retry the same shop or choose a practical upgrade.",
+  "Clear the final shop in round 20 to finish the challenge.",
 ];
 
 export function StartScreen({
@@ -25,6 +27,8 @@ export function StartScreen({
   showTutorial,
   onDismissTutorial,
   onStart,
+  mode,
+  onModeChange,
 }: StartScreenProps) {
   // null = follow the saved preference; true/false = user toggled this visit
   const [tutorialOpen, setTutorialOpen] = useState<boolean | null>(null);
@@ -56,7 +60,7 @@ export function StartScreen({
         </div>
 
         <p className="mx-auto mt-4 max-w-xs text-sm font-bold text-ink/70">
-          A supermarket survival game about budgets, trade-offs, and snacks with consequences.
+          Plan a lunch. Make the budget work. Keep the person in mind.
         </p>
 
         {open && (
@@ -84,16 +88,45 @@ export function StartScreen({
 
         {(bestScore > 0 || highestRound > 0) && (
           <p className="mt-4 text-sm font-bold text-faded">
-            HI-SCORE {bestScore} · BEST ROUND {highestRound}
+            {mode === "learning" ? "LEARNING" : "TIMED"} BEST {bestScore} · MOST
+            BRIEFS {highestRound}
           </p>
         )}
 
+        <fieldset className="panel mt-5 space-y-2 p-3 text-left">
+          <legend className="px-2 font-display">Choose your shop</legend>
+          {(["learning", "standard_run"] as const).map((option) => (
+            <label
+              key={option}
+              className="flex min-h-12 cursor-pointer items-start gap-3 rounded-lg p-2"
+            >
+              <input
+                type="radio"
+                name="mode"
+                value={option}
+                checked={mode === option}
+                onChange={() => onModeChange(option)}
+                className="mt-1 size-5 shrink-0"
+              />
+              <span className="text-sm">
+                <strong>
+                  {option === "learning" ? "Learning mode" : "Timed challenge"}
+                </strong>
+                <span className="block text-xs text-faded">
+                  {option === "learning"
+                    ? "No clock. Free revisions. Time to think."
+                    : "Plan first, then 90 seconds. Putting items back costs three seconds."}
+                </span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
         <button
           type="button"
           onClick={onStart}
           className="btn font-knewave mt-5 min-h-14 w-full bg-good text-xl uppercase tracking-wide text-white"
         >
-          Start shopping
+          Plan my first shop
         </button>
 
         {!open && (
@@ -107,7 +140,8 @@ export function StartScreen({
         )}
 
         <p className="mt-3 text-[12.7px] font-bold text-faded">
-          A satirical game about constrained choices. Not nutrition advice.
+          Practise budgeting, compare choices and learn from your receipt. A
+          shopping puzzle, not nutrition advice.
         </p>
         <p className="mt-1.5 text-[12.7px] font-bold text-faded">
           This game is a hallucination by{" "}
@@ -120,7 +154,9 @@ export function StartScreen({
             sandwich.codes
           </a>
         </p>
-        <p className="mt-1 text-[11.5px] font-bold text-faded">{GAME_VERSION_LABEL}</p>
+        <p className="mt-1 text-[11.5px] font-bold text-faded">
+          {GAME_VERSION_LABEL}
+        </p>
       </div>
     </main>
   );

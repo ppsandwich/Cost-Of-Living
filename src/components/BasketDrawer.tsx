@@ -1,15 +1,13 @@
 import { useState } from "react";
-import type { NPC, NutritionStats } from "@/types/npc";
+import type { NPC } from "@/types/npc";
 import type { BasketItem } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import { allRequirementsMet } from "@/game/requirements";
-import { fatalStat } from "@/game/thresholds";
 import { formatCents } from "@/utils/money";
 import { StatsPanel } from "./StatsPanel";
 
 interface BasketDrawerProps {
   basket: BasketItem[];
-  stats: NutritionStats;
   npc: NPC;
   remainingBudgetCents: number;
   onRemove: (foodItemId: string) => void;
@@ -19,7 +17,6 @@ interface BasketDrawerProps {
 
 export function BasketDrawer({
   basket,
-  stats,
   npc,
   remainingBudgetCents,
   onRemove,
@@ -28,15 +25,14 @@ export function BasketDrawer({
 }: BasketDrawerProps) {
   const [open, setOpen] = useState(false);
   const itemCount = basket.reduce((n, b) => n + b.quantity, 0);
-  const overThreshold = fatalStat(stats, npc.maxThresholds) !== null;
   const overBudget = remainingBudgetCents < 0;
-  const readyToWin = !overThreshold && !overBudget && allRequirementsMet(stats, basket, npc);
+  const readyToWin = !overBudget && allRequirementsMet(basket, npc);
 
   return (
     <div className="border-t-[3px] border-ink bg-receipt shadow-[0_-4px_12px_rgba(51,36,28,0.2)] lg:rounded-2xl lg:border-[3px] lg:shadow-[4px_4px_0_rgba(51,36,28,0.25)]">
-      {/* meters and danger trackers live with the basket now */}
+      {/* Lunch coverage stays visible with the basket */}
       <div className="border-b-2 border-dashed border-ink/25 px-3 pb-2 pt-2.5">
-        <StatsPanel stats={stats} npc={npc} basket={basket} />
+        <StatsPanel npc={npc} basket={basket} />
       </div>
 
       {open && (
@@ -54,7 +50,10 @@ export function BasketDrawer({
                 const food = FOOD_BY_ID[entry.foodItemId];
                 if (!food) return null;
                 return (
-                  <li key={entry.foodItemId} className="flex items-center gap-2 py-1.5">
+                  <li
+                    key={entry.foodItemId}
+                    className="flex items-center gap-2 py-1.5"
+                  >
                     <span aria-hidden className="text-lg">
                       {food.emoji}
                     </span>
@@ -68,7 +67,7 @@ export function BasketDrawer({
                       type="button"
                       onClick={() => onRemove(entry.foodItemId)}
                       className="btn grid size-11 place-items-center bg-paper text-lg"
-                      aria-label={`Remove one ${food.name}`}
+                      aria-label={`Put back one ${food.name}`}
                     >
                       −
                     </button>
@@ -98,7 +97,8 @@ export function BasketDrawer({
           <span className="block min-w-0 truncate font-display text-lg leading-tight">
             🧺 {itemCount} item{itemCount === 1 ? "" : "s"} ·{" "}
             <span className={overBudget ? "text-danger" : ""}>
-              {formatCents(remainingBudgetCents)} {overBudget ? "over budget!" : "left"}
+              {formatCents(remainingBudgetCents)}{" "}
+              {overBudget ? "over budget!" : "left"}
             </span>
           </span>
           <span aria-hidden className="font-display text-faded">
@@ -111,7 +111,11 @@ export function BasketDrawer({
           onClick={onCheckout}
           disabled={!readyToWin}
           className={`btn font-knewave min-h-12 w-full text-base uppercase text-white ${
-            overThreshold || overBudget ? "bg-danger" : readyToWin ? "wobble bg-good" : "bg-faded"
+            overBudget
+              ? "bg-danger"
+              : readyToWin
+                ? "wobble bg-good"
+                : "bg-faded"
           }`}
           aria-label={
             readyToWin
@@ -119,7 +123,7 @@ export function BasketDrawer({
               : "Check out — locked until every objective is met"
           }
         >
-          {overThreshold || overBudget ? "⚠ Check out" : "Check out"}
+          {overBudget ? "⚠ Check out" : "Check out"}
         </button>
       </div>
     </div>

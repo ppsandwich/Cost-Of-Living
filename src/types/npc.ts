@@ -1,25 +1,3 @@
-export interface NutritionStats {
-  calories: number;
-  protein: number;
-  fat: number;
-  sugar: number;
-  carbs: number;
-  fibre: number;
-  vitamins: number;
-  minerals: number;
-  sodium: number;
-  nutrition: number;
-  happiness: number;
-}
-
-export interface DangerThresholds {
-  caloriesMax: number;
-  fatMax: number;
-  sugarMax: number;
-  carbsMax: number;
-  sodiumMax: number;
-}
-
 export type FoodPreference =
   | "likes_sweet_food"
   | "likes_salty_food"
@@ -37,30 +15,13 @@ export type DietaryMustNot =
   | "no_pork"
   | "nut_allergy"
   | "dairy_allergy"
-  | "egg_allergy"
-  /** Exposure Therapy power-up: the hard line is gone. */
-  | "none";
+  | "egg_allergy";
 
-/** Soft modifiers: shape how food lands, but aren't win requirements. */
+/** Practical limits that access upgrades can change. */
 export type FoodRestriction =
-  | "low_sugar"
-  | "low_fat"
-  | "low_sodium"
-  | "high_protein_need"
-  | "high_fibre_need"
   | "limited_cooking_equipment"
   | "no_fridge"
   | "no_microwave";
-
-export interface NPCSensitivity {
-  happinessFromTreatsMultiplier: number;
-  nutritionFromVegetablesMultiplier: number;
-  sugarPenaltyMultiplier: number;
-  fatPenaltyMultiplier: number;
-  carbPenaltyMultiplier: number;
-  vitaminNeedMultiplier: number;
-  mineralNeedMultiplier: number;
-}
 
 export interface NPC {
   id: string;
@@ -69,20 +30,10 @@ export interface NPC {
   ageLabel: string;
   description: string;
   mood: string;
-  /**
-   * Average balance-bot win rate across all budget multipliers (percent).
-   * Measured by `npm run balance` — higher means easier. Drives round
-   * ordering: easy NPCs front-load a run, hard ones close it out.
-   */
-  botWinRate: number;
   baseBudgetCents: number;
-  nutritionTarget: number;
-  happinessTarget: number;
-  maxThresholds: DangerThresholds;
   /** Exactly two wants — both must be satisfied to clear the round. */
   wants: [FoodPreference, FoodPreference];
   /** One hard dietary rule — violating it blocks the round until fixed. */
   mustNot: DietaryMustNot;
   restrictions: FoodRestriction[];
-  sensitivity: NPCSensitivity;
 }

@@ -1,82 +1,19 @@
-import { useState } from "react";
 import type { NPC } from "@/types/npc";
 import type { BasketItem } from "@/types/game";
+import { npcEquipment } from "@/game/applyFoodItem";
 import { RequirementsChecklist } from "./RequirementsChecklist";
-
-const RESTRICTION_LABEL: Record<string, string> = {
-  low_sugar: "Low sugar",
-  low_fat: "Low fat",
-  low_sodium: "Low salt",
-  high_protein_need: "Needs protein",
-  high_fibre_need: "Needs fibre",
-  limited_cooking_equipment: "One saucepan",
-  no_fridge: "No fridge",
-  no_microwave: "No microwave",
-};
-
 export function NPCPanel({ npc, basket }: { npc: NPC; basket: BasketItem[] }) {
-  const [expanded, setExpanded] = useState(false);
-
   return (
-    <section aria-label={`${npc.name}'s must haves`} className="panel p-3">
-      <button
-        type="button"
-        className="flex min-h-8 w-full items-center justify-between gap-2 text-left"
-        onClick={() => setExpanded((e) => !e)}
-        aria-expanded={expanded}
-        aria-label={`${npc.name}'s must haves — toggle details about ${npc.name}`}
-      >
-        <h2 className="font-display text-[12.7px] uppercase tracking-wider text-brand">
-          <span className="font-knewave">{npc.name}</span>&apos;s must haves
-        </h2>
-        <span aria-hidden className="font-display text-faded">
-          {expanded ? "▲" : "▼"}
-        </span>
-      </button>
-
-      <div className="mt-1.5">
-        <RequirementsChecklist npc={npc} basket={basket} />
-      </div>
-
-      {expanded && (
-        <div className="mt-2.5 border-t-2 border-dashed border-ink/20 pt-2.5">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span
-              aria-hidden
-              className="grid size-12 shrink-0 place-items-center rounded-xl border-[3px] border-ink bg-paper text-2xl shadow-[2px_2px_0_rgba(51,36,28,0.2)]"
-            >
-              {npc.emoji}
-            </span>
-            <div className="min-w-0">
-              <div className="truncate">
-                <span className="font-knewave text-base">{npc.name}</span>
-                <span className="ml-1.5 text-xs font-bold text-faded">{npc.ageLabel}</span>
-              </div>
-              <div className="text-xs font-semibold text-faded">
-                Needs 🥦 {npc.nutritionTarget} · 😊 {npc.happinessTarget}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-2 space-y-1 text-xs font-semibold">
-            <p>{npc.description}</p>
-            <p className="italic text-faded">Current mood: {npc.mood}</p>
-          </div>
-
-          {npc.restrictions.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {npc.restrictions.map((r) => (
-                <span
-                  key={r}
-                  className="rounded-full border-2 border-ink bg-paper px-2 py-0.5 text-[12.7px] font-extrabold text-ink/70"
-                >
-                  {RESTRICTION_LABEL[r] ?? r}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+    <section aria-label={`${npc.name}'s brief`} className="panel space-y-3 p-3">
+      <h2 className="font-display text-lg">
+        <span aria-hidden>{npc.emoji}</span> Lunch for {npc.name}
+      </h2>
+      <p className="text-sm">{npc.description}</p>
+      <RequirementsChecklist npc={npc} basket={basket} />
+      <p className="border-t-2 border-dashed border-ink/20 pt-2 text-xs">
+        <strong>Available:</strong> {[...npcEquipment(npc)].join(", ")}. Shelves
+        show anything they cannot use.
+      </p>
     </section>
   );
 }

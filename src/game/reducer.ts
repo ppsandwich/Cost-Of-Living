@@ -1,8 +1,6 @@
-import type { GameState } from "@/types/game";
+import type { GameState, GameMode } from "@/types/game";
+import type { PowerUpId } from "@/data/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { PURCHASE_FEEDBACK, WARNING_FEEDBACK } from "@/data/flavourText";
-import { computeImpact, violatesMustNot } from "./applyFoodItem";
-import { basketFoods, calculateBasketStats, EMPTY_STATS } from "./calculateStats";
 import {
   budgetMultiplierForRound,
   FINAL_ROUND,
@@ -10,41 +8,46 @@ import {
   selectNPC,
 } from "./progression";
 import { generateSolvableRound } from "./solver";
-import type { PowerUpId } from "@/data/powerups";
 import {
-  adjustThresholds,
+  applyAccessUpgrades,
   drawPowerUps,
-  hasPowerUp,
   powerUpExtraBudgetCents,
   powerUpExtraSeconds,
-  SHOPLIFTER_CHANCE,
 } from "./powerups";
 import { createRng } from "./seededRandom";
 import { quantityRemaining } from "./roundEnd";
 import { allRequirementsMet } from "./requirements";
 import { calculateRoundScore, ratingForRound } from "./scoring";
-import { fatalStat, warningStats } from "./thresholds";
+import { mealRoles, usableFood } from "./meals";
 
 export type GameAction =
-  | { type: "START_RUN"; seed: number; bestScore: number; highestRound: number }
+  | {
+      type: "START_RUN";
+      seed: number;
+      bestScore: number;
+      highestRound: number;
+      mode: GameMode;
+    }
+  | { type: "BEGIN_SHOPPING"; estimateCents: number | null; prediction: string }
+  | { type: "RETRY_ROUND" }
   | { type: "ADD_ITEM"; foodItemId: string }
   | { type: "BULK_ADD"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
   | { type: "CHECKOUT" }
   | { type: "CHOOSE_POWERUP"; powerUpId: PowerUpId }
+  | { type: "USE_ESCAPE_ROPE" }
   | { type: "TICK" }
   | { type: "NEXT_ROUND" };
 
 export const INITIAL_STATE: GameState = {
   status: "idle",
-  mode: "standard_run",
+  mode: "learning",
   roundNumber: 1,
   successfulRounds: 0,
   budgetMultiplier: 1,
   npc: null,
   inventory: [],
   basket: [],
-  stats: { ...EMPTY_STATS },
   roundBudgetCents: 0,
   remainingBudgetCents: 0,
   timeRemainingSeconds: ROUND_TIMER_SECONDS,
@@ -60,298 +63,287 @@ export const INITIAL_STATE: GameState = {
   lastFeedback: null,
   roundHistory: [],
   seed: 0,
+  estimateCents: null,
+  prediction: "",
+  previousAttempt: null,
+  roundStart: null,
 };
-
-function roundSeed(baseSeed: number, roundNumber: number): number {
-  return (baseSeed + roundNumber * 7919) >>> 0;
-}
-
-/** The budget the next round will open with — mirrors setupRound exactly. */
-export function previewNextBudgetCents(state: GameState): number {
-  const roundNumber = state.roundNumber + 1;
-  const previous = state.npc ? [...state.previousNPCIds, state.npc.id] : state.previousNPCIds;
+const roundSeed = (seed: number, round: number) => (seed + round * 7919) >>> 0;
+function makeRound(state: GameState, roundNumber: number) {
   const seed = roundSeed(state.seed, roundNumber);
-  const selected = selectNPC(previous, seed);
-  const npc = {
-    ...selected,
-    maxThresholds: adjustThresholds(selected.maxThresholds, state.powerUps),
-    mustNot: hasPowerUp(state.powerUps, "exposure_therapy")
-      ? ("none" as const)
-      : selected.mustNot,
-  };
-  const carryoverCents = hasPowerUp(state.powerUps, "embezzler")
+  const npc = applyAccessUpgrades(
+    selectNPC(state.previousNPCIds, seed),
+    state.powerUps,
+  );
+  const carry = state.powerUps.includes("embezzler")
     ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
     : 0;
-  const baseBudgetCents =
+  const base =
     Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
     powerUpExtraBudgetCents(state.powerUps) +
-    carryoverCents;
-  return generateSolvableRound(npc, baseBudgetCents, seed, roundNumber, state.powerUps)
-    .budgetCents;
-}
-
-function setupRound(state: GameState, roundNumber: number): GameState {
-  const seed = roundSeed(state.seed, roundNumber);
-  const budgetMultiplier = budgetMultiplierForRound(roundNumber);
-  const selected = selectNPC(state.previousNPCIds, seed);
-  // Power-ups that bend the rules live on an adjusted copy of the NPC
-  const npc = {
-    ...selected,
-    maxThresholds: adjustThresholds(selected.maxThresholds, state.powerUps),
-    mustNot: hasPowerUp(state.powerUps, "exposure_therapy")
-      ? ("none" as const)
-      : selected.mustNot,
-  };
-  // Embezzler: half of last round's surplus rolls forward
-  const carryoverCents = hasPowerUp(state.powerUps, "embezzler")
-    ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
-    : 0;
-  const baseBudgetCents =
-    Math.round(npc.baseBudgetCents * budgetMultiplier) +
-    powerUpExtraBudgetCents(state.powerUps) +
-    carryoverCents;
-  // Every round is guaranteed to have at least one clearing combination
-  const { inventory, budgetCents: roundBudgetCents } = generateSolvableRound(
-    npc,
-    baseBudgetCents,
-    seed,
-    roundNumber,
-    state.powerUps
-  );
-  const roundDurationSeconds = ROUND_TIMER_SECONDS + powerUpExtraSeconds(state.powerUps);
+    carry;
   return {
+    npc,
+    ...generateSolvableRound(npc, base, seed, roundNumber, state.powerUps),
+  };
+}
+export function previewNextBudgetCents(state: GameState): number {
+  return makeRound(
+    { ...state, previousNPCIds: [...state.previousNPCIds, state.npc!.id] },
+    state.roundNumber + 1,
+  ).budgetCents;
+}
+function setupRound(state: GameState, roundNumber: number): GameState {
+  const { npc, inventory, budgetCents } = makeRound(state, roundNumber);
+  const duration = ROUND_TIMER_SECONDS + powerUpExtraSeconds(state.powerUps);
+  const next: GameState = {
     ...state,
-    status: "playing",
+    status: "planning",
     roundNumber,
-    budgetMultiplier,
+    budgetMultiplier: budgetMultiplierForRound(roundNumber),
     npc,
     inventory,
     basket: [],
     bulkAddsUsed: [],
-    stats: { ...EMPTY_STATS },
-    roundBudgetCents,
-    remainingBudgetCents: roundBudgetCents,
-    timeRemainingSeconds: roundDurationSeconds,
-    roundDurationSeconds,
+    roundBudgetCents: budgetCents,
+    remainingBudgetCents: budgetCents,
+    timeRemainingSeconds: duration,
+    roundDurationSeconds: duration,
     endReason: undefined,
-    diedFromStat: undefined,
     score: 0,
     lastFeedback: null,
+    estimateCents: null,
+    prediction: "",
+    previousAttempt: null,
+    roundStart: null,
+    powerUpChoices: null,
   };
+  return { ...next, roundStart: next };
 }
-
-/** Two random not-yet-owned power-ups to choose between after a win. */
-function rollPowerUpChoices(state: GameState): PowerUpId[] | null {
-  const rng = createRng((roundSeed(state.seed, state.roundNumber) ^ 0x9e3779b9) >>> 0);
-  const choices = drawPowerUps(rng, state.powerUps, 2);
-  return choices.length > 0 ? choices : null;
-}
-
 function winRound(state: GameState): GameState {
-  const npc = state.npc!;
-  const scoreInput = {
-    stats: state.stats,
-    npc,
-    basket: state.basket,
-    remainingBudgetCents: state.remainingBudgetCents,
-    timeRemainingSeconds: state.timeRemainingSeconds,
-    roundNumber: state.roundNumber,
-  };
-  const score = calculateRoundScore(scoreInput);
+  const score = calculateRoundScore(state);
   const totalScore = state.totalScore + score;
-  const gameWon = state.roundNumber >= FINAL_ROUND;
+  const final = state.roundNumber >= FINAL_ROUND;
+  const excluded =
+    state.mode === "learning"
+      ? [...state.powerUps, "timewalker" as const]
+      : state.powerUps;
+  const choices = final
+    ? []
+    : drawPowerUps(
+        createRng(
+          (roundSeed(state.seed, state.roundNumber) ^ 0x9e3779b9) >>> 0,
+        ),
+        excluded,
+        2,
+      );
   return {
     ...state,
-    status: gameWon ? "game_won" : "round_won",
+    status: final ? "game_won" : "round_won",
     endReason: "goals_met",
-    powerUpChoices: gameWon ? null : rollPowerUpChoices(state),
+    powerUpChoices: choices.length ? choices : null,
     score,
     totalScore,
     successfulRounds: state.successfulRounds + 1,
     bestScore: Math.max(state.bestScore, totalScore),
-    highestRound: Math.max(state.highestRound, state.roundNumber),
+    highestRound: Math.max(state.highestRound, state.successfulRounds + 1),
     roundHistory: [
       ...state.roundHistory,
       {
         roundNumber: state.roundNumber,
-        npcName: npc.name,
+        npcName: state.npc!.name,
         score,
-        rating: ratingForRound(scoreInput),
+        rating: ratingForRound(state),
       },
     ],
   };
 }
-
-function loseRound(state: GameState, endReason: "timer_expired"): GameState {
-  return {
-    ...state,
-    status: "lost",
-    endReason,
-    bestScore: Math.max(state.bestScore, state.totalScore),
-  };
-}
-
-
-
-function feedbackFor(state: GameState, foodItemId: string): string {
-  const npc = state.npc!;
-  const food = FOOD_BY_ID[foodItemId];
-  const prior = basketFoods(state.basket).slice(0, -1);
-  const shrinkflated = state.inventory.find((i) => i.foodItemId === foodItemId)?.shrinkflated;
-  const impact = computeImpact(food, npc, prior, shrinkflated, state.powerUps);
-
-  const warnings = warningStats(state.stats, npc.maxThresholds);
-  if (warnings.length > 0) return WARNING_FEEDBACK[warnings[0]];
-
-  const pool = impact.mustNotViolation
-    ? PURCHASE_FEEDBACK.restriction
-    : impact.equipmentMismatch
-      ? PURCHASE_FEEDBACK.equipmentMismatch
-      : impact.repetitionApplied
-        ? PURCHASE_FEEDBACK.repetition
-        : impact.nutritionGain >= 14 && impact.happinessGain >= 10
-          ? PURCHASE_FEEDBACK.balanced
-          : impact.nutritionGain >= 14
-            ? PURCHASE_FEEDBACK.nutritious
-            : impact.happinessGain >= 10
-              ? PURCHASE_FEEDBACK.happy
-              : PURCHASE_FEEDBACK.junk;
-  const index = (basketFoods(state.basket).length + foodItemId.length) % pool.length;
-  return pool[index];
-}
-
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
-    case "START_RUN": {
-      const fresh: GameState = {
-        ...INITIAL_STATE,
-        seed: action.seed,
-        bestScore: action.bestScore,
-        highestRound: action.highestRound,
+    case "START_RUN":
+      return setupRound(
+        {
+          ...INITIAL_STATE,
+          seed: action.seed,
+          mode: action.mode,
+          bestScore: action.bestScore,
+          highestRound: action.highestRound,
+        },
+        1,
+      );
+    case "BEGIN_SHOPPING": {
+      if (state.status !== "planning") return state;
+      if (
+        action.estimateCents !== null &&
+        (!Number.isSafeInteger(action.estimateCents) ||
+          action.estimateCents < 0)
+      )
+        return state;
+      return {
+        ...state,
+        status: "playing",
+        estimateCents: action.estimateCents,
+        prediction: action.prediction.slice(0, 180),
       };
-      return setupRound(fresh, 1);
     }
-
+    case "RETRY_ROUND": {
+      if (
+        !["round_won", "game_won", "lost"].includes(state.status) ||
+        !state.roundStart
+      )
+        return state;
+      return {
+        ...state.roundStart,
+        roundStart: state.roundStart,
+        bestScore: state.bestScore,
+        highestRound: state.highestRound,
+        previousAttempt: {
+          basket: state.basket,
+          spentCents: state.roundBudgetCents - state.remainingBudgetCents,
+          cleared: state.endReason === "goals_met",
+          estimateCents: state.estimateCents,
+        },
+      };
+    }
     case "ADD_ITEM": {
       if (state.status !== "playing" || !state.npc) return state;
-      const storeItem = state.inventory.find((i) => i.foodItemId === action.foodItemId);
-      if (!storeItem) return state;
-      if (quantityRemaining(storeItem, state.basket) <= 0) return state;
-      // Forbidden items are display-only: the till refuses them
-      if (violatesMustNot(FOOD_BY_ID[action.foodItemId], state.npc)) return state;
-
-      const existing = state.basket.find((b) => b.foodItemId === action.foodItemId);
-      // Shoplifter: first add of an item each round may count double
-      const luckyDouble =
-        !existing &&
-        hasPowerUp(state.powerUps, "shoplifter") &&
-        createRng(
-          (roundSeed(state.seed, state.roundNumber) ^
-            [...action.foodItemId].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)) >>>
-            0
-        )() < SHOPLIFTER_CHANCE;
-      const basket = existing
+      const item = state.inventory.find(
+        (i) => i.foodItemId === action.foodItemId,
+      );
+      if (!item || quantityRemaining(item, state.basket) <= 0) return state;
+      const food = FOOD_BY_ID[action.foodItemId];
+      if (!usableFood(food, state.npc)) return state;
+      const exists = state.basket.some(
+        (b) => b.foodItemId === action.foodItemId,
+      );
+      const basket = exists
         ? state.basket.map((b) =>
-            b.foodItemId === action.foodItemId ? { ...b, quantity: b.quantity + 1 } : b
+            b.foodItemId === action.foodItemId
+              ? { ...b, quantity: b.quantity + 1 }
+              : b,
           )
         : [
             ...state.basket,
             {
               foodItemId: action.foodItemId,
               quantity: 1,
-              pricePaidCents: storeItem.currentPriceCents,
-              shrinkflated: storeItem.shrinkflated,
-              luckyDouble,
+              pricePaidCents: item.currentPriceCents,
             },
           ];
-
-      const stats = calculateBasketStats(basket, state.npc, state.powerUps);
-      // Training Wheels: the shelf refuses anything that would cross a limit
-      if (
-        hasPowerUp(state.powerUps, "training_wheels") &&
-        fatalStat(stats, state.npc.maxThresholds)
-      ) {
-        return state;
-      }
-      const remainingBudgetCents = state.remainingBudgetCents - storeItem.currentPriceCents;
-      // Overspending is allowed mid-round; checkout stays locked until
-      // the basket is trimmed back within budget
-      const next: GameState = { ...state, basket, stats, remainingBudgetCents };
-      return { ...next, lastFeedback: feedbackFor(next, action.foodItemId) };
-    }
-
-    case "BULK_ADD": {
-      // Bulk Buyer: one bonus add per item per round, from the card
-      if (state.status !== "playing" || !state.npc) return state;
-      if (!hasPowerUp(state.powerUps, "bulk_buyer")) return state;
-      if (state.bulkAddsUsed.includes(action.foodItemId)) return state;
-      if (!state.basket.some((b) => b.foodItemId === action.foodItemId)) return state;
-      const added = gameReducer(state, { type: "ADD_ITEM", foodItemId: action.foodItemId });
-      if (added === state) return state;
-      return { ...added, bulkAddsUsed: [...state.bulkAddsUsed, action.foodItemId] };
-    }
-
-    case "REMOVE_ITEM": {
-      if (state.status !== "playing" || !state.npc) return state;
-      const existing = state.basket.find((b) => b.foodItemId === action.foodItemId);
-      if (!existing) return state;
-      const basket =
-        existing.quantity > 1
-          ? state.basket.map((b) =>
-              b.foodItemId === action.foodItemId ? { ...b, quantity: b.quantity - 1 } : b
-            )
-          : state.basket.filter((b) => b.foodItemId !== action.foodItemId);
-      const stats = calculateBasketStats(basket, state.npc, state.powerUps);
+      const roles = mealRoles(food);
       return {
         ...state,
         basket,
-        stats,
-        remainingBudgetCents: state.remainingBudgetCents + existing.pricePaidCents,
-        lastFeedback: null,
+        remainingBudgetCents:
+          state.remainingBudgetCents - item.currentPriceCents,
+        lastFeedback: roles.length
+          ? `${food.name} helps cover ${roles.map((r) => (r === "produce" ? "fruit or vegetables" : r)).join(" and ")}.`
+          : `${food.name}: a choice for taste or an extra. Check the lunch brief too.`,
       };
     }
-
-    case "CHECKOUT": {
-      if (state.status !== "playing" || !state.npc) return state;
-      // The till only opens when every objective is met and the money adds up
+    case "BULK_ADD": {
       if (
-        state.remainingBudgetCents < 0 ||
-        fatalStat(state.stats, state.npc.maxThresholds) ||
-        !allRequirementsMet(state.stats, state.basket, state.npc)
-      ) {
+        state.status !== "playing" ||
+        !state.powerUps.includes("bulk_buyer") ||
+        state.bulkAddsUsed.includes(action.foodItemId) ||
+        !state.basket.some((b) => b.foodItemId === action.foodItemId)
+      )
         return state;
-      }
-      return winRound(state);
+      const added = gameReducer(state, {
+        type: "ADD_ITEM",
+        foodItemId: action.foodItemId,
+      });
+      return added === state
+        ? state
+        : {
+            ...added,
+            bulkAddsUsed: [...state.bulkAddsUsed, action.foodItemId],
+          };
     }
-
-    case "CHOOSE_POWERUP": {
-      if (state.status !== "round_won" || !state.powerUpChoices) return state;
-      if (!state.powerUpChoices.includes(action.powerUpId)) return state;
+    case "REMOVE_ITEM": {
+      if (state.status !== "playing") return state;
+      const entry = state.basket.find(
+        (b) => b.foodItemId === action.foodItemId,
+      );
+      if (!entry) return state;
+      const basket =
+        entry.quantity > 1
+          ? state.basket.map((b) =>
+              b.foodItemId === entry.foodItemId
+                ? { ...b, quantity: b.quantity - 1 }
+                : b,
+            )
+          : state.basket.filter((b) => b.foodItemId !== entry.foodItemId);
+      const time = Math.max(
+        0,
+        state.timeRemainingSeconds - (state.mode === "standard_run" ? 3 : 0),
+      );
       return {
         ...state,
-        powerUps: [...state.powerUps, action.powerUpId],
-        powerUpChoices: null,
+        basket,
+        remainingBudgetCents: state.remainingBudgetCents + entry.pricePaidCents,
+        timeRemainingSeconds: time,
+        lastFeedback:
+          "Basket revised. Check which parts of the brief still need covering.",
+        ...(time === 0 && state.mode === "standard_run"
+          ? { status: "lost" as const, endReason: "timer_expired" as const }
+          : {}),
       };
     }
-
-    case "TICK": {
-      if (state.status !== "playing") return state;
-      const timeRemainingSeconds = state.timeRemainingSeconds - 1;
-      if (timeRemainingSeconds <= 0) {
-        // No last-second checkout: when the clock dies, the round dies
-        return loseRound({ ...state, timeRemainingSeconds: 0 }, "timer_expired");
-      }
-      return { ...state, timeRemainingSeconds };
-    }
-
-    case "NEXT_ROUND": {
-      if (state.status !== "round_won" || !state.npc) return state;
+    case "CHECKOUT":
+      return state.status === "playing" &&
+        state.npc &&
+        state.remainingBudgetCents >= 0 &&
+        allRequirementsMet(state.basket, state.npc)
+        ? winRound(state)
+        : state;
+    case "CHOOSE_POWERUP":
+      return state.status === "round_won" &&
+        state.powerUpChoices?.includes(action.powerUpId)
+        ? {
+            ...state,
+            powerUps: [...state.powerUps, action.powerUpId],
+            powerUpChoices: null,
+          }
+        : state;
+    case "USE_ESCAPE_ROPE": {
+      if (
+        state.status !== "playing" ||
+        !state.npc ||
+        !state.powerUps.includes("escape_rope") ||
+        state.roundNumber >= FINAL_ROUND
+      )
+        return state;
       return setupRound(
-        { ...state, previousNPCIds: [...state.previousNPCIds, state.npc.id] },
-        state.roundNumber + 1
+        {
+          ...state,
+          powerUps: state.powerUps.filter((p) => p !== "escape_rope"),
+          previousNPCIds: [...state.previousNPCIds, state.npc.id],
+        },
+        state.roundNumber + 1,
       );
     }
-
+    case "TICK": {
+      if (state.status !== "playing" || state.mode === "learning") return state;
+      const time = Math.max(0, state.timeRemainingSeconds - 1);
+      return {
+        ...state,
+        timeRemainingSeconds: time,
+        ...(time === 0
+          ? { status: "lost" as const, endReason: "timer_expired" as const }
+          : {}),
+      };
+    }
+    case "NEXT_ROUND":
+      return state.status === "round_won" && state.npc && !state.powerUpChoices
+        ? setupRound(
+            {
+              ...state,
+              previousNPCIds: [...state.previousNPCIds, state.npc.id],
+            },
+            state.roundNumber + 1,
+          )
+        : state;
     default:
       return state;
   }

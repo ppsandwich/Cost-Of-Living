@@ -27,7 +27,7 @@ const accent = Knewave({
 export const metadata: Metadata = {
   title: "Cost of Living",
   description:
-    "A satirical supermarket survival game. Feed someone on a budget that keeps getting worse.",
+    "A supermarket strategy game about planning a lunch, making a budget work and learning from your choices.",
 };
 
 export const viewport: Viewport = {

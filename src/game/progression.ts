@@ -2,7 +2,7 @@ import type { NPC } from "@/types/npc";
 import { NPCS } from "@/data/npcs";
 import { createRng, pick } from "./seededRandom";
 
-/** How many win-rate points of noise to blend into difficulty ordering. */
+/** How much seeded variety to blend into the access-based ordering. */
 const SELECTION_FUZZ = 7;
 
 export const ROUND_TIMER_SECONDS = 90;
@@ -10,33 +10,8 @@ export const ROUND_TIMER_SECONDS = 90;
 /** Clear this round and the run is won. */
 export const FINAL_ROUND = 20;
 
-const BUDGET_MULTIPLIERS = [
-  1,
-  0.94,
-  0.88,
-  0.82,
-  0.76,
-  0.7,
-  0.64,
-  0.58,
-  0.52,
-  0.47,
-  0.42,
-  0.38,
-  0.34,
-  0.31,
-  0.29,
-  0.27,
-  0.25,
-  0.23,
-  0.21,
-  0.2,
-];
-
 export function budgetMultiplierForRound(roundNumber: number): number {
-  // Power-ups compound over a run, so the budget has to keep falling
-  // after the midgame instead of flattening at a fixed floor.
-  return BUDGET_MULTIPLIERS[Math.min(roundNumber, FINAL_ROUND) - 1] ?? 0.2;
+  return Math.max(0.35, 1 - (roundNumber - 1) * 0.04);
 }
 
 export function budgetPressureLabel(multiplier: number): string {
@@ -47,11 +22,7 @@ export function budgetPressureLabel(multiplier: number): string {
   return "Checkout Goblin Mode";
 }
 
-/**
- * Pick the next NPC roughly in descending bot win rate: easy customers
- * early in a run, hard cases later. Seeded noise keeps the order from
- * being identical every run.
- */
+/** Introduce people with fewer kitchen constraints early; seeded noise varies the order. */
 export function selectNPC(previousNPCIds: string[], seed: number): NPC {
   const rng = createRng(seed);
   let pool = NPCS.filter((n) => !previousNPCIds.includes(n.id));
@@ -64,7 +35,8 @@ export function selectNPC(previousNPCIds: string[], seed: number): NPC {
   let best = pool[0];
   let bestScore = -Infinity;
   for (const npc of pool) {
-    const score = npc.botWinRate + (rng() * 2 - 1) * SELECTION_FUZZ;
+    const score =
+      100 - npc.restrictions.length * 20 + (rng() * 2 - 1) * SELECTION_FUZZ;
     if (score > bestScore) {
       best = npc;
       bestScore = score;

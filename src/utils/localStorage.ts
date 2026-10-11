@@ -1,7 +1,8 @@
+import type { GameMode } from "@/types/game";
 const KEYS = {
-  highScore: "cost-of-living:high-scores",
-  highestRound: "cost-of-living:highest-round",
-  tutorialDismissed: "cost-of-living:tutorial-dismissed",
+  highScore: "cost-of-living:v2:high-scores",
+  highestRound: "cost-of-living:v2:highest-round",
+  tutorialDismissed: "cost-of-living:v2:tutorial-dismissed",
 } as const;
 
 function readNumber(key: string): number {
@@ -24,20 +25,26 @@ function write(key: string, value: string): void {
   }
 }
 
-export function loadBestScore(): number {
-  return readNumber(KEYS.highScore);
+export function loadBestScore(mode: GameMode = "learning"): number {
+  return readNumber(`${KEYS.highScore}:${mode}`);
 }
 
-export function saveBestScore(score: number): void {
-  write(KEYS.highScore, String(score));
+export function saveBestScore(
+  score: number,
+  mode: GameMode = "learning",
+): void {
+  write(`${KEYS.highScore}:${mode}`, String(score));
 }
 
-export function loadHighestRound(): number {
-  return readNumber(KEYS.highestRound);
+export function loadHighestRound(mode: GameMode = "learning"): number {
+  return readNumber(`${KEYS.highestRound}:${mode}`);
 }
 
-export function saveHighestRound(round: number): void {
-  write(KEYS.highestRound, String(round));
+export function saveHighestRound(
+  round: number,
+  mode: GameMode = "learning",
+): void {
+  write(`${KEYS.highestRound}:${mode}`, String(round));
 }
 
 export function loadTutorialDismissed(): boolean {

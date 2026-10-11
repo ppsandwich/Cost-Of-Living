@@ -1,95 +1,97 @@
 import type { NPC } from "@/types/npc";
 import type { BasketItem, StoreItem } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
-import { zeroedMacros } from "@/game/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { MUST_NOT_BADGE, WANT_BADGE, WANT_EMOJI } from "@/data/labels";
-import { computeImpact, PREFERENCE_TAG } from "@/game/applyFoodItem";
-import { basketFoods, calculateBasketStats } from "@/game/calculateStats";
-import { fatalStat } from "@/game/thresholds";
-import { getRequirementsStatus } from "@/game/requirements";
+import { MUST_NOT_BADGE, WANT_BADGE } from "@/data/labels";
+import {
+  PREFERENCE_TAG,
+  hasEquipmentMismatch,
+  violatesMustNot,
+} from "@/game/applyFoodItem";
+import { mealRoles, usableFood, MEAL_LABELS } from "@/game/meals";
 import { quantityInBasket, quantityRemaining } from "@/game/roundEnd";
 import { FoodCard } from "./FoodCard";
-
 interface StoreListProps {
   inventory: StoreItem[];
   basket: BasketItem[];
   npc: NPC;
   powerUps: PowerUpId[];
   bulkAddsUsed: string[];
-  onAdd: (foodItemId: string) => void;
-  onRemove: (foodItemId: string) => void;
-  onBulkAdd: (foodItemId: string) => void;
+  canShop: boolean;
+  onAdd: (id: string) => void;
+  onRemove: (id: string) => void;
+  onBulkAdd: (id: string) => void;
 }
-
 export function StoreList({
   inventory,
   basket,
   npc,
   powerUps,
   bulkAddsUsed,
+  canShop,
   onAdd,
   onRemove,
   onBulkAdd,
 }: StoreListProps) {
-  const prior = basketFoods(basket);
-  const status = getRequirementsStatus(basket, npc);
-  const zeroed = zeroedMacros(powerUps);
-  const bulkBuyer = powerUps.includes("bulk_buyer");
-  const trainingWheels = powerUps.includes("training_wheels");
-
-  const wouldCrossLimit = (foodItemId: string, shrinkflated?: boolean) => {
-    if (!trainingWheels) return false;
-    const existing = basket.find((b) => b.foodItemId === foodItemId);
-    const trial = existing
-      ? basket.map((b) => (b.foodItemId === foodItemId ? { ...b, quantity: b.quantity + 1 } : b))
-      : [...basket, { foodItemId, quantity: 1, pricePaidCents: 0, shrinkflated }];
-    return fatalStat(calculateBasketStats(trial, npc, powerUps), npc.maxThresholds) !== null;
-  };
-
   return (
     <section aria-label="Store shelves">
-      <h2 className="mb-2 flex items-center gap-2 font-display text-sm uppercase tracking-wider text-faded">
-        <span aria-hidden>🛒</span> Today&apos;s shelves
-        <span aria-hidden className="h-0.5 flex-1 rounded bg-ink/15" />
+      <h2 className="mb-2 font-display text-lg">
+        {canShop ? "Today’s shelves" : "Inspect the shelves"}
       </h2>
+      {!canShop && (
+        <p className="mb-3 text-sm">
+          Open any item for details. Shopping begins when your plan is ready.
+        </p>
+      )}
       <ul className="space-y-3">
-        {inventory.map((storeItem) => {
-          const food = FOOD_BY_ID[storeItem.foodItemId];
-          if (!food) return null;
-          const impact = computeImpact(food, npc, prior, storeItem.shrinkflated, powerUps);
-          const blockedByLimits = wouldCrossLimit(storeItem.foodItemId, storeItem.shrinkflated);
-          const wantMatches = npc.wants
-            .filter((want) => {
-              const tag = PREFERENCE_TAG[want];
-              return tag !== undefined && food.tags.includes(tag);
-            })
-            .map((want) => ({
-              label: WANT_BADGE[want] ?? want,
-              emoji: WANT_EMOJI[want],
-              satisfied: status.wants.find((w) => w.want === want)?.satisfied ?? false,
-            }));
+        {inventory.map((item) => {
+          const food = FOOD_BY_ID[item.foodItemId];
+          const unavailable = violatesMustNot(food, npc)
+            ? MUST_NOT_BADGE[npc.mustNot]
+            : hasEquipmentMismatch(food, npc)
+              ? "Needs equipment they do not have"
+              : null;
+          const lowestRoles =
+            powerUps.includes("price_compare") && !unavailable
+              ? mealRoles(food).filter(
+                  (role) =>
+                    !inventory.some(
+                      (other) =>
+                        quantityRemaining(other, basket) > 0 &&
+                        other.currentPriceCents < item.currentPriceCents &&
+                        usableFood(FOOD_BY_ID[other.foodItemId], npc) &&
+                        mealRoles(FOOD_BY_ID[other.foodItemId]).includes(role),
+                    ),
+                )
+              : [];
           return (
             <FoodCard
-              key={storeItem.foodItemId}
+              key={food.id}
               food={food}
-              storeItem={storeItem}
-              impact={impact}
-              inBasket={quantityInBasket(basket, storeItem.foodItemId)}
-              remainingQuantity={quantityRemaining(storeItem, basket)}
-              wantMatches={wantMatches}
-              zeroed={zeroed}
-              mustNotLabel={impact.mustNotViolation ? MUST_NOT_BADGE[npc.mustNot] : null}
-              blockedByLimits={blockedByLimits}
-              canBulkAdd={
-                bulkBuyer &&
-                !bulkAddsUsed.includes(storeItem.foodItemId) &&
-                !blockedByLimits &&
-                quantityRemaining(storeItem, basket) > 0
+              storeItem={item}
+              inBasket={quantityInBasket(basket, food.id)}
+              remainingQuantity={quantityRemaining(item, basket)}
+              wantMatches={npc.wants
+                .filter(
+                  (w) =>
+                    PREFERENCE_TAG[w] && food.tags.includes(PREFERENCE_TAG[w]!),
+                )
+                .map((w) => WANT_BADGE[w] ?? w)}
+              unavailable={unavailable}
+              canShop={canShop}
+              priceHint={
+                lowestRoles.length && quantityRemaining(item, basket) > 0
+                  ? `Lowest pack price for: ${lowestRoles.map((r) => MEAL_LABELS[r].toLowerCase()).join(", ")}.`
+                  : null
               }
-              onAdd={() => onAdd(storeItem.foodItemId)}
-              onRemove={() => onRemove(storeItem.foodItemId)}
-              onBulkAdd={() => onBulkAdd(storeItem.foodItemId)}
+              canBulkAdd={
+                powerUps.includes("bulk_buyer") &&
+                !bulkAddsUsed.includes(food.id) &&
+                quantityRemaining(item, basket) > 0
+              }
+              onAdd={() => onAdd(food.id)}
+              onRemove={() => onRemove(food.id)}
+              onBulkAdd={() => onBulkAdd(food.id)}
             />
           );
         })}

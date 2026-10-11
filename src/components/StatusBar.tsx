@@ -11,6 +11,7 @@ interface StatusBarProps {
   onToggleMute: () => void;
   onPause: () => void;
   canPause: boolean;
+  clockLabel?: string;
 }
 
 export function StatusBar({
@@ -23,13 +24,14 @@ export function StatusBar({
   onToggleMute,
   onPause,
   canPause,
+  clockLabel,
 }: StatusBarProps) {
   const minutes = Math.floor(timeRemainingSeconds / 60);
   const seconds = timeRemainingSeconds % 60;
   const timeLow = timeRemainingSeconds <= 15;
   const timePercent = Math.max(
     0,
-    Math.min(100, (timeRemainingSeconds / roundDurationSeconds) * 100)
+    Math.min(100, (timeRemainingSeconds / roundDurationSeconds) * 100),
   );
 
   return (
@@ -44,39 +46,50 @@ export function StatusBar({
               {npc.emoji}
             </span>
             <div className="min-w-0">
-              <div className="font-knewave truncate text-base leading-tight">{npc.name}</div>
-              <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand">
-                Round {roundNumber}/{FINAL_ROUND} · {budgetPressureLabel(budgetMultiplier)}
+              <div className="font-knewave truncate text-base leading-tight">
+                {npc.name}
+              </div>
+              <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand-dark">
+                Round {roundNumber}/{FINAL_ROUND} ·{" "}
+                {budgetPressureLabel(budgetMultiplier)}
               </div>
             </div>
           </div>
 
-          <div
-            className="min-w-0 flex-1"
-            role="timer"
-            aria-label={`${timeRemainingSeconds} seconds remaining`}
-          >
-            <div className="relative h-11">
-              <span
-                className={`absolute bottom-0 -translate-x-1/2 text-3xl font-extrabold leading-none tabular-nums ${
-                  timeLow ? "timer-low text-danger" : "text-ink"
-                }`}
-                style={{
-                  left: `clamp(2.5rem, ${timePercent}%, calc(100% - 2.5rem))`,
-                  transition: "left 1s linear",
-                }}
-              >
-                {minutes}:{seconds.toString().padStart(2, "0")}
-              </span>
+          {clockLabel ? (
+            <p className="flex-1 text-center font-display text-base">
+              {clockLabel}
+            </p>
+          ) : (
+            <div
+              className="min-w-0 flex-1"
+              role="timer"
+              aria-label={`${timeRemainingSeconds} seconds remaining`}
+            >
+              <div className="relative h-11">
+                <span
+                  className={`absolute bottom-0 -translate-x-1/2 text-3xl font-extrabold leading-none tabular-nums ${
+                    timeLow ? "timer-low text-danger" : "text-ink"
+                  }`}
+                  style={{
+                    left: `clamp(2.5rem, ${timePercent}%, calc(100% - 2.5rem))`,
+                    transition: "left 1s linear",
+                  }}
+                >
+                  {minutes}:{seconds.toString().padStart(2, "0")}
+                </span>
+              </div>
+              <div className="meter-track h-3.5 overflow-hidden">
+                <div
+                  className={`meter-fill h-full ${timeLow ? "bg-danger" : "bg-happy"}`}
+                  style={{
+                    width: `${timePercent}%`,
+                    transition: "width 1s linear",
+                  }}
+                />
+              </div>
             </div>
-            <div className="meter-track h-3.5 overflow-hidden">
-              <div
-                className={`meter-fill h-full ${timeLow ? "bg-danger" : "bg-happy"}`}
-                style={{ width: `${timePercent}%`, transition: "width 1s linear" }}
-              />
-            </div>
-          </div>
-
+          )}
           <div className="flex shrink-0 items-center gap-1">
             <button
               type="button"

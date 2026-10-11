@@ -4,10 +4,10 @@
   --color-paper: #f4ead3;
   --color-receipt: #fffaf0;
   --color-ink: #33241c;
-  --color-faded: #93826f;
+  --color-faded: #6f5d4b;
   --color-brand: #e23d28;
   --color-brand-dark: #b42a18;
-  --color-good: #2f9e6e;
+  --color-good: #237a54;
   --color-good-dark: #237a54;
   --color-happy: #f2a414;
   --color-danger: #d6402e;
@@ -386,4 +386,10 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Keep keyboard focus visible on the paper palette. */
+:focus-visible {
+  outline: 3px solid var(--color-brand-dark);
+  outline-offset: 3px;
 }

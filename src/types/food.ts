@@ -52,21 +52,10 @@ export interface FoodItem {
   id: string;
   name: string;
   emoji: string;
-  /** Premium: pricier but better. Expired: cheap, joyless, and slightly less nutritious. */
-  variant?: "premium" | "expired";
+  /** A price/branding variant, without a nutrition or meal-coverage advantage. */
+  variant?: "premium";
   category: FoodCategory;
   basePriceCents: number;
-  calories: number;
-  protein: number;
-  fat: number;
-  sugar: number;
-  carbs: number;
-  fibre: number;
-  vitamins: number;
-  minerals: number;
-  sodium?: number;
-  baseNutrition: number;
-  baseHappiness: number;
   tags: FoodTag[];
   requiresEquipment?: EquipmentRequirement[];
   maxQuantity?: number;
