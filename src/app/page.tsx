@@ -159,6 +159,7 @@ export default function Home() {
             <PlanningPanel
               key={`${state.roundNumber}-${shelfVisit}`}
               state={state}
+              active={planningView && !restartOpen}
               onBegin={beginShopping}
             />
             <details className="trail-disclosure"><summary>Your neighbourhood trail</summary><Journey state={state} /></details>

@@ -900,6 +900,41 @@ header .npc-difficulty span { display: none; }
 .round-solution li > span:first-child { font-size: 1.25rem; }
 .round-solution p + p { margin-top: .3rem; }
 
+/* The first shop gets a five-second tour; the ticket stays readable afterwards. */
+.first-round-guide .brief-part { animation: none; }
+.tour-target { position: relative; }
+.tour-target[data-tour-current="true"] {
+  outline: 3px solid #b66a12;
+  outline-offset: 5px;
+  border-radius: .65rem;
+  box-shadow: 0 0 0 9px #ffdc7655;
+  animation: tour-spotlight 350ms ease-out both;
+}
+.first-round-guide .brief-part[data-tour-current="true"] {
+  background-color: #ffedac77;
+  animation: tour-spotlight 350ms ease-out both;
+}
+.tour-target[data-tour-current="true"]::after {
+  content: attr(data-tour-label);
+  position: absolute;
+  top: -1rem;
+  right: .25rem;
+  padding: .15rem .45rem;
+  border: 2px solid #b66a12;
+  border-radius: 1rem;
+  background: var(--color-tag);
+  color: var(--color-ink);
+  font: 800 .7rem var(--font-display);
+  pointer-events: none;
+}
+@keyframes tour-spotlight {
+  from { outline-color: transparent; box-shadow: 0 0 0 1px #ffdc7600; }
+  to { outline-color: #b66a12; box-shadow: 0 0 0 9px #ffdc7655; }
+}
+@media (forced-colors: active) {
+  .tour-target[data-tour-current="true"] { outline-color: Highlight; }
+}
+
 /* Quiet illustrated surroundings: detail at the edges, clear paper behind play. */
 .game-world { position: relative; isolation: isolate; --shop-scene: url('/illustrations/corner-shop.svg'); }
 .game-world[data-shop="market"] { --shop-scene: url('/illustrations/market.svg'); }
