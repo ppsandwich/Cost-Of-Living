@@ -3,16 +3,16 @@ import type { NPC } from "@/types/npc";
 import type { BasketItem, StoreItem } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { MUST_NOT_BADGE, WANT_BADGE, AISLE_LABEL } from "@/data/labels";
+import { MUST_NOT_BADGE, WANT_BADGE } from "@/data/labels";
 import {
   PREFERENCE_TAG,
   violatesMustNot,
 } from "@/game/applyFoodItem";
-import { mealRoles, mealCoverage, MEAL_ROLES, usableFood, MEAL_LABELS, type MealRole } from "@/game/meals";
+import { mealRoles, mealCoverage, usableFood, MEAL_LABELS } from "@/game/meals";
 import { quantityInBasket, quantityRemaining } from "@/game/roundEnd";
-import { AISLE_ORDER, AISLE_ICONS, shopForRound } from "@/game/shops";
+import { shopForRound } from "@/game/shops";
 import { getRequirementsStatus } from "@/game/requirements";
-import { MEAL_ICONS } from "./StatsPanel";
+import { groupShelves, SHELF_GROUPS, type ShelfFilter } from "@/game/shelfGroups";
 import { FoodCard } from "./FoodCard";
 interface StoreListProps {
   inventory: StoreItem[];
@@ -39,20 +39,13 @@ export function StoreList({
   onBulkAdd,
 }: StoreListProps) {
   const shop = shopForRound(roundNumber);
-  const [filter, setFilter] = useState<"all" | MealRole | "wishes">("all");
+  const [filter, setFilter] = useState<ShelfFilter>("all");
   const [showAll, setShowAll] = useState(false);
   const coverage = mealCoverage(basket, npc);
   const wants = getRequirementsStatus(basket, npc).wants;
-  const visibleInventory = inventory.filter((item) => {
-    const food = FOOD_BY_ID[item.foodItemId];
-    if (!showAll && !usableFood(food, npc)) return false;
-    if (filter === "all") return true;
-    if (filter === "wishes") return npc.wants.some((want) => want === "likes_variety" || (PREFERENCE_TAG[want] && food.tags.includes(PREFERENCE_TAG[want]!)));
-    return mealRoles(food).includes(filter);
-  });
+  const groups = groupShelves(inventory, npc, filter, showAll);
+  const visibleCount = groups.reduce((total, group) => total + group.items.length, 0);
   const blockedCount = inventory.filter((item) => !usableFood(FOOD_BY_ID[item.foodItemId], npc)).length;
-  const aisles = AISLE_ORDER.filter((aisle) => visibleInventory.some((item) => FOOD_BY_ID[item.foodItemId].category === aisle));
-  const visited = new Set(basket.map((item) => FOOD_BY_ID[item.foodItemId].category));
   return (
     <section id="store-shelves" tabIndex={-1} aria-label="Store shelves" className={canShop ? "store-shelves" : "store-shelves planning-shelves"}>
       <div className="shop-front">
@@ -62,25 +55,30 @@ export function StoreList({
       <div className="shelf-tools">
         <div className="lunch-filters" role="group" aria-label="Find food for your lunch">
           <button aria-pressed={filter === "all"} onClick={() => setFilter("all")}>All</button>
-          {MEAL_ROLES.map((role) => <button key={role} aria-pressed={filter === role} onClick={() => setFilter(role)}>
-            <span aria-hidden>{coverage[role] ? "✓" : MEAL_ICONS[role]}</span> {role === "produce" ? "Fruit / veg" : role === "base" ? "Base" : "Protein"}<span className="sr-only">{coverage[role] ? ": covered" : ": still needed"}</span>
-          </button>)}
-          <button aria-pressed={filter === "wishes"} onClick={() => setFilter("wishes")}><span aria-hidden>{wants.every((w) => w.satisfied) ? "✓" : "★"}</span> Wishes</button>
+          {SHELF_GROUPS.map((group) => {
+            const covered = group.id === "wishes" ? wants.every((want) => want.satisfied)
+              : group.id === "extras" ? false : coverage[group.id];
+            return <button key={group.id} aria-pressed={filter === group.id} onClick={() => setFilter(group.id)}>
+              <span aria-hidden>{covered ? "✓" : group.icon}</span> {group.label}
+              {group.id !== "extras" && <span className="sr-only">{covered ? ": covered" : ": still needed"}</span>}
+            </button>;
+          })}
         </div>
         <div className="shelf-options">
-          <span>{visibleInventory.length} choices{!showAll ? ` for ${npc.name}` : ""}</span>
+          <span>{visibleCount} {visibleCount === 1 ? "choice" : "choices"}{!showAll ? ` for ${npc.name}` : ""}</span>
           {blockedCount > 0 && <button className="min-h-11 font-bold underline underline-offset-4" aria-pressed={showAll} onClick={() => setShowAll(!showAll)}>{showAll ? "Hide foods to avoid" : `Show foods to avoid (${blockedCount})`}</button>}
         </div>
-        <details className="aisle-disclosure"><summary>Jump to an aisle</summary><nav className="aisle-nav" aria-label="Jump to an aisle">
-          {aisles.map((aisle) => <a key={aisle} href={`#aisle-${aisle}`}><span aria-hidden>{AISLE_ICONS[aisle]}</span> {AISLE_LABEL[aisle]}</a>)}
+        <details className="aisle-disclosure"><summary>Jump to a group</summary><nav className="aisle-nav" aria-label="Jump to a group">
+          {groups.map((group) => <a key={group.id} href={`#shelf-${group.id}`}><span aria-hidden>{group.icon}</span> {group.label}</a>)}
         </nav></details>
       </div>
       <p className="shelf-hint">{!canShop ? "Browse prices now. Start shopping when you’re ready." : "Pick food, watch your budget, then review your basket."}</p>
-      {visibleInventory.length === 0 && <p className="panel bg-receipt p-4 text-sm">No food here matches this filter. <button className="min-h-11 font-bold underline" onClick={() => setFilter("all")}>See all choices</button></p>}
-      {aisles.map((aisle) => <section className={`aisle aisle-${aisle}`} key={aisle} id={`aisle-${aisle}`} aria-label={`${AISLE_LABEL[aisle]} aisle`}>
-        <h3 className="aisle-sign"><span aria-hidden>{AISLE_ICONS[aisle]}</span> {AISLE_LABEL[aisle]} {visited.has(aisle) && <span className="aisle-picked">✓ In basket</span>}</h3>
+      {visibleCount === 0 && <p className="panel bg-receipt p-4 text-sm">No food here matches this filter. <button className="min-h-11 font-bold underline" onClick={() => setFilter("all")}>See all choices</button></p>}
+      {groups.map((group) => <section className={`aisle shelf-${group.id}`} key={group.id} id={`shelf-${group.id}`} aria-label={`${group.label} foods`}>
+        <h3 className="aisle-sign"><span aria-hidden>{group.icon}</span> {group.label}<span className="shelf-group-count">{group.items.length} {group.items.length === 1 ? "choice" : "choices"}</span></h3>
+        {group.id === "wishes" && filter === "all" && <p className="shelf-group-note">More picks for their food wishes. Look for matching tags in the other groups too.</p>}
         <ul className="product-shelf">
-        {visibleInventory.filter((item) => FOOD_BY_ID[item.foodItemId].category === aisle).map((item) => {
+        {group.items.map((item) => {
           const food = FOOD_BY_ID[item.foodItemId];
           const unavailable = violatesMustNot(food, npc)
             ? MUST_NOT_BADGE[npc.mustNot]
@@ -113,6 +111,7 @@ export function StoreList({
                 .map((w) => WANT_BADGE[w] ?? w)}
               unavailable={unavailable}
               canShop={canShop}
+              showAisle={npc.wants.includes("likes_variety")}
               priceHint={
                 lowestRoles.length && quantityRemaining(item, basket) > 0
                   ? `Cheapest pack for: ${lowestRoles.map((r) => MEAL_LABELS[r].toLowerCase()).join(", ")}.`

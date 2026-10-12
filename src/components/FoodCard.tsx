@@ -23,6 +23,7 @@ interface FoodCardProps {
   wantMatches: string[];
   unavailable: string | null;
   canShop: boolean;
+  showAisle?: boolean;
   priceHint: string | null;
   canBulkAdd: boolean;
   onAdd: () => void;
@@ -37,6 +38,7 @@ export function FoodCard({
   wantMatches,
   unavailable,
   canShop,
+  showAisle = false,
   priceHint,
   canBulkAdd,
   onAdd,
@@ -77,6 +79,7 @@ export function FoodCard({
           {formatCents(storeItem.currentPriceCents)}
         </span>
       </div>
+      {showAisle && <p className="product-aisle">Aisle: {AISLE_LABEL[food.category]}</p>}
       {storeItem.specialLabel && (
         <span className={`sticker mt-2 inline-block rounded ${storeItem.onSale ? "bg-tag" : "bg-white"} px-2 py-0.5 text-xs font-bold`}>
           {storeItem.specialLabel}

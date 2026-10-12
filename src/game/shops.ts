@@ -1,5 +1,3 @@
-import type { FoodCategory } from "@/types/food";
-
 export const SHOPS = [
   { id: "corner", name: "The corner shop", icon: "🏪", sign: "Little shop. Big lunch plans.", sound: [523, 659, 784] },
   { id: "market", name: "Market day", icon: "🌻", sign: "Find your favourites under the awning.", sound: [784, 988, 880] },
@@ -9,8 +7,3 @@ export function shopForRound(round: number) {
   return SHOPS[(round - 1) % SHOPS.length];
 }
 export const POWER_UP_STOPS = [1, 3, 5, 8, 12, 16, 19];
-export const AISLE_ICONS: Record<FoodCategory, string> = {
-  fruit: "🍎", vegetable: "🥕", grain: "🍞", protein: "🫘", dairy: "🥛",
-  snack: "🥨", frozen: "❄️", ready_meal: "🍱", drink: "🧃", pantry: "🥫", treat: "🍫",
-};
-export const AISLE_ORDER = Object.keys(AISLE_ICONS) as FoodCategory[];

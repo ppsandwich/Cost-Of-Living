@@ -1,3 +1,4 @@
+import { RoundIntro } from "./RoundIntro";
 import { useState } from "react";
 import type { GameState } from "@/types/game";
 import { formatCents } from "@/utils/money";
@@ -10,6 +11,7 @@ export function PlanningPanel({ state, onBegin }: {
   const valid = estimate === "" || (/^\d+(?:\.\d{1,2})?$/.test(estimate) && Number(estimate) <= 10000);
   return (
     <section id="shopping-plan" aria-label="Plan your shop" className="panel planning-panel bg-receipt p-4">
+      <RoundIntro state={state} />
       <h2 className="font-title text-2xl">Take a look first</h2>
       <p className="mt-1 text-sm">Check the prices. Pick out a lunch in your head.</p>
       <p className="mt-2 text-xs font-bold text-brand-dark">{state.mode === "learning" ? "Take your time — there’s no timer." : `The ${state.roundDurationSeconds}-second clock starts when you shop. Putting food back costs 3 seconds.`}</p>

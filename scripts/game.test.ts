@@ -1,3 +1,4 @@
+import { groupShelves, SHELF_GROUPS } from "../src/game/shelfGroups";
 import { POWER_UP_STOPS, shopForRound } from "../src/game/shops";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -343,4 +344,32 @@ test("shop settings rotate and trail reward stops match the actual offers", () =
     if (round < FINAL_ROUND) state = gameReducer(state, { type: "NEXT_ROUND" });
   }
   assert.equal(state.status, "game_won");
+});
+
+test("shelves follow filter order without duplicating foods that cover two lunch parts", () => {
+  const npc = { ...NPCS[0], wants: ["likes_sweet_food", "likes_crunchy_food"] as typeof NPCS[number]["wants"] };
+  const inventory = ["instant-coffee", "chocolate-biscuits", "bananas", "tofu", "frozen-pizza"]
+    .map((foodItemId) => ({ foodItemId, currentPriceCents: 100, quantityAvailable: 2 }));
+  const groups = groupShelves(inventory, npc, "all", false);
+  assert.deepEqual(groups.map((group) => group.id), ["base", "protein", "produce", "wishes", "extras"]);
+  assert.deepEqual(groups.map((group) => group.items.map((item) => item.foodItemId)),
+    [["frozen-pizza"], ["tofu"], ["bananas"], ["chocolate-biscuits"], ["instant-coffee"]]);
+  assert.equal(groups.flatMap((group) => group.items).length, inventory.length);
+  assert.ok(groupShelves(inventory, npc, "protein", false)[0].items.some((item) => item.foodItemId === "frozen-pizza"));
+  assert.ok(groupShelves(inventory, npc, "wishes", false)[0].items.some((item) => item.foodItemId === "bananas"));
+});
+
+test("group filters preserve dietary exclusions and every suitable food stays discoverable", () => {
+  const inventory = Object.values(FOOD_BY_ID).map((food) => ({ foodItemId: food.id, currentPriceCents: 100, quantityAvailable: 2 }));
+  for (const npc of NPCS) {
+    const all = groupShelves(inventory, npc, "all", false).flatMap((group) => group.items);
+    assert.equal(new Set(all.map((item) => item.foodItemId)).size, all.length);
+    assert.equal(all.length, inventory.filter((item) => usableFood(FOOD_BY_ID[item.foodItemId], npc)).length);
+    assert.equal(groupShelves(inventory, npc, "all", true).flatMap((group) => group.items).length, inventory.length);
+    for (const group of SHELF_GROUPS) {
+      const filtered = groupShelves(inventory, npc, group.id, false);
+      assert.ok(filtered.every((section) => section.id === group.id));
+      assert.ok(filtered.flatMap((section) => section.items).every((item) => usableFood(FOOD_BY_ID[item.foodItemId], npc)));
+    }
+  }
 });
