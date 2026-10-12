@@ -4,11 +4,13 @@ export function Dialog({
   children,
   compact = false,
   portrait,
+  onClose,
 }: {
   title: string;
   children: ReactNode;
   compact?: boolean;
   portrait?: ReactNode;
+  onClose?: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -24,7 +26,7 @@ export function Dialog({
     <dialog
       ref={ref}
       aria-labelledby={id}
-      onCancel={(e) => e.preventDefault()}
+      onCancel={(e) => { e.preventDefault(); onClose?.(); }}
       className={`panel dialog-enter fixed inset-0 m-auto w-[calc(100%_-_1.5rem)] overflow-y-auto backdrop:bg-ink/70 ${compact ? "round-result max-h-[calc(100dvh_-_1.5rem)] max-w-xl p-3" : "max-h-[90dvh] max-w-md p-5"}`}
     >
       <div className="flex items-center gap-3">

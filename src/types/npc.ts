@@ -17,12 +17,6 @@ export type DietaryMustNot =
   | "dairy_allergy"
   | "egg_allergy";
 
-/** Practical limits that access upgrades can change. */
-export type FoodRestriction =
-  | "limited_cooking_equipment"
-  | "no_fridge"
-  | "no_microwave";
-
 export interface NPC {
   id: string;
   name: string;
@@ -35,5 +29,4 @@ export interface NPC {
   wants: [FoodPreference, FoodPreference];
   /** One hard dietary rule — violating it blocks the round until fixed. */
   mustNot: DietaryMustNot;
-  restrictions: FoodRestriction[];
 }

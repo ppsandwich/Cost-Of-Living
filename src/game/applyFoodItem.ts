@@ -1,36 +1,5 @@
-import type { EquipmentRequirement, FoodItem, FoodTag } from "@/types/food";
+import type { FoodItem, FoodTag } from "@/types/food";
 import type { FoodPreference, NPC } from "@/types/npc";
-
-const ALL_EQUIPMENT: EquipmentRequirement[] = [
-  "fridge",
-  "freezer",
-  "microwave",
-  "stove",
-  "oven",
-  "kettle",
-];
-
-export function npcEquipment(npc: NPC): Set<EquipmentRequirement> {
-  const equipment = new Set<EquipmentRequirement>(ALL_EQUIPMENT);
-  if (npc.restrictions.includes("no_fridge")) {
-    equipment.delete("fridge");
-    equipment.delete("freezer");
-  }
-  if (npc.restrictions.includes("no_microwave")) {
-    equipment.delete("microwave");
-  }
-  if (npc.restrictions.includes("limited_cooking_equipment")) {
-    equipment.delete("oven");
-    equipment.delete("microwave");
-  }
-  return equipment;
-}
-
-export function hasEquipmentMismatch(food: FoodItem, npc: NPC): boolean {
-  if (!food.requiresEquipment) return false;
-  const equipment = npcEquipment(npc);
-  return food.requiresEquipment.some((req) => !equipment.has(req));
-}
 
 /** Tag a food must carry to count toward each want ("likes_variety" is structural). */
 export const PREFERENCE_TAG: Partial<Record<FoodPreference, FoodTag>> = {

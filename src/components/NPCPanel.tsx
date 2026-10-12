@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { NPC } from "@/types/npc";
 import type { BasketItem, BasketEvent } from "@/types/game";
-import { npcEquipment } from "@/game/applyFoodItem";
 import { NPCAvatar } from "./NPCAvatar";
 import { allRequirementsMet, getRequirementsStatus } from "@/game/requirements";
 import { MUST_NOT_LABEL, WANT_BADGE, WANT_EMOJI } from "@/data/labels";
@@ -35,7 +34,6 @@ export function NPCPanel({ npc, basket, budgetCents, event }: { npc: NPC; basket
         </span>)}
       </div>
       <p className="order-rule"><span aria-hidden>🚫</span> {MUST_NOT_LABEL[npc.mustNot]}</p>
-      <p className="text-xs"><strong>Kitchen:</strong> {[...npcEquipment(npc)].join(", ")}</p>
     </section>
   );
 }

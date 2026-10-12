@@ -93,8 +93,7 @@ export function PowerUpCard({
 
 /**
  * The collected power-ups, as a row of cards with a tap-for-details
- * popover. Opens on the most recent pick — remount per round (via key)
- * so each round leads with the newest acquisition.
+ * popover. Details stay tucked away until requested.
  */
 export function PowerUpShelf({
   powerUps,
@@ -105,9 +104,7 @@ export function PowerUpShelf({
   canUseEscapeRope?: boolean;
   onUseEscapeRope?: () => void;
 }) {
-  const [openId, setOpenId] = useState<PowerUpId | null>(
-    () => powerUps[powerUps.length - 1] ?? null,
-  );
+  const [openId, setOpenId] = useState<PowerUpId | null>(null);
   if (powerUps.length === 0) return null;
   const open = openId ? POWER_UP_BY_ID[openId] : null;
 

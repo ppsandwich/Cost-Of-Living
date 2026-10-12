@@ -6,12 +6,11 @@ export const NPCS: NPC[] = [
     name: "Milo",
     emoji: "🧑‍🎓",
     ageLabel: "Uni student",
-    description: "Has one saucepan and a busy study timetable. Wants something salty and comforting.",
-    mood: "Wondering how many meals one saucepan can handle.",
+    description: "Has a busy study timetable. Wants something salty and comforting.",
+    mood: "Taking a lunch break from a mountain of notes.",
     baseBudgetCents: 1760,
     wants: ["likes_comfort_food", "likes_salty_food"],
     mustNot: "nut_allergy",
-    restrictions: ["limited_cooking_equipment"],
   },
   {
     id: "jan",
@@ -23,7 +22,6 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 2430,
     wants: ["likes_fresh_food", "likes_variety"],
     mustNot: "no_pork",
-    restrictions: [],
   },
   {
     id: "priya",
@@ -35,19 +33,17 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 2700,
     wants: ["likes_familiar_food", "likes_variety"],
     mustNot: "egg_allergy",
-    restrictions: [],
   },
   {
     id: "theo",
     name: "Theo",
     emoji: "🧑‍🏭",
     ageLabel: "Factory worker",
-    description: "Needs lunch before work. His kitchen has just a few basics.",
+    description: "Needs lunch before work. Wants a salty, comforting meal.",
     mood: "Counting prices on his fingers. Running out of fingers.",
     baseBudgetCents: 1600,
     wants: ["likes_comfort_food", "likes_salty_food"],
     mustNot: "dairy_allergy",
-    restrictions: ["limited_cooking_equipment"],
   },
   {
     id: "ada",
@@ -59,7 +55,6 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 2160,
     wants: ["likes_fresh_food", "likes_crunchy_food"],
     mustNot: "vegetarian",
-    restrictions: [],
   },
   {
     id: "marcus",
@@ -71,7 +66,6 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 2400,
     wants: ["likes_salty_food", "likes_crunchy_food"],
     mustNot: "vegan",
-    restrictions: [],
   },
   {
     id: "rosa",
@@ -83,19 +77,17 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 1890,
     wants: ["likes_sweet_food", "likes_comfort_food"],
     mustNot: "nut_allergy",
-    restrictions: [],
   },
   {
     id: "bert",
     name: "Bert",
     emoji: "🧔",
     ageLabel: "Lives in a van",
-    description: "Cooks with a camp stove and a kettle. Has no fridge or microwave.",
-    mood: "Heading for the tins. They fit nicely in his tiny kitchen.",
+    description: "Travels to new places. Loves salty food and familiar favourites.",
+    mood: "Picking lunch before his next adventure.",
     baseBudgetCents: 1980,
     wants: ["likes_salty_food", "likes_familiar_food"],
     mustNot: "dairy_allergy",
-    restrictions: ["no_fridge", "no_microwave", "limited_cooking_equipment"],
   },
   {
     id: "yuki",
@@ -107,7 +99,6 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 1760,
     wants: ["likes_spicy_food", "likes_variety"],
     mustNot: "vegetarian",
-    restrictions: [],
   },
   {
     id: "dev",
@@ -119,7 +110,6 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 2580,
     wants: ["likes_familiar_food", "likes_comfort_food"],
     mustNot: "no_pork",
-    restrictions: [],
   },
   {
     id: "carol",
@@ -131,7 +121,6 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 2000,
     wants: ["likes_sweet_food", "likes_familiar_food"],
     mustNot: "egg_allergy",
-    restrictions: [],
   },
   {
     id: "sam",
@@ -143,7 +132,6 @@ export const NPCS: NPC[] = [
     baseBudgetCents: 2160,
     wants: ["likes_sweet_food", "likes_crunchy_food"],
     mustNot: "vegan",
-    restrictions: [],
   },
 ];
 

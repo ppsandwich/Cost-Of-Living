@@ -10,7 +10,7 @@ import {
 import { allRequirementsMet } from "../src/game/requirements";
 import { mealRoles, usableFood } from "../src/game/meals";
 import { improvementTip, missingRequirements, findSaving, challengeAchieved } from "../src/game/feedback";
-import { applyAccessUpgrades } from "../src/game/powerups";
+import { violatesMustNot } from "../src/game/applyFoodItem";
 import { calculateRoundScore } from "../src/game/scoring";
 import { POWER_UPS } from "../src/data/powerups";
 import { NPCS } from "../src/data/npcs";
@@ -99,44 +99,23 @@ test("timed rounds tick, charge revision time and resolve timeout exactly once",
   assert.equal(gameReducer(lost, { type: "RETRY_ROUND" }).status, "planning");
 });
 
-test("every upgrade preserves dietary boundaries and equipment access changes usability", () => {
-  const upgrades = POWER_UPS.map((p) => p.id);
+test("kitchen access never limits food; dietary boundaries still apply with every upgrade", () => {
   for (const npc of NPCS) {
-    const upgraded = applyAccessUpgrades(npc, upgrades);
-    assert.equal(upgraded.mustNot, npc.mustNot);
-    assert.deepEqual(upgraded.wants, npc.wants);
+    for (const food of Object.values(FOOD_BY_ID)) {
+      assert.equal(usableFood(food, npc), !violatesMustNot(food, npc));
+    }
   }
-  const npc = {
-    ...NPCS[0],
-    mustNot: "vegetarian" as const,
-    restrictions: ["no_fridge" as const, "limited_cooking_equipment" as const],
-  };
-  assert.equal(usableFood(FOOD_BY_ID.tofu, npc), false);
-  assert.equal(
-    usableFood(FOOD_BY_ID.tofu, applyAccessUpgrades(npc, ["fridge"])),
-    true,
-  );
-  assert.equal(
-    usableFood(
-      FOOD_BY_ID["chicken-thighs"],
-      applyAccessUpgrades(npc, upgrades),
-    ),
-    false,
-  );
-  assert.equal(
-    usableFood(
-      FOOD_BY_ID["frozen-pizza"],
-      applyAccessUpgrades(npc, ["shared_kitchen"]),
-    ),
-    false,
-  );
-  assert.equal(
-    usableFood(
-      FOOD_BY_ID["frozen-pizza"],
-      applyAccessUpgrades(npc, ["shared_kitchen", "fridge"]),
-    ),
-    true,
-  );
+  for (const id of ["milo", "theo", "bert"]) {
+    const npc = NPCS.find((n) => n.id === id)!;
+    for (const foodItemId of ["tofu", "microwave-curry", "frozen-pizza"]) {
+      for (const powerUps of [[], POWER_UPS.map((p) => p.id)]) {
+        const state = { ...begin(start()), npc, powerUps,
+          inventory: [{ foodItemId, currentPriceCents: 100, quantityAvailable: 3, onSale: false }] };
+        const next = gameReducer(state, { type: "ADD_ITEM", foodItemId });
+        assert.equal(next.basket.length, violatesMustNot(FOOD_BY_ID[foodItemId], npc) ? 0 : 1);
+      }
+    }
+  }
 });
 
 test("checkout requires the entire brief and budget; stock and blocked items cannot be bypassed", () => {

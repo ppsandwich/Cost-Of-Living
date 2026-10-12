@@ -1,4 +1,3 @@
-import type { NPC } from "@/types/npc";
 import type { PowerUpId } from "@/data/powerups";
 import { POWER_UPS } from "@/data/powerups";
 import type { RNG } from "./seededRandom";
@@ -23,20 +22,6 @@ export function powerUpQuantityBonus(p: PowerUpId[]): number {
 }
 export function powerUpExtraSpecials(p: PowerUpId[]): number {
   return p.includes("coupon_clipper") ? 2 : 0;
-}
-
-/** Change access, never allergies, beliefs or food preferences. */
-export function applyAccessUpgrades(npc: NPC, powerUps: PowerUpId[]): NPC {
-  return {
-    ...npc,
-    restrictions: npc.restrictions.filter(
-      (r) =>
-        !(
-          powerUps.includes("shared_kitchen") &&
-          (r === "limited_cooking_equipment" || r === "no_microwave")
-        ) && !(powerUps.includes("fridge") && r === "no_fridge"),
-    ),
-  };
 }
 
 export function drawPowerUps(

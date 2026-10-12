@@ -35,18 +35,7 @@ export type FoodTag =
   | "vitamin_rich"
   | "mineral_rich"
   | "low_prep"
-  | "requires_fridge"
-  | "requires_microwave"
-  | "requires_stove"
   | "family_friendly";
-
-export type EquipmentRequirement =
-  | "fridge"
-  | "freezer"
-  | "microwave"
-  | "stove"
-  | "oven"
-  | "kettle";
 
 export interface FoodItem {
   id: string;
@@ -57,7 +46,6 @@ export interface FoodItem {
   category: FoodCategory;
   basePriceCents: number;
   tags: FoodTag[];
-  requiresEquipment?: EquipmentRequirement[];
   maxQuantity?: number;
   flavour: string;
 }

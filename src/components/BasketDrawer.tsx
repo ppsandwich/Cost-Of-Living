@@ -1,140 +1,87 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { NPC } from "@/types/npc";
-import type { BasketItem, BasketEvent } from "@/types/game";
+import type { BasketItem, BasketEvent, StoreItem } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { allRequirementsMet } from "@/game/requirements";
+import { allRequirementsMet, getRequirementsStatus } from "@/game/requirements";
+import { quantityRemaining } from "@/game/roundEnd";
+import { WANT_BADGE, MUST_NOT_LABEL } from "@/data/labels";
 import { formatCents } from "@/utils/money";
 import { StatsPanel } from "./StatsPanel";
 import { BudgetMeter } from "./BudgetMeter";
 import { ShoppingReaction } from "./ShoppingReaction";
+import { Dialog } from "./Dialog";
 
 interface BasketDrawerProps {
   basket: BasketItem[];
   npc: NPC;
+  inventory: StoreItem[];
   remainingBudgetCents: number;
   roundBudgetCents: number;
   event: BasketEvent | null;
   challengeTarget?: number;
+  active: boolean;
+  timed: boolean;
+  timeRemainingSeconds: number;
   onRemove: (foodItemId: string) => void;
   onAdd: (foodItemId: string) => void;
   onCheckout: () => void;
 }
 
-export function BasketDrawer({
-  basket,
-  npc,
-  remainingBudgetCents,
-  roundBudgetCents,
-  event,
-  challengeTarget,
-  onRemove,
-  onAdd,
-  onCheckout,
-}: BasketDrawerProps) {
+export function BasketDrawer({ basket, npc, inventory, remainingBudgetCents, roundBudgetCents, event, challengeTarget, active, timed, timeRemainingSeconds, onRemove, onAdd, onCheckout }: BasketDrawerProps) {
   const [open, setOpen] = useState(false);
+  const reviewButton = useRef<HTMLButtonElement>(null);
   const itemCount = basket.reduce((n, b) => n + b.quantity, 0);
   const overBudget = remainingBudgetCents < 0;
   const readyToWin = !overBudget && allRequirementsMet(basket, npc);
+  const status = getRequirementsStatus(basket, npc);
+  const close = () => { setOpen(false); requestAnimationFrame(() => reviewButton.current?.focus({ preventScroll: true })); };
 
-  return (
-    <div className="border-t-[3px] border-ink bg-receipt shadow-[0_-4px_12px_rgba(51,36,28,0.2)] lg:rounded-2xl lg:border-[3px] lg:shadow-[4px_4px_0_rgba(51,36,28,0.25)]">
-      <div className="px-3 pt-2">
-        <BudgetMeter budget={roundBudgetCents} remaining={remainingBudgetCents} event={event} target={challengeTarget} />
-        <ShoppingReaction event={event} npc={npc} />
+  return <>
+    <section className="basket-dock" aria-label="Your basket">
+      <BudgetMeter budget={roundBudgetCents} remaining={remainingBudgetCents} event={event} target={challengeTarget} />
+      <ShoppingReaction event={event} npc={npc} />
+      <button ref={reviewButton} type="button" onClick={() => setOpen(true)} disabled={!active} aria-haspopup="dialog" className={`btn basket-review-button ${readyToWin ? "bg-good text-white" : "bg-paper"}`} aria-label={`Review basket: ${itemCount} items${readyToWin ? ", ready to check out" : ""}`}>
+        <span className="basket-still-life" aria-hidden>
+          <span className="basket-outline">🧺</span>
+          {basket.slice(-4).map((entry) => <span key={`${entry.foodItemId}-${entry.quantity}`} className="basket-food">{FOOD_BY_ID[entry.foodItemId].emoji}</span>)}
+          {event?.kind === "remove" && <span key={event.id} className="basket-food-leaving">{FOOD_BY_ID[event.foodItemId].emoji}</span>}
+        </span>
+        <span className="text-right text-sm leading-tight"><strong className="block">{readyToWin ? "Ready to check out →" : "Review basket →"}</strong><span className="text-xs">{itemCount} item{itemCount === 1 ? "" : "s"}</span></span>
+      </button>
+    </section>
+    {open && active && <Dialog title="Check your basket" compact onClose={close}>
+      <div className="basket-checklist mt-3">
         <StatsPanel npc={npc} basket={basket} />
-      </div>
-
-      {open && (
-        <div className="max-h-[40vh] overflow-y-auto border-b-2 border-dashed border-ink/25 px-3 py-2 lg:max-h-none">
-          <h2 className="text-center text-sm font-bold uppercase tracking-widest text-faded">
-            ··· your receipt ···
-          </h2>
-          {basket.length === 0 ? (
-            <p className="py-2 text-center text-sm font-semibold text-faded">
-              Nothing yet. What will you pick?
-            </p>
-          ) : (
-            <ul className="divide-y divide-dashed divide-ink/15">
-              {basket.map((entry) => {
-                const food = FOOD_BY_ID[entry.foodItemId];
-                if (!food) return null;
-                return (
-                  <li
-                    key={entry.foodItemId}
-                    className="flex items-center gap-2 py-1.5"
-                  >
-                    <span aria-hidden className="text-lg">
-                      {food.emoji}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm font-bold leading-none">
-                      {food.name}
-                    </span>
-                    <span className="text-sm font-bold leading-none tabular-nums text-faded">
-                      {formatCents(entry.pricePaidCents)}×{entry.quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(entry.foodItemId)}
-                      className="btn grid size-11 place-items-center bg-paper text-lg"
-                      aria-label={`Put back one ${food.name}`}
-                    >
-                      −
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onAdd(entry.foodItemId)}
-                      className="btn grid size-11 place-items-center bg-paper text-lg"
-                      aria-label={`Add one more ${food.name}`}
-                    >
-                      +
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+        <div className="mt-2 flex flex-wrap gap-1.5 text-xs font-bold">
+          {status.wants.map(({ want, satisfied }) => <span className={`meal-chip ${satisfied ? "meal-chip-covered" : ""}`} key={want}>{satisfied ? "✓" : "○"} {want === "likes_variety" ? "3+ aisles" : WANT_BADGE[want]}</span>)}
         </div>
-      )}
-
-      <div className="space-y-2 px-3 py-2">
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          aria-label={`Your basket: ${itemCount} items. ${open ? "Hide" : "Show"} receipt`}
-          aria-expanded={open}
-          className="btn flex min-h-12 w-full items-center justify-between gap-2 bg-paper px-2.5 text-left"
-        >
-          <span className="basket-still-life" aria-hidden>
-            <span className="basket-outline">🧺</span>
-            {basket.slice(-5).map((entry) => <span key={`${entry.foodItemId}-${entry.quantity}`} className="basket-food">{FOOD_BY_ID[entry.foodItemId].emoji}</span>)}
-            {event?.kind === "remove" && <span key={event.id} className="basket-food-leaving">{FOOD_BY_ID[event.foodItemId].emoji}</span>}
-          </span>
-          <span className="shrink-0 font-display text-sm">{itemCount} item{itemCount === 1 ? "" : "s"}</span>
-          <span aria-hidden className="font-display text-faded">
-            {open ? "▼" : "▲"}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onCheckout}
-          disabled={!readyToWin}
-          className={`btn font-knewave min-h-12 w-full text-base uppercase text-white ${
-            overBudget
-              ? "bg-danger"
-              : readyToWin
-                ? "wobble bg-good"
-                : "bg-faded"
-          }`}
-          aria-label={
-            readyToWin
-              ? "Check out the basket"
-              : "Check out — finish the checklist and stay within budget first"
-          }
-        >
-          {overBudget ? "⚠ Check out" : "Check out"}
-        </button>
+        <p className="mt-2 text-xs font-bold">{status.mustNotViolated ? "⚠" : "✓"} {MUST_NOT_LABEL[npc.mustNot]}</p>
       </div>
-    </div>
-  );
+      <div className="basket-receipt">
+        {basket.length === 0 ? <p className="py-4 text-center text-sm">Your basket is empty. Head to the shelves to pick your lunch.</p> : <ul>
+          {basket.map((entry) => {
+            const food = FOOD_BY_ID[entry.foodItemId];
+            const stock = inventory.find((item) => item.foodItemId === entry.foodItemId);
+            const soldOut = !stock || quantityRemaining(stock, basket) === 0;
+            return <li key={entry.foodItemId} className="receipt-item">
+              <span aria-hidden className="text-2xl">{food.emoji}</span>
+              <div className="min-w-0 flex-1"><strong className="block text-sm leading-tight">{food.name}</strong><span className="text-xs text-faded">{entry.quantity} × {formatCents(entry.pricePaidCents)}</span></div>
+              <strong className="text-sm tabular-nums">{formatCents(entry.pricePaidCents * entry.quantity)}</strong>
+              <div className="flex gap-1">
+                <button type="button" onClick={() => onRemove(entry.foodItemId)} className="btn grid size-11 place-items-center bg-paper text-lg" aria-label={`Put back one ${food.name}`}>−</button>
+                <button type="button" onClick={() => onAdd(entry.foodItemId)} disabled={soldOut} className="btn grid size-11 place-items-center bg-paper text-lg" aria-label={soldOut ? `No more ${food.name} on the shelf` : `Add one more ${food.name}`}>+</button>
+              </div>
+            </li>;
+          })}
+        </ul>}
+      </div>
+      <BudgetMeter budget={roundBudgetCents} remaining={remainingBudgetCents} event={null} target={challengeTarget} />
+      <p className={`my-2 text-xs font-bold ${overBudget ? "text-danger" : "text-good"}`} role="status">{overBudget ? `Put something back to save ${formatCents(-remainingBudgetCents)}.` : readyToWin ? "Checklist complete. Lunch is ready!" : "Finish the unticked parts of your checklist."}</p>
+      {timed && <p className="mb-2 text-xs text-faded"><strong className={timeRemainingSeconds <= 15 ? "text-danger" : "text-ink"}>⏱ {timeRemainingSeconds}s left.</strong> Putting food back costs 3 seconds.</p>}
+      <div className="grid grid-cols-2 gap-2">
+        <button type="button" onClick={close} className="btn min-h-12 bg-paper text-sm">← Keep shopping</button>
+        <button type="button" onClick={() => { setOpen(false); onCheckout(); }} disabled={!readyToWin} className="btn min-h-12 bg-good text-sm text-white">Check out ✓</button>
+      </div>
+    </Dialog>}
+  </>;
 }

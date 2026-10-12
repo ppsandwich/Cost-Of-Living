@@ -112,12 +112,6 @@ export function FoodCard({
             .
           </p>
           <p>
-            <strong>Equipment:</strong>{" "}
-            {food.requiresEquipment?.join(", ") ||
-              "None needed"}
-            .
-          </p>
-          <p>
             One pack ticks off the parts of lunch listed above. Buying more of the
             same item does not tick off a new part.
           </p>

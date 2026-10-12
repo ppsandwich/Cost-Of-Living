@@ -2,7 +2,7 @@ import type { FoodItem } from "@/types/food";
 import type { NPC } from "@/types/npc";
 import type { BasketItem } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
-import { hasEquipmentMismatch, violatesMustNot } from "./applyFoodItem";
+import { violatesMustNot } from "./applyFoodItem";
 
 export const MEAL_ROLES = ["base", "protein", "produce"] as const;
 export type MealRole = (typeof MEAL_ROLES)[number];
@@ -53,7 +53,7 @@ export function mealRoles(food: FoodItem): MealRole[] {
 }
 
 export function usableFood(food: FoodItem, npc: NPC): boolean {
-  return !violatesMustNot(food, npc) && !hasEquipmentMismatch(food, npc);
+  return !violatesMustNot(food, npc);
 }
 
 export function mealCoverage(

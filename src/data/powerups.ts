@@ -7,8 +7,6 @@ export type PowerUpId =
   | "superstore"
   | "embezzler"
   | "escape_rope"
-  | "shared_kitchen"
-  | "fridge"
   | "price_compare";
 
 export interface PowerUp {
@@ -67,20 +65,6 @@ export const POWER_UPS: PowerUp[] = [
     icon: "🪙",
     rarity: "rare",
     description: "Add half your leftover money to the next budget.",
-  },
-  {
-    id: "shared_kitchen",
-    name: "Shared kitchen",
-    icon: "🍳",
-    description:
-      "Use a stove, oven, kettle and microwave. Food rules stay the same.",
-  },
-  {
-    id: "fridge",
-    name: "Fridge and freezer",
-    icon: "🧊",
-    description:
-      "Use chilled and frozen foods with a fridge and freezer.",
   },
   {
     id: "price_compare",

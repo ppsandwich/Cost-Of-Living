@@ -9,7 +9,6 @@ import {
 } from "./progression";
 import { generateSolvableRound } from "./solver";
 import {
-  applyAccessUpgrades,
   drawPowerUps,
   powerUpExtraBudgetCents,
   powerUpExtraSeconds,
@@ -75,10 +74,7 @@ export const INITIAL_STATE: GameState = {
 const roundSeed = (seed: number, round: number) => (seed + round * 7919) >>> 0;
 function makeRound(state: GameState, roundNumber: number) {
   const seed = roundSeed(state.seed, roundNumber);
-  const npc = applyAccessUpgrades(
-    selectNPC(state.previousNPCIds, seed),
-    state.powerUps,
-  );
+  const npc = selectNPC(state.previousNPCIds, seed);
   const carry = state.powerUps.includes("embezzler")
     ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
     : 0;

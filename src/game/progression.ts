@@ -2,9 +2,6 @@ import type { NPC } from "@/types/npc";
 import { NPCS } from "@/data/npcs";
 import { createRng, pick } from "./seededRandom";
 
-/** How much seeded variety to blend into the access-based ordering. */
-const SELECTION_FUZZ = 7;
-
 export const ROUND_TIMER_SECONDS = 90;
 
 /** Clear this round and the run is won. */
@@ -22,7 +19,7 @@ export function budgetPressureLabel(multiplier: number): string {
   return "Tiny budget";
 }
 
-/** Introduce people with fewer kitchen constraints early; seeded noise varies the order. */
+/** Meet everyone before repeating; keep the order stable for a given seed. */
 export function selectNPC(previousNPCIds: string[], seed: number): NPC {
   const rng = createRng(seed);
   let pool = NPCS.filter((n) => !previousNPCIds.includes(n.id));
@@ -32,15 +29,5 @@ export function selectNPC(previousNPCIds: string[], seed: number): NPC {
     pool = NPCS.filter((n) => n.id !== lastId);
     return pick(rng, pool);
   }
-  let best = pool[0];
-  let bestScore = -Infinity;
-  for (const npc of pool) {
-    const score =
-      100 - npc.restrictions.length * 20 + (rng() * 2 - 1) * SELECTION_FUZZ;
-    if (score > bestScore) {
-      best = npc;
-      bestScore = score;
-    }
-  }
-  return best;
+  return pick(rng, pool);
 }

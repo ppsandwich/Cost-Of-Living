@@ -3,7 +3,6 @@ import type { BasketItem } from "@/types/game";
 import {
   PREFERENCE_TAG,
   violatesMustNot,
-  hasEquipmentMismatch,
 } from "./applyFoodItem";
 import { basketFoods } from "./calculateStats";
 import { mealCoverage, usableFood } from "./meals";
@@ -12,7 +11,6 @@ export const VARIETY_CATEGORY_MIN = 3;
 export interface RequirementsStatus {
   wants: { want: FoodPreference; satisfied: boolean }[];
   mustNotViolated: boolean;
-  equipmentMet: boolean;
   allMet: boolean;
 }
 export function getRequirementsStatus(
@@ -32,12 +30,10 @@ export function getRequirementsStatus(
     };
   });
   const mustNotViolated = foods.some((f) => violatesMustNot(f, npc));
-  const equipmentMet = foods.every((f) => !hasEquipmentMismatch(f, npc));
   return {
     wants,
     mustNotViolated,
-    equipmentMet,
-    allMet: wants.every((w) => w.satisfied) && !mustNotViolated && equipmentMet,
+    allMet: wants.every((w) => w.satisfied) && !mustNotViolated,
   };
 }
 export function allRequirementsMet(basket: BasketItem[], npc: NPC): boolean {

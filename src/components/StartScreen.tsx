@@ -14,7 +14,7 @@ interface StartScreenProps {
 
 const TUTORIAL_STEPS = [
   "Read the order ticket: a base (like bread), protein (like beans), fruit or veg, and two food wishes.",
-  "Avoid marked foods. Check their kitchen equipment before choosing.",
+  "Compare prices and check foods to avoid.",
   "Fill the checklist without going over budget, then check out.",
   "Follow 20 neighbourhood stops. Collect power-ups and try a cheaper basket!",
 ];

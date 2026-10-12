@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { NPC } from "@/types/npc";
 import type { BasketItem, StoreItem } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
@@ -5,12 +6,13 @@ import { FOOD_BY_ID } from "@/data/foodItems";
 import { MUST_NOT_BADGE, WANT_BADGE, AISLE_LABEL } from "@/data/labels";
 import {
   PREFERENCE_TAG,
-  hasEquipmentMismatch,
   violatesMustNot,
 } from "@/game/applyFoodItem";
-import { mealRoles, usableFood, MEAL_LABELS } from "@/game/meals";
+import { mealRoles, mealCoverage, MEAL_ROLES, usableFood, MEAL_LABELS, type MealRole } from "@/game/meals";
 import { quantityInBasket, quantityRemaining } from "@/game/roundEnd";
 import { AISLE_ORDER, AISLE_ICONS, shopForRound } from "@/game/shops";
+import { getRequirementsStatus } from "@/game/requirements";
+import { MEAL_ICONS } from "./StatsPanel";
 import { FoodCard } from "./FoodCard";
 interface StoreListProps {
   inventory: StoreItem[];
@@ -37,28 +39,52 @@ export function StoreList({
   onBulkAdd,
 }: StoreListProps) {
   const shop = shopForRound(roundNumber);
-  const aisles = AISLE_ORDER.filter((aisle) => inventory.some((item) => FOOD_BY_ID[item.foodItemId].category === aisle));
+  const [filter, setFilter] = useState<"all" | MealRole | "wishes">("all");
+  const [showAll, setShowAll] = useState(false);
+  const coverage = mealCoverage(basket, npc);
+  const wants = getRequirementsStatus(basket, npc).wants;
+  const visibleInventory = inventory.filter((item) => {
+    const food = FOOD_BY_ID[item.foodItemId];
+    if (!showAll && !usableFood(food, npc)) return false;
+    if (filter === "all") return true;
+    if (filter === "wishes") return npc.wants.some((want) => want === "likes_variety" || (PREFERENCE_TAG[want] && food.tags.includes(PREFERENCE_TAG[want]!)));
+    return mealRoles(food).includes(filter);
+  });
+  const blockedCount = inventory.filter((item) => !usableFood(FOOD_BY_ID[item.foodItemId], npc)).length;
+  const aisles = AISLE_ORDER.filter((aisle) => visibleInventory.some((item) => FOOD_BY_ID[item.foodItemId].category === aisle));
   const visited = new Set(basket.map((item) => FOOD_BY_ID[item.foodItemId].category));
   return (
-    <section aria-label="Store shelves" className={canShop ? "store-shelves" : "store-shelves planning-shelves"}>
+    <section id="store-shelves" tabIndex={-1} aria-label="Store shelves" className={canShop ? "store-shelves" : "store-shelves planning-shelves"}>
       <div className="shop-front">
         <span aria-hidden className="shop-front-icon">{shop.icon}</span>
         <div><p className="text-xs font-bold uppercase tracking-wider">Stop {roundNumber}</p><h2 className="font-title text-3xl">{shop.name}</h2><p className="text-xs">{shop.sign}</p></div>
       </div>
-      <nav className="aisle-nav" aria-label="Jump to an aisle">
-        {aisles.map((aisle) => <a key={aisle} href={`#aisle-${aisle}`}><span aria-hidden>{AISLE_ICONS[aisle]}</span> {AISLE_LABEL[aisle]}</a>)}
-      </nav>
-      {!canShop && <p className="mb-3 text-xs text-faded">Tap a product for details. Start shopping when you’re ready.</p>}
+      <div className="shelf-tools">
+        <div className="lunch-filters" role="group" aria-label="Find food for your lunch">
+          <button aria-pressed={filter === "all"} onClick={() => setFilter("all")}>All</button>
+          {MEAL_ROLES.map((role) => <button key={role} aria-pressed={filter === role} onClick={() => setFilter(role)}>
+            <span aria-hidden>{coverage[role] ? "✓" : MEAL_ICONS[role]}</span> {role === "produce" ? "Fruit / veg" : role === "base" ? "Base" : "Protein"}<span className="sr-only">{coverage[role] ? ": covered" : ": still needed"}</span>
+          </button>)}
+          <button aria-pressed={filter === "wishes"} onClick={() => setFilter("wishes")}><span aria-hidden>{wants.every((w) => w.satisfied) ? "✓" : "★"}</span> Wishes</button>
+        </div>
+        <div className="shelf-options">
+          <span>{visibleInventory.length} choices{!showAll ? ` for ${npc.name}` : ""}</span>
+          {blockedCount > 0 && <button className="min-h-11 font-bold underline underline-offset-4" aria-pressed={showAll} onClick={() => setShowAll(!showAll)}>{showAll ? "Hide foods to avoid" : `Show foods to avoid (${blockedCount})`}</button>}
+        </div>
+        <details className="aisle-disclosure"><summary>Jump to an aisle</summary><nav className="aisle-nav" aria-label="Jump to an aisle">
+          {aisles.map((aisle) => <a key={aisle} href={`#aisle-${aisle}`}><span aria-hidden>{AISLE_ICONS[aisle]}</span> {AISLE_LABEL[aisle]}</a>)}
+        </nav></details>
+      </div>
+      <p className="shelf-hint">{!canShop ? "Browse prices now. Start shopping when you’re ready." : "Pick food, watch your budget, then review your basket."}</p>
+      {visibleInventory.length === 0 && <p className="panel bg-receipt p-4 text-sm">No food here matches this filter. <button className="min-h-11 font-bold underline" onClick={() => setFilter("all")}>See all choices</button></p>}
       {aisles.map((aisle) => <section className={`aisle aisle-${aisle}`} key={aisle} id={`aisle-${aisle}`} aria-label={`${AISLE_LABEL[aisle]} aisle`}>
         <h3 className="aisle-sign"><span aria-hidden>{AISLE_ICONS[aisle]}</span> {AISLE_LABEL[aisle]} {visited.has(aisle) && <span className="aisle-picked">✓ In basket</span>}</h3>
         <ul className="product-shelf">
-        {inventory.filter((item) => FOOD_BY_ID[item.foodItemId].category === aisle).map((item) => {
+        {visibleInventory.filter((item) => FOOD_BY_ID[item.foodItemId].category === aisle).map((item) => {
           const food = FOOD_BY_ID[item.foodItemId];
           const unavailable = violatesMustNot(food, npc)
             ? MUST_NOT_BADGE[npc.mustNot]
-            : hasEquipmentMismatch(food, npc)
-              ? "They don’t have the kitchen equipment for this"
-              : null;
+            : null;
           const lowestRoles =
             powerUps.includes("price_compare") && !unavailable
               ? mealRoles(food).filter(

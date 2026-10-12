@@ -18,6 +18,7 @@ import { PowerUpShelf } from "@/components/PowerUps";
 import { CountdownInterstitial } from "@/components/CountdownInterstitial";
 import { PauseModal } from "@/components/PauseModal";
 import { PlanningPanel } from "@/components/PlanningPanel";
+import { ShoppingOrder } from "@/components/ShoppingOrder";
 import { Journey } from "@/components/Journey";
 import { shopForRound } from "@/game/shops";
 import { useShopAudio } from "@/hooks/useShopAudio";
@@ -50,6 +51,7 @@ export default function Home() {
   useEffect(() => {
     if (state.status !== "playing" && state.status !== "planning") return;
     window.scrollTo(0, 0);
+    document.getElementById(state.status === "planning" ? "shop-heading" : "store-shelves")?.focus({ preventScroll: true });
   }, [state.status, state.roundNumber]);
 
   // Persist records (external system) whenever a round resolves
@@ -116,90 +118,58 @@ export default function Home() {
         canPause={state.status === "playing" && !pendingCountdown}
       />
 
-      <div className="mx-auto w-full max-w-md px-3 lg:max-w-6xl"><Journey state={state} /></div>
-      <main
-        className={`mx-auto w-full max-w-md flex-1 px-3 pb-3 pt-2 lg:grid lg:max-w-6xl lg:items-start lg:gap-4 ${state.status === "planning" ? "lg:grid-cols-[340px_1fr]" : "lg:grid-cols-[280px_1fr_320px]"}`}
-      >
-        <div
-          className={`space-y-3 ${state.status === "planning" ? "" : "lg:sticky lg:top-28"}`}
-        >
-          <NPCPanel key={npc.id} npc={npc} basket={state.basket} budgetCents={state.roundBudgetCents} event={state.basketEvent} />
-          {state.status === "planning" && (
+      <main className={`shop-workspace ${state.status === "planning" ? "workspace-planning" : "workspace-shopping"}`}>
+        <div className="flow-heading">
+          <div><p className="text-xs font-bold text-brand-dark">Lunch run · Stop {state.roundNumber}</p><h1 tabIndex={-1} className="font-title text-3xl focus:outline-none" id="shop-heading">{state.status === "planning" ? "Meet, plan, then shop." : "Let’s build a lunch."}</h1></div>
+          <ol className="flow-steps" aria-label="Your shop">
+            <li aria-current={state.status === "planning" ? "step" : undefined}><span>{state.status === "planning" ? "1" : "✓"}</span>Plan</li>
+            <li aria-current={state.status !== "planning" ? "step" : undefined}><span>2</span>Shop</li>
+            <li><span>3</span>Review</li>
+          </ol>
+        </div>
+        <aside className="shop-companion" aria-label={state.status === "planning" ? "Your lunch order and plan" : "Your order and basket"}>
+          {state.status === "planning" ? <>
+            <NPCPanel key={npc.id} npc={npc} basket={state.basket} budgetCents={state.roundBudgetCents} event={state.basketEvent} />
             <PlanningPanel
               key={`${state.roundNumber}-${state.previousAttempt ? "retry" : "first"}`}
               state={state}
               onBegin={(estimateCents) => {
-                const begin = () =>
-                  dispatch({
-                    type: "BEGIN_SHOPPING",
-                    estimateCents,
-                  });
+                const begin = () => dispatch({ type: "BEGIN_SHOPPING", estimateCents });
                 if (state.mode === "standard_run") withCountdown(begin);
                 else begin();
               }}
             />
-          )}
-          <PowerUpShelf
-            key={state.roundNumber}
-            powerUps={state.powerUps}
-            canUseEscapeRope={
-              state.status === "playing" && state.roundNumber < FINAL_ROUND
-            }
-            onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })}
-          />
-
-        </div>
-
-        {/* bottom padding keeps the last food card clear of the fixed mobile drawer */}
-        <div
-          className={`min-w-0 mt-3 lg:mt-0 lg:pb-0 ${state.status === "planning" ? "pb-24" : "pb-80"}`}
-        >
-          <StoreList
+          </> : <ShoppingOrder key={`order-${state.roundNumber}`} state={state} />}
+          <PowerUpShelf key={`powerups-${state.roundNumber}`} powerUps={state.powerUps}
+            canUseEscapeRope={state.status === "playing" && state.roundNumber < FINAL_ROUND}
+            onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })} />
+          {state.status !== "planning" && <BasketDrawer
+            key={`basket-${state.roundNumber}`}
+            roundBudgetCents={state.roundBudgetCents}
+            event={state.basketEvent}
+            challengeTarget={state.retryChallenge?.targetSpendCents}
+            basket={state.basket} npc={npc}
             inventory={state.inventory}
-            roundNumber={state.roundNumber}
-            canShop={state.status === "playing" && !paused && !pendingCountdown}
-            basket={state.basket}
-            npc={npc}
-            powerUps={state.powerUps}
-            bulkAddsUsed={state.bulkAddsUsed}
+            remainingBudgetCents={state.remainingBudgetCents}
+            active={state.status === "playing" && !paused && !pendingCountdown}
+            timed={state.mode === "standard_run"}
+            timeRemainingSeconds={state.timeRemainingSeconds}
+            onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
-            onRemove={(foodItemId) =>
-              dispatch({ type: "REMOVE_ITEM", foodItemId })
-            }
-            onBulkAdd={(foodItemId) =>
-              dispatch({ type: "BULK_ADD", foodItemId })
-            }
-          />
+            onCheckout={() => dispatch({ type: "CHECKOUT" })} />}
+          {state.status === "planning" && <details className="trail-disclosure"><summary>Your neighbourhood trail</summary><Journey state={state} /></details>}
+        </aside>
+        <div className="shop-products">
+          <StoreList key={`${state.roundNumber}-${state.status === "planning" ? "plan" : "shop"}`}
+            inventory={state.inventory} roundNumber={state.roundNumber}
+            canShop={state.status === "playing" && !paused && !pendingCountdown}
+            basket={state.basket} npc={npc} powerUps={state.powerUps} bulkAddsUsed={state.bulkAddsUsed}
+            onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
+            onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
+            onBulkAdd={(foodItemId) => dispatch({ type: "BULK_ADD", foodItemId })} />
         </div>
-
-        {state.status !== "planning" && (
-          <div className="fixed inset-x-0 bottom-0 z-30 lg:sticky lg:top-28">
-            <BasketDrawer
-              key={state.roundNumber}
-              roundBudgetCents={state.roundBudgetCents}
-              event={state.basketEvent}
-              challengeTarget={state.retryChallenge?.targetSpendCents}
-              basket={state.basket}
-              npc={npc}
-              remainingBudgetCents={state.remainingBudgetCents}
-              onRemove={(foodItemId) =>
-                dispatch({ type: "REMOVE_ITEM", foodItemId })
-              }
-              onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
-              onCheckout={() => dispatch({ type: "CHECKOUT" })}
-            />
-          </div>
-        )}
       </main>
 
-      {state.status === "planning" && (
-        <a
-          href="#shopping-plan"
-          className="btn fixed inset-x-3 bottom-3 z-30 flex min-h-12 items-center justify-center bg-good text-white lg:hidden"
-        >
-          Back to start shopping
-        </a>
-      )}
       {state.status === "round_won" && (
         <OutcomeModal
           state={state}

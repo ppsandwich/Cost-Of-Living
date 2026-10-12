@@ -14,7 +14,6 @@ import { POWER_UP_STOPS } from "../src/game/shops";
 import { NPCS } from "../src/data/npcs";
 import type { PowerUpId } from "../src/data/powerups";
 import {
-  applyAccessUpgrades,
   drawPowerUps,
   powerUpExtraBudgetCents,
 } from "../src/game/powerups";
@@ -43,7 +42,7 @@ function simulate(
     [],
     withUpgrades ? POWER_UP_STOPS.filter((stop) => stop < roundNumber).length : 0,
   );
-  const npc = applyAccessUpgrades(baseNpc, powerUps);
+  const npc = baseNpc;
   const budget =
     Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
     powerUpExtraBudgetCents(powerUps);
