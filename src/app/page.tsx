@@ -173,13 +173,11 @@ export default function Home() {
               event={state.basketEvent}
               challengeTarget={state.retryChallenge?.targetSpendCents}
               basket={state.basket} npc={npc}
-              inventory={state.inventory}
               remainingBudgetCents={state.remainingBudgetCents}
               active={state.status === "playing" && !paused && !pendingCountdown}
               timed={state.mode === "standard_run"}
               timeRemainingSeconds={state.timeRemainingSeconds}
               onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
-              onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
               onCheckout={() => dispatch({ type: "CHECKOUT" })} />
           </div>
         </aside>
@@ -188,17 +186,16 @@ export default function Home() {
             inventory={state.inventory} roundNumber={state.roundNumber}
             planning={planningView}
             canShop={state.status === "playing" && !paused && !pendingCountdown}
-            basket={state.basket} npc={npc} powerUps={state.powerUps} bulkAddsUsed={state.bulkAddsUsed}
+            basket={state.basket} npc={npc} powerUps={state.powerUps}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
             onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
-            onBulkAdd={(foodItemId) => dispatch({ type: "BULK_ADD", foodItemId })} />
+          />
         </div>
       </main>
 
       {state.status === "round_won" && (
         <OutcomeModal
           state={state}
-          onRetry={retryRound}
           onNextRound={() => dispatch({ type: "NEXT_ROUND" })}
           onChoosePowerUp={(powerUpId) =>
             dispatch({ type: "CHOOSE_POWERUP", powerUpId })

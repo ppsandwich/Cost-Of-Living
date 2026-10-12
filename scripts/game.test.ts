@@ -159,7 +159,7 @@ test("checkout requires the entire brief and budget; stock and blocked items can
     });
   assert.equal(
     stock.basket.find((b) => b.foodItemId === first.foodItemId)?.quantity,
-    first.quantityAvailable,
+    1,
   );
 });
 
@@ -291,12 +291,13 @@ test("a low-budget generated shop carries a real solution witness", () => {
 test("basket events celebrate only newly covered roles and wishes, and return the paid amount", () => {
   let state = begin(start());
   state = { ...state, npc: NPCS.find(n => n.id === "ada")!, basket: [], inventory: [
-    { foodItemId: "microwave-curry", currentPriceCents: 300, quantityAvailable: 2 },
+    { foodItemId: "microwave-curry", currentPriceCents: 300, quantityAvailable: 1 },
+    { foodItemId: "rice-1kg", currentPriceCents: 200, quantityAvailable: 1 },
     { foodItemId: "carrots", currentPriceCents: 150, quantityAvailable: 1 },
   ] };
   state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "microwave-curry" });
   assert.deepEqual(state.basketEvent?.newRoles, ["base", "protein"]);
-  state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "microwave-curry" });
+  state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "rice-1kg" });
   assert.deepEqual(state.basketEvent?.newRoles, []);
   const blocked = gameReducer(state, { type: "ADD_ITEM", foodItemId: "microwave-curry" });
   assert.equal(blocked, state, "sold-out purchases do not trigger animation or sound events");
@@ -312,10 +313,10 @@ test("basket events celebrate only newly covered roles and wishes, and return th
 
 test("retry challenges have a legal cheaper witness and require a complete checkout for the badge", () => {
   const original = { ...start(), npc: NPCS.find(n => n.id === "jan")!, roundBudgetCents: 2000, remainingBudgetCents: 2000,
-    inventory: ["white-bread", "baked-beans", "carrots"].map(foodItemId => ({ foodItemId, currentPriceCents: 200, quantityAvailable: 2 })) };
+    inventory: ["white-bread", "baked-beans", "carrots", "bananas"].map(foodItemId => ({ foodItemId, currentPriceCents: 200, quantityAvailable: 1 })) };
   const plan = { ...original, roundStart: { ...original, roundStart: null } };
   let state = begin(plan);
-  for (const foodItemId of ["white-bread", "white-bread", "baked-beans", "carrots"]) state = gameReducer(state, { type: "ADD_ITEM", foodItemId });
+  for (const foodItemId of ["white-bread", "baked-beans", "carrots", "bananas"]) state = gameReducer(state, { type: "ADD_ITEM", foodItemId });
   state = gameReducer(state, { type: "CHECKOUT" });
   const saving = findSaving(state)!;
   assert.equal(saving.savings, 200);
@@ -467,4 +468,22 @@ test("Recipe Bonus is awarded once at valid checkout, reset on retry, and includ
   const lost = gameReducer({ ...playing, mode: "standard_run", timeRemainingSeconds: 1 }, { type: "TICK" });
   assert.equal(lost.recipe, null);
   assert.equal(lost.score, 0);
+});
+
+
+test("each food can only be added once, even if supplied inventory reports spare stock", () => {
+  const plan = { ...start(), inventory: [{ foodItemId: "rice-1kg", currentPriceCents: 100, quantityAvailable: 9 }] };
+  const playing = begin(plan);
+  const added = gameReducer(playing, { type: "ADD_ITEM", foodItemId: "rice-1kg" });
+  assert.equal(added.basket.length, 1);
+  assert.equal(added.basket[0].quantity, 1);
+  assert.equal(gameReducer(added, { type: "ADD_ITEM", foodItemId: "rice-1kg" }), added);
+  const removed = gameReducer(added, { type: "REMOVE_ITEM", foodItemId: "rice-1kg" });
+  assert.equal(removed.basket.length, 0);
+  assert.equal(removed.remainingBudgetCents, playing.remainingBudgetCents);
+  assert.equal(gameReducer(removed, { type: "ADD_ITEM", foodItemId: "rice-1kg" }).basket[0].quantity, 1);
+  for (const npc of NPCS) {
+    assert.ok(generateInventory(npc, npc.baseBudgetCents, 42, 20, POWER_UPS.map(p => p.id)).every(item => item.quantityAvailable === 1));
+  }
+  assert.ok(POWER_UPS.every(p => !["bulk_buyer", "camp_chef"].includes(p.id)));
 });

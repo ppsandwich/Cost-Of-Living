@@ -80,7 +80,7 @@ export function improvementTip(state: GameState): string {
   const saving = findSaving(state);
   if (saving) return saving.message;
   if (state.endReason === "goals_met")
-    return "Can a different basket finish the checklist for less? Try again and compare.";
+    return "Next shop, compare prices before you add food. Can one item cover two parts of lunch?";
   const witness = findClearingBasket(
     npc,
     state.inventory,

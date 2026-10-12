@@ -17,9 +17,6 @@ export function powerUpExtraBudgetCents(p: PowerUpId[]): number {
 export function powerUpInventoryMultiplier(p: PowerUpId[]): number {
   return p.includes("superstore") ? 1.3 : 1;
 }
-export function powerUpQuantityBonus(p: PowerUpId[]): number {
-  return p.includes("bulk_buyer") ? 1 : 0;
-}
 export function powerUpExtraSpecials(p: PowerUpId[]): number {
   return p.includes("coupon_clipper") ? 2 : 0;
 }

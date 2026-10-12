@@ -11,5 +11,5 @@ export function quantityRemaining(
   item: StoreItem,
   basket: BasketItem[],
 ): number {
-  return item.quantityAvailable - quantityInBasket(basket, item.foodItemId);
+  return Math.max(0, Math.min(1, item.quantityAvailable) - quantityInBasket(basket, item.foodItemId));
 }

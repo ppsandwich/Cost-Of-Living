@@ -34,7 +34,6 @@ export type GameAction =
   | { type: "BEGIN_SHOPPING"; estimateCents: number | null }
   | { type: "RETRY_ROUND"; challenge?: boolean }
   | { type: "ADD_ITEM"; foodItemId: string }
-  | { type: "BULK_ADD"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
   | { type: "CHECKOUT" }
   | { type: "CHOOSE_POWERUP"; powerUpId: PowerUpId }
@@ -58,7 +57,6 @@ export const INITIAL_STATE: GameState = {
   previousNPCIds: [],
   powerUps: [],
   powerUpChoices: null,
-  bulkAddsUsed: [],
   recipe: null,
   score: 0,
   totalScore: 0,
@@ -106,7 +104,6 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     npc,
     inventory,
     basket: [],
-    bulkAddsUsed: [],
     roundBudgetCents: budgetCents,
     remainingBudgetCents: budgetCents,
     timeRemainingSeconds: duration,
@@ -221,23 +218,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!item || quantityRemaining(item, state.basket) <= 0) return state;
       const food = FOOD_BY_ID[action.foodItemId];
       if (!usableFood(food, state.npc)) return state;
-      const exists = state.basket.some(
-        (b) => b.foodItemId === action.foodItemId,
-      );
-      const basket = exists
-        ? state.basket.map((b) =>
-            b.foodItemId === action.foodItemId
-              ? { ...b, quantity: b.quantity + 1 }
-              : b,
-          )
-        : [
-            ...state.basket,
-            {
-              foodItemId: action.foodItemId,
-              quantity: 1,
-              pricePaidCents: item.currentPriceCents,
-            },
-          ];
+      const basket = [...state.basket, {
+        foodItemId: action.foodItemId,
+        quantity: 1,
+        pricePaidCents: item.currentPriceCents,
+      }];
       const roles = mealRoles(food);
       const before = mealCoverage(state.basket, state.npc);
       const after = mealCoverage(basket, state.npc);
@@ -253,25 +238,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ? `Added ${food.name}. Counts as ${roles.map((r) => MEAL_LABELS[r].toLowerCase()).join(" and ")}.`
           : `Added ${food.name} as an extra. Check your lunch list too.`,
       };
-    }
-    case "BULK_ADD": {
-      if (
-        state.status !== "playing" ||
-        !state.powerUps.includes("bulk_buyer") ||
-        state.bulkAddsUsed.includes(action.foodItemId) ||
-        !state.basket.some((b) => b.foodItemId === action.foodItemId)
-      )
-        return state;
-      const added = gameReducer(state, {
-        type: "ADD_ITEM",
-        foodItemId: action.foodItemId,
-      });
-      return added === state
-        ? state
-        : {
-            ...added,
-            bulkAddsUsed: [...state.bulkAddsUsed, action.foodItemId],
-          };
     }
     case "REMOVE_ITEM": {
       if (state.status !== "playing") return state;

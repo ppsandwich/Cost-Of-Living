@@ -26,10 +26,8 @@ interface FoodCardProps {
   showPrice?: boolean;
   showAisle?: boolean;
   priceHint: string | null;
-  canBulkAdd: boolean;
   onAdd: () => void;
   onRemove: () => void;
-  onBulkAdd: () => void;
 }
 export function FoodCard({
   food,
@@ -42,14 +40,12 @@ export function FoodCard({
   showPrice = true,
   showAisle = false,
   priceHint,
-  canBulkAdd,
   onAdd,
   onRemove,
-  onBulkAdd,
 }: FoodCardProps) {
   const [expanded, setExpanded] = useState(false);
   const buyable = canShop && !unavailable && remainingQuantity > 0;
-  const removeInstead = inBasket > 0 && remainingQuantity <= 0;
+  const removeInstead = inBasket > 0;
   const roles = mealRoles(food);
   const tasteTags = TASTE_TAGS.filter(({ tag }) => food.tags.includes(tag));
   return (
@@ -69,7 +65,7 @@ export function FoodCard({
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
           aria-label={`${food.name}${showPrice ? `, ${formatCents(storeItem.currentPriceCents)}` : ""}. Details`}
-          className="min-h-11 min-w-0 flex-1 text-left"
+          className="product-info min-h-11 min-w-0 text-left"
         >
           <span className="block font-display text-base leading-tight">{food.name}</span>
           <span className="block text-xs text-faded">
@@ -78,6 +74,14 @@ export function FoodCard({
               : food.tags.includes("seasoning") ? "Flavour extra" : "An extra"}
           </span>
         </button>
+        {canShop && <button
+          onClick={removeInstead ? onRemove : onAdd}
+          disabled={removeInstead ? !canShop : !buyable}
+          aria-label={removeInstead ? `Remove ${food.name}` : `Add ${food.name}`}
+          className={`product-action btn min-h-11 px-2 text-sm ${removeInstead ? "bg-paper text-ink" : "bg-good text-white"}`}
+        >
+          {removeInstead ? "Remove" : "Add"}
+        </button>}
         {showPrice && <span className={`price-ticket ${storeItem.onSale ? "price-ticket-sale" : ""} shrink-0 font-display text-lg tabular-nums`}>
           {formatCents(storeItem.currentPriceCents)}
         </span>}
@@ -118,44 +122,12 @@ export function FoodCard({
             .
           </p>
           <p>
-            One pack ticks off the parts of lunch listed above. Buying more of the
-            same item does not tick off a new part.
+            Choose one of each food. One item can tick off more than one part of lunch.
           </p>
         </div>
       )}
-      {canShop && <div className="product-actions mt-3 flex flex-wrap items-center gap-2">
-        <span className="min-w-0 flex-1 text-xs font-bold text-good">
-          {inBasket > 0 && <span key={inBasket} className="check-stamp inline-block">✓ In basket</span>}
-        </span>
-        {inBasket > 0 && !removeInstead && (
-          <button
-            onClick={onRemove}
-            disabled={!canShop}
-            aria-label={`Put back one ${food.name}`}
-            className="btn size-11 bg-paper"
-          >
-            −
-          </button>
-        )}
-        <button
-          onClick={removeInstead ? onRemove : onAdd}
-          disabled={removeInstead ? !canShop : !buyable}
-          aria-label={removeInstead ? `Remove one ${food.name}` : `Add ${food.name}`}
-          className={`btn min-h-11 min-w-16 px-3 ${removeInstead ? "bg-paper text-ink" : "bg-good text-white"}`}
-        >
-          {removeInstead ? "Remove" : "Add"}
-        </button>
-        {canBulkAdd && inBasket > 0 && !removeInstead && (
-          <button
-            onClick={onBulkAdd}
-            disabled={!buyable}
-            className="btn min-h-11 bg-tag px-2 text-xs"
-            aria-label={`Group order: add one more ${food.name}`}
-          >
-            One more
-          </button>
-        )}
-      </div>}
+      {inBasket > 0 && <p className="mt-2 text-xs font-bold text-good">✓ In basket</p>}
+
     </li>
   );
 }

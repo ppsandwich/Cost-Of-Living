@@ -16,7 +16,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
       "sweet",
     ],
-    maxQuantity: 2,
     flavour: "A snack with its own wrapper.",
   },
   {
@@ -87,7 +86,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "high_fibre",
       "low_prep",
     ],
-    maxQuantity: 2,
     flavour: "Orange, crunchy and ready for a dip.",
   },
   {
@@ -97,7 +95,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "vegetable",
     basePriceCents: 310,
     tags: ["cheap", "vitamin_rich", "high_fibre", "mineral_rich", "bland"],
-    maxQuantity: 2,
     flavour: "A colourful mix waiting in the freezer.",
   },
   {
@@ -107,7 +104,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "vegetable",
     basePriceCents: 170,
     tags: ["cheap", "vitamin_rich"],
-    maxQuantity: 3,
     flavour: "A tin with big pasta-sauce plans.",
   },
   {
@@ -161,7 +157,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "vegetable",
     basePriceCents: 200,
     tags: ["cheap", "sweet", "low_prep", "family_friendly"],
-    maxQuantity: 2,
     flavour: "Little yellow bites that roll off your fork.",
   },
 
@@ -182,7 +177,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "low_prep",
       "spicy",
     ],
-    maxQuantity: 3,
     flavour: "Quick noodles. The fork has some untangling to do.",
   },
   {
@@ -199,7 +193,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "mineral_rich",
       "bland",
     ],
-    maxQuantity: 2,
     flavour: "Tiny lentils with big saucepan plans.",
   },
   {
@@ -209,7 +202,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 240,
     tags: ["cheap", "filling", "high_carb", "bland"],
-    maxQuantity: 2,
     flavour: "A simple start for lots of different meals.",
   },
   {
@@ -227,7 +219,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
       "comfort",
     ],
-    maxQuantity: 2,
     flavour: "Soft, square and ready for sandwich duty.",
   },
   {
@@ -237,7 +228,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 270,
     tags: ["filling", "high_fibre", "low_prep", "bland"],
-    maxQuantity: 2,
     flavour: "Same sandwich mission, a different kind of bread.",
   },
   {
@@ -247,7 +237,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 270,
     tags: ["cheap", "filling", "high_fibre", "mineral_rich", "bland"],
-    maxQuantity: 2,
     flavour: "Just waiting for their porridge moment.",
   },
   {
@@ -262,7 +251,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "high_carb",
       "family_friendly",
     ],
-    maxQuantity: 2,
     flavour: "Twirly pasta, ready to catch some sauce.",
   },
   {
@@ -331,7 +319,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "protein",
     basePriceCents: 230,
     tags: ["cheap", "high_protein", "low_prep", "meat", "salty"],
-    maxQuantity: 3,
     flavour: "A small tin with sandwich plans.",
   },
   {
@@ -349,7 +336,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
       "processed",
     ],
-    maxQuantity: 3,
     flavour: "Toast has been waiting for this tin.",
   },
   {
@@ -409,7 +395,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "low_prep",
       "bland",
     ],
-    maxQuantity: 3,
     flavour: "Little round helpers for salads and curries.",
   },
   {
@@ -584,7 +569,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "snack",
     basePriceCents: 150,
     tags: ["cheap", "salty", "processed", "comfort", "low_prep"],
-    maxQuantity: 2,
     flavour: "A warm bowl starts with this little packet.",
   },
 
@@ -627,7 +611,6 @@ const STANDARD_ITEMS: FoodItem[] = [
       "family_friendly",
       "comfort",
     ],
-    maxQuantity: 2,
     flavour: "Pasta and sauce, already on the same team.",
   },
   {
@@ -637,7 +620,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "ready_meal",
     basePriceCents: 190,
     tags: ["cheap", "processed", "salty", "comfort", "low_prep"],
-    maxQuantity: 2,
     flavour: "A noodle puzzle in a pot. Bring a fork.",
   },
   {
@@ -764,7 +746,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "treat",
     basePriceCents: 180,
     tags: ["dairy", "cheap", "sweet", "comfort", "high_sugar", "low_prep"],
-    maxQuantity: 2,
     flavour: "A little chocolate break.",
   },
   {
@@ -802,7 +783,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 180,
     tags: ["cheap", "filling", "family_friendly"],
-    maxQuantity: 2,
     flavour: "Long pasta with big bolognese plans.",
   },
   {
@@ -812,7 +792,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 240,
     tags: ["filling", "family_friendly", "comfort"],
-    maxQuantity: 2,
     flavour: "Stack with sauce for a lunch with layers.",
   },
   {
@@ -822,7 +801,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 320,
     tags: ["filling", "family_friendly"],
-    maxQuantity: 2,
     flavour: "Fluffy rice, ready to sit beside a curry.",
   },
   {
@@ -832,7 +810,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 290,
     tags: ["filling", "high_fibre", "bland"],
-    maxQuantity: 2,
     flavour: "A chewy base for a colourful rice bowl.",
   },
   {
@@ -842,7 +819,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "grain",
     basePriceCents: 180,
     tags: ["cheap", "high_carb", "bland"],
-    maxQuantity: 2,
     flavour: "The start of flatbreads, pizza dough and a dusty bench.",
   },
   {
@@ -852,7 +828,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "pantry",
     basePriceCents: 230,
     tags: ["sweet", "high_sugar"],
-    maxQuantity: 1,
     flavour: "A spoonful for baking. The whole bag is for later.",
   },
   {
@@ -862,7 +837,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "protein",
     basePriceCents: 280,
     tags: ["high_protein", "family_friendly", "egg"],
-    maxQuantity: 2,
     flavour: "A smaller carton for omelettes and fried rice.",
   },
   {
@@ -872,7 +846,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "dairy",
     basePriceCents: 170,
     tags: ["fresh", "family_friendly", "dairy"],
-    maxQuantity: 2,
     flavour: "A smaller bottle for pancakes and creamy sauces.",
   },
   {
@@ -882,7 +855,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "vegetable",
     basePriceCents: 250,
     tags: ["fresh", "seasoning"],
-    maxQuantity: 1,
     flavour: "Tear a few leaves over tomato pasta. Smells like lunch.",
   },
   {
@@ -892,7 +864,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "pantry",
     basePriceCents: 160,
     tags: ["seasoning"],
-    maxQuantity: 1,
     flavour: "A pinch gives pizza sauce a herby lift.",
   },
   {
@@ -902,7 +873,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "pantry",
     basePriceCents: 180,
     tags: ["seasoning"],
-    maxQuantity: 1,
     flavour: "A warm, earthy spice for tacos, beans and curry.",
   },
   {
@@ -912,7 +882,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "pantry",
     basePriceCents: 190,
     tags: ["spicy", "seasoning"],
-    maxQuantity: 1,
     flavour: "A little scoop gives curry a spicy kick.",
   },
   {
@@ -922,7 +891,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "vegetable",
     basePriceCents: 100,
     tags: ["cheap", "fresh", "seasoning"],
-    maxQuantity: 2,
     flavour: "A clove or two starts a very good pasta sauce.",
   },
   {
@@ -932,7 +900,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "vegetable",
     basePriceCents: 220,
     tags: ["fresh", "crunchy"],
-    maxQuantity: 2,
     flavour: "Slice into tacos, salads or a sizzling pan.",
   },
   {
@@ -942,7 +909,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "protein",
     basePriceCents: 650,
     tags: ["high_protein", "meat", "fresh", "family_friendly"],
-    maxQuantity: 1,
     flavour: "Cut into strips for a stir-fry or chicken curry.",
   },
   {
@@ -952,7 +918,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "protein",
     basePriceCents: 480,
     tags: ["high_protein", "meat", "pork", "fresh", "comfort"],
-    maxQuantity: 1,
     flavour: "Dumplings or meatballs? This pack has options.",
   },
   {
@@ -962,7 +927,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "protein",
     basePriceCents: 600,
     tags: ["high_protein", "meat", "family_friendly"],
-    maxQuantity: 1,
     flavour: "Plain frozen fish, ready for tacos or a squeeze of lemon.",
   },
   {
@@ -972,7 +936,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "protein",
     basePriceCents: 190,
     tags: ["cheap", "high_protein", "meat", "salty", "low_prep"],
-    maxQuantity: 2,
     flavour: "A small tin ready for toast or tomato pasta.",
   },
   {
@@ -982,7 +945,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "fruit",
     basePriceCents: 240,
     tags: ["fresh", "seasoning"],
-    maxQuantity: 1,
     flavour: "A squeeze wakes up fish, salad dressings and sauces.",
   },
   {
@@ -992,7 +954,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "pantry",
     basePriceCents: 140,
     tags: ["cheap", "family_friendly", "seasoning"],
-    maxQuantity: 2,
     flavour: "A small spoonful gives pasta sauce a big tomato boost.",
   },
   {
@@ -1002,7 +963,6 @@ const STANDARD_ITEMS: FoodItem[] = [
     category: "protein",
     basePriceCents: 160,
     tags: ["cheap", "high_protein", "high_fibre", "filling", "low_prep"],
-    maxQuantity: 3,
     flavour: "Red beans ready for chilli, rice bowls or wraps.",
   },
 ];

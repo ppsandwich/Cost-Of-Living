@@ -10,7 +10,6 @@ import {
   powerUpExtraSpecials,
   powerUpInventoryMultiplier,
   powerUpPriceMultiplier,
-  powerUpQuantityBonus,
 } from "./powerups";
 import { createRng, randomBetween, shuffle } from "./seededRandom";
 export const INVENTORY_SIZE = 16;
@@ -67,8 +66,7 @@ export function generateInventory(
         currentPriceCents: roundPrice(
           food.basePriceCents * randomBetween(rng, 0.85, 1.25) * multiplier,
         ),
-        quantityAvailable:
-          (food.maxQuantity ?? 1) + powerUpQuantityBonus(powerUps),
+        quantityAvailable: 1,
       }) as StoreItem,
   );
   const specials = shuffle(

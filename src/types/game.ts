@@ -65,7 +65,6 @@ export interface GameState {
   previousNPCIds: string[];
   powerUps: PowerUpId[];
   powerUpChoices: PowerUpId[] | null;
-  bulkAddsUsed: string[];
   endReason?: EndReason;
   recipe: RecipeMatch | null;
   score: number;

@@ -2,7 +2,6 @@ export type PowerUpId =
   | "haggler"
   | "timewalker"
   | "deep_pockets"
-  | "bulk_buyer"
   | "coupon_clipper"
   | "superstore"
   | "embezzler"
@@ -38,13 +37,6 @@ export const POWER_UPS: PowerUp[] = [
     name: "Grocery voucher",
     icon: "🎟️",
     description: "Get $2 extra to spend in every shop.",
-  },
-  {
-    id: "bulk_buyer",
-    name: "Group order",
-    icon: "📦",
-    description:
-      "One extra pack of every item on the shelves.",
   },
   {
     id: "coupon_clipper",

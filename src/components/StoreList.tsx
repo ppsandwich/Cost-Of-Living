@@ -19,26 +19,22 @@ interface StoreListProps {
   basket: BasketItem[];
   npc: NPC;
   powerUps: PowerUpId[];
-  bulkAddsUsed: string[];
   canShop: boolean;
   planning: boolean;
   roundNumber: number;
   onAdd: (id: string) => void;
   onRemove: (id: string) => void;
-  onBulkAdd: (id: string) => void;
 }
 export function StoreList({
   inventory,
   basket,
   npc,
   powerUps,
-  bulkAddsUsed,
   canShop,
   planning,
   roundNumber,
   onAdd,
   onRemove,
-  onBulkAdd,
 }: StoreListProps) {
   const shop = shopForRound(roundNumber);
   const [filter, setFilter] = useState<ShelfFilter>("all");
@@ -117,14 +113,8 @@ export function StoreList({
                   ? `Cheapest pack for: ${lowestRoles.map((r) => MEAL_LABELS[r].toLowerCase()).join(", ")}.`
                   : null
               }
-              canBulkAdd={
-                powerUps.includes("bulk_buyer") &&
-                !bulkAddsUsed.includes(food.id) &&
-                quantityRemaining(item, basket) > 0
-              }
               onAdd={() => onAdd(food.id)}
               onRemove={() => onRemove(food.id)}
-              onBulkAdd={() => onBulkAdd(food.id)}
             />
           );
         })}

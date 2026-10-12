@@ -47,6 +47,5 @@ export interface FoodItem {
   category: FoodCategory;
   basePriceCents: number;
   tags: FoodTag[];
-  maxQuantity?: number;
   flavour: string;
 }
