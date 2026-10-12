@@ -8,7 +8,6 @@ import {
   useRecords,
 } from "@/utils/records";
 import { StatusBar } from "@/components/StatusBar";
-import { NPCPanel } from "@/components/NPCPanel";
 import { StoreList } from "@/components/StoreList";
 import { BasketDrawer } from "@/components/BasketDrawer";
 import { OutcomeModal } from "@/components/OutcomeModal";
@@ -120,7 +119,7 @@ export default function Home() {
 
       <main className={`shop-workspace ${state.status === "planning" ? "workspace-planning" : "workspace-shopping"}`}>
         <div className="flow-heading">
-          <div><p className="text-xs font-bold text-brand-dark">Lunch run · Stop {state.roundNumber}</p><h1 tabIndex={-1} className="font-title text-3xl focus:outline-none" id="shop-heading">{state.status === "planning" ? "Meet, plan, then shop." : "Let’s build a lunch."}</h1></div>
+          <div><p className="text-xs font-bold text-brand-dark">Lunch run · Stop {state.roundNumber}{state.previousAttempt && state.status === "planning" ? " · Try again" : ""}</p><h1 tabIndex={-1} className="font-title text-3xl focus:outline-none" id="shop-heading">{state.status === "planning" ? "Meet & plan" : "Let’s build a lunch."}</h1></div>
           <ol className="flow-steps" aria-label="Your shop">
             <li aria-current={state.status === "planning" ? "step" : undefined}><span>{state.status === "planning" ? "1" : "✓"}</span>Plan</li>
             <li aria-current={state.status !== "planning" ? "step" : undefined}><span>2</span>Shop</li>
@@ -128,8 +127,7 @@ export default function Home() {
           </ol>
         </div>
         <aside className="shop-companion" aria-label={state.status === "planning" ? "Your lunch order and plan" : "Your order and basket"}>
-          {state.status === "planning" ? <>
-            <NPCPanel showMealSlots={false} key={npc.id} npc={npc} basket={state.basket} budgetCents={state.roundBudgetCents} event={state.basketEvent} />
+          {state.status === "planning" ?
             <PlanningPanel
               key={`${state.roundNumber}-${state.previousAttempt ? "retry" : "first"}`}
               state={state}
@@ -139,10 +137,10 @@ export default function Home() {
                 else begin();
               }}
             />
-          </> : <ShoppingOrder key={`order-${state.roundNumber}`} state={state} />}
-          <PowerUpShelf key={`powerups-${state.roundNumber}`} powerUps={state.powerUps}
+          : <ShoppingOrder key={`order-${state.roundNumber}`} state={state} />}
+          {state.status !== "planning" && <PowerUpShelf key={`powerups-${state.roundNumber}`} powerUps={state.powerUps}
             canUseEscapeRope={state.status === "playing" && state.roundNumber < FINAL_ROUND}
-            onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })} />
+            onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })} />}
           {state.status !== "planning" && <BasketDrawer
             key={`basket-${state.roundNumber}`}
             roundBudgetCents={state.roundBudgetCents}

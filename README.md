@@ -1,10 +1,10 @@
 # Cost of Living
 
-A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.7** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
+A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.8** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
 
 ## Play loop
 
-1. Meet the customer in a four-step animated introduction: person, lunch wishes and dietary rule, budget, then active power-ups. Advance at your own pace, go back, skip or replay it. Each round and retry starts a fresh introduction; the clock stays off.
+1. Meet and plan in one view. The customer, lunch wishes and dietary rule, budget, then active power-ups arrive in a short animated sequence alongside the shelves. All four sections stay available to read at your own pace, with background stories tucked under “About”. Each round and retry starts a fresh introduction; the clock stays off.
 2. Browse the exact foods and optionally estimate the spend. Prices appear when shopping starts. The clock is off during planning.
 3. Filter shelves by lunch part or food wish. Cover a base, protein, fruit or vegetables and both wishes within budget. Review the basket, adjust it, then check out.
 4. See the dish made from your basket, with spare items beside the plate. A recipe match earns 50 bonus points. Read the compact receipt and open the spending tip for a verified saving or a next step.
@@ -16,7 +16,7 @@ Retries restore the original character, prices, stock, budget and upgrades. They
 
 ## Visual shopping
 
-Planning places the order beside the shelves, with a direct start button and an optional spending estimate. Shopping gives the shelves more room, with the order and basket in a desktop side panel or a compact mobile checklist and budget dock. Basket review shows every goal, editable quantities and the total before checkout. The clock continues during review in timed mode.
+Planning combines the introduction and order in a single ticket beside the shelves, with one start button and an optional spending estimate. On mobile the ticket sits above the food, with a browse link and a fixed start button. Reduced-motion settings show the entire ticket immediately. There is no separate intro dialog or duplicate customer/power-up panel. Shopping gives the shelves more room, with the order and basket in a desktop side panel or a compact mobile checklist and budget dock. Basket review shows every goal, editable quantities and the total before checkout. The clock continues during review in timed mode.
 
 Foods to avoid remain visible and clearly marked; their Add buttons are disabled. Shopping filters narrow the shelves by lunch part or food wish. Shelf groups and filters share the same order: Base, Protein, Fruit / veg, Wishes, Extras. Each item appears once in All; foods covering two lunch parts still match both filters. The Wishes filter also finds matches in other groups. Aisle labels on food cards support the variety goal, which still counts food categories, not shelf groups. The corner shop, market and supermarket rotate each round, with different colours, signage and quiet optional soundscapes. Sound starts off; enable it from the speaker button. Pausing or muting suspends audio. Reduced-motion preferences disable the decorative animations and shorten the money counter transition.
 
