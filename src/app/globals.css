@@ -706,7 +706,8 @@ body {
 .basket-receipt { max-height: 32dvh; overflow-y: auto; margin-block: .7rem; border-block: 2px dashed #33241c44; }
 .receipt-item { display: flex; align-items: center; gap: .4rem; padding-block: .6rem; border-bottom: 1px dashed #33241c33; }
 .receipt-item:last-child { border: 0; }
-.shelf-tools { border: 2px solid #33241c44; border-radius: .9rem; padding: .5rem .6rem; background: var(--color-receipt); }
+.shelf-tools { position: sticky; top: 6.25rem; z-index: 10; border: 2px solid #33241c44; border-radius: .9rem; padding: .5rem .6rem; background: var(--color-receipt); box-shadow: 0 4px 0 var(--shop-paper); }
+.workspace-shopping .aisle { scroll-margin-top: 16rem; }
 .lunch-filters { display: flex; flex-wrap: wrap; gap: .35rem; }
 .lunch-filters button { position: relative; min-height: 44px; padding: .3rem .65rem; border: 2px solid #33241c55; border-radius: .55rem; background: var(--color-paper); font: 700 .8rem var(--font-display); }
 .lunch-filters button[aria-pressed="true"] { background: var(--shop-accent); border-color: var(--shop-accent); color: white; box-shadow: 2px 2px 0 #33241c33; }
@@ -763,7 +764,7 @@ body {
   .shop-products .product-top { grid-template-columns: 3.5rem minmax(0, 1fr); }
   .shop-products .product-top .price-ticket { grid-column: 2; justify-self: start; }
   .shop-products .product-art { grid-row: span 2; width: 3.5rem; height: 4rem; }
-  .shelf-tools { position: sticky; top: 5.5rem; z-index: 10; box-shadow: 0 4px 0 var(--shop-paper); }
+  .shelf-tools { top: 5.5rem; }
   .aisle { scroll-margin-top: 16rem; }
 }
 

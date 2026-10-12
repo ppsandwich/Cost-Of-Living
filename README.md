@@ -1,6 +1,6 @@
 # Cost of Living
 
-A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.8** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
+A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.9** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from a second attempt.
 
 ## Play loop
 
@@ -18,7 +18,7 @@ Retries restore the original character, prices, stock, budget and upgrades. They
 
 Planning combines the introduction and order in a single ticket beside the shelves, with one start button and an optional spending estimate. On mobile the ticket sits above the food, with a browse link and a fixed start button. Reduced-motion settings show the entire ticket immediately. There is no separate intro dialog or duplicate customer/power-up panel. Shopping gives the shelves more room, with the order and basket in a desktop side panel or a compact mobile checklist and budget dock. Basket review shows every goal, editable quantities and the total before checkout. The clock continues during review in timed mode.
 
-Foods to avoid remain visible and clearly marked; their Add buttons are disabled. Shopping filters narrow the shelves by lunch part or food wish. Shelf groups and filters share the same order: Base, Protein, Fruit / veg, Wishes, Extras. Each item appears once in All; foods covering two lunch parts still match both filters. The Wishes filter also finds matches in other groups. Aisle labels on food cards support the variety goal, which still counts food categories, not shelf groups. The corner shop, market and supermarket rotate each round, with different colours, signage and quiet optional soundscapes. Sound starts off; enable it from the speaker button. Pausing or muting suspends audio. Reduced-motion preferences disable the decorative animations and shorten the money counter transition.
+Foods to avoid remain visible and clearly marked; their Add buttons are disabled. Shopping filters narrow the shelves by lunch part or food wish and stay below the header as you scroll on mobile, tablet and desktop. Shelf groups and filters share the same order: Base, Protein, Fruit / veg, Wishes, Extras. Each item appears once in All; foods covering two lunch parts still match both filters. The Wishes filter also finds matches in other groups. Aisle labels on food cards support the variety goal, which still counts food categories, not shelf groups. The corner shop, market and supermarket rotate each round, with different colours, signage and quiet optional soundscapes. Sound starts off; enable it from the speaker button. Pausing or muting suspends audio. Reduced-motion preferences disable the decorative animations and shorten the money counter transition.
 
 The basket visibly fills and returns items, the budget meter shows spending and refunds, and short reactions celebrate new food wishes and lunch slots. A two-slot celebration only happens when both slots were previously empty. Prices on sale are yellow; ordinary price tickets are white. Planning has no Add or Pause button, item prices, group filters or lunch-slot boxes below the customer.
 
