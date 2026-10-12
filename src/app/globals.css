@@ -903,14 +903,18 @@ header .npc-difficulty span { display: none; }
 /* A player-paced spotlight tour; controls stay clear of the highlighted ticket. */
 .tour-shade { position: fixed; inset: 0; z-index: 100; overflow: hidden; pointer-events: none; animation: tour-fade 250ms ease-out; }
 .tour-window { position: absolute; border-radius: 1rem; box-shadow: 0 0 0 200vmax #211a12a6; }
-.tour-controls { position: fixed; z-index: 101; right: 1.5rem; bottom: 1.5rem; width: min(22rem, calc(100% - 1.5rem)); padding: .9rem; border: 3px solid var(--color-ink); border-radius: 1rem; background: var(--color-paper); color: var(--color-ink); box-shadow: 4px 5px 0 #211a1255; animation: tour-fade 250ms ease-out; }
+.tour-controls { position: fixed; z-index: 101; width: min(22rem, calc(100% - 1.5rem)); padding: .9rem; border: 3px solid var(--color-ink); border-radius: 1rem; background: var(--color-paper); color: var(--color-ink); box-shadow: 4px 5px 0 #211a1255; animation: tour-fade 250ms ease-out; }
 .tour-controls > p { margin: 0 0 .75rem; font-weight: 700; font-size: .9rem; }
 .tour-progress { display: inline-block; margin-right: .35rem; padding: .15rem .4rem; border-radius: 1rem; background: var(--color-tag); font-family: var(--font-display); white-space: nowrap; }
 .tour-buttons { display: flex; gap: .6rem; }
 .tour-buttons .btn { flex: 1; min-height: 44px; }
 @keyframes tour-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 1023px) {
-  .tour-controls { right: .75rem; bottom: calc(5.25rem + env(safe-area-inset-bottom)); padding: .7rem; }
+  .tour-controls { padding: .7rem; }
+  .planning-panel:has([data-tour-step="4"][data-tour-current="true"]) .planning-start { bottom: calc(var(--tour-controls-height, 140px) + 28px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 1024px) {
+  .plan-actions:has([data-tour-step="4"][data-tour-current="true"]) { bottom: calc(var(--tour-controls-height, 140px) + 28px); }
 }
 @media (forced-colors: active) {
   .tour-window { outline: 3px solid Highlight; }

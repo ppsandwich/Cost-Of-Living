@@ -21,17 +21,19 @@ export function useFirstRoundTour(enabled: boolean, panel: RefObject<HTMLElement
       if (!target || !companion) return;
       const rect = target.getBoundingClientRect();
       const desktop = window.matchMedia("(min-width: 1024px)").matches;
-      // The mobile start button is fixed to the viewport and needs no scrolling.
+      // During its spotlight, the mobile start button lifts to leave room below.
       if (step === 4 && !desktop) return;
       const behaviour = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
       const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
       const actions = panel.current?.querySelector(".plan-actions")?.getBoundingClientRect();
       const start = panel.current?.querySelector(".planning-start")?.getBoundingClientRect();
       const bounds = companion.getBoundingClientRect();
+      const controlsHeight = controls.current?.getBoundingClientRect().height ?? 140;
+      const controlsLimit = window.innerHeight - controlsHeight - 32;
       let top = Math.max(headerBottom, desktop ? bounds.top : 0) + 16;
       // On desktop the estimate and start area stays pinned inside the ticket.
-      let bottom = Math.min(window.innerHeight, desktop ? bounds.bottom : window.innerHeight,
-        step === 4 ? Infinity : desktop ? actions?.top ?? Infinity : Math.min(start?.top ?? Infinity, controls.current?.getBoundingClientRect().top ?? Infinity)) - 16;
+      let bottom = Math.min(controlsLimit, desktop ? bounds.bottom : window.innerHeight,
+        step === 4 ? Infinity : desktop ? actions?.top ?? Infinity : (start?.top ?? Infinity) - controlsHeight - 24) - 16;
       if (rect.top >= top && rect.bottom <= bottom) return;
       // On short desktop windows, first bring the whole sticky ticket into view.
       const pageOffset = desktop ? Math.min(
@@ -41,7 +43,7 @@ export function useFirstRoundTour(enabled: boolean, panel: RefObject<HTMLElement
       if (pageOffset > 0) {
         window.scrollBy({ top: pageOffset, behavior: behaviour });
         top = Math.max(headerBottom, bounds.top - pageOffset) + 16;
-        bottom = Math.min(window.innerHeight, bounds.bottom - pageOffset,
+        bottom = Math.min(controlsLimit, bounds.bottom - pageOffset,
           step === 4 ? Infinity : (actions?.top ?? Infinity) - pageOffset) - 16;
       }
       const targetTop = rect.top - pageOffset;

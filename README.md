@@ -1,12 +1,12 @@
 # Cost of Living
 
-A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.17** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from feedback.
+A mobile-first shopping strategy game about making a lunch brief work within a budget. **Version 2.18** focuses on consumer decision-making for ages 12–15: planning, checking constraints, comparing costs and learning from feedback.
 
 The splash screen offers difficulty 1 (more budget room), 2 (balanced) and 3 (tighter budgets). Enable power-ups starts checked; Allow retries starts unchecked. These choices are saved on this device. How to play opens only when selected.
 
 ## Play loop
 
-1. Meet and plan in one view. The customer, lunch wishes and dietary rule, budget, then active power-ups arrive in a short animated sequence alongside the shelves. All four sections stay available to read at your own pace, with background stories always visible under “About”. The first round includes a five-step guided tour: customer, wishes and needs, budget, power-ups, then the start button. The surrounding interface dims while the current section stays highlighted and scrolls into view when needed. Players advance with Next, finish with Done, or leave with the adjacent Skip button. There is no automatic progression or dismissal when clicking elsewhere; shopping can still start at any time. Later rounds and retries keep the short section reveals; the clock stays off during planning.
+1. Meet and plan in one view. The customer, lunch wishes and dietary rule, budget, then active power-ups arrive in a short animated sequence alongside the shelves. All four sections stay available to read at your own pace, with background stories always visible under “About”. The first round includes a five-step guided tour: customer, wishes and needs, budget, power-ups, then the start button. The surrounding interface dims while the current section stays highlighted and scrolls into view when needed. The controls follow directly below the highlighted section, with space reserved beneath the start button on the final step. Players advance with Next, finish with Done, or leave with the adjacent Skip button. There is no automatic progression or dismissal when clicking elsewhere; shopping can still start at any time. Later rounds and retries keep the short section reveals; the clock stays off during planning.
 2. Browse the exact foods and optionally estimate the spend. Prices appear when shopping starts. The clock is off during planning.
 3. Filter shelves by lunch part or food wish. Cover a base, protein, fruit or vegetables and all wishes within budget. Review the basket, adjust it, then check out.
 4. See the dish made from your basket, with spare items beside the plate. A recipe match earns 50 bonus points. Read the compact receipt and read the always-visible spending tip for a verified saving or a next step.
