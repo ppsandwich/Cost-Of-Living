@@ -8,27 +8,10 @@ export const TOUR_STEPS = [
   "Start shopping when you’re ready",
 ] as const;
 
-/** A short, non-blocking tour. Interaction hands control back to the player. */
-export function useFirstRoundTour(enabled: boolean, panel: RefObject<HTMLElement | null>) {
+/** A player-paced tour; only Next, Done or Skip changes the current step. */
+export function useFirstRoundTour(enabled: boolean, panel: RefObject<HTMLElement | null>, controls: RefObject<HTMLElement | null>) {
   const [step, setStep] = useState(0);
   const running = enabled && step < TOUR_STEPS.length;
-
-  useEffect(() => {
-    if (!running) return;
-    const timer = window.setTimeout(() => setStep((current) => current + 1), 1000);
-    return () => window.clearTimeout(timer);
-  }, [running, step]);
-
-  useEffect(() => {
-    if (!running) return;
-    const finish = () => setStep(TOUR_STEPS.length);
-    window.addEventListener("pointerdown", finish, { once: true });
-    window.addEventListener("keydown", finish, { once: true });
-    return () => {
-      window.removeEventListener("pointerdown", finish);
-      window.removeEventListener("keydown", finish);
-    };
-  }, [running]);
 
   useEffect(() => {
     if (!running) return;
@@ -48,7 +31,7 @@ export function useFirstRoundTour(enabled: boolean, panel: RefObject<HTMLElement
       let top = Math.max(headerBottom, desktop ? bounds.top : 0) + 16;
       // On desktop the estimate and start area stays pinned inside the ticket.
       let bottom = Math.min(window.innerHeight, desktop ? bounds.bottom : window.innerHeight,
-        step === 4 ? Infinity : desktop ? actions?.top ?? Infinity : start?.top ?? Infinity) - 16;
+        step === 4 ? Infinity : desktop ? actions?.top ?? Infinity : Math.min(start?.top ?? Infinity, controls.current?.getBoundingClientRect().top ?? Infinity)) - 16;
       if (rect.top >= top && rect.bottom <= bottom) return;
       // On short desktop windows, first bring the whole sticky ticket into view.
       const pageOffset = desktop ? Math.min(
@@ -69,7 +52,11 @@ export function useFirstRoundTour(enabled: boolean, panel: RefObject<HTMLElement
       else window.scrollBy({ top: offset, behavior: behaviour });
     });
     return () => cancelAnimationFrame(frame);
-  }, [panel, running, step]);
+  }, [controls, panel, running, step]);
 
-  return running ? step : -1;
+  return {
+    step: running ? step : -1,
+    next: () => setStep((current) => Math.min(current + 1, TOUR_STEPS.length)),
+    skip: () => setStep(TOUR_STEPS.length),
+  };
 }

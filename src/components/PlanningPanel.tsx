@@ -1,3 +1,4 @@
+import { TourSpotlight } from "./TourSpotlight";
 import { RoundIntro } from "./RoundIntro";
 import { useRef, useState } from "react";
 import { TOUR_STEPS, useFirstRoundTour } from "@/hooks/useFirstRoundTour";
@@ -11,12 +12,25 @@ export function PlanningPanel({ state, active, onBegin }: {
 }) {
   const [estimate, setEstimate] = useState("");
   const panel = useRef<HTMLElement>(null);
+  const tourControls = useRef<HTMLElement>(null);
   const firstVisit = state.roundNumber === 1 && !state.previousAttempt;
-  const tourStep = useFirstRoundTour(firstVisit && active, panel);
+  const tour = useFirstRoundTour(firstVisit && active, panel, tourControls);
+  const tourStep = tour.step;
+  const finishTour = () => {
+    tour.skip();
+    panel.current?.querySelector<HTMLButtonElement>(".planning-start button")?.focus({ preventScroll: true });
+  };
   const valid = estimate === "" || (/^\d+(?:\.\d{1,2})?$/.test(estimate) && Number(estimate) <= 10000);
   return (
     <section ref={panel} id="shopping-plan" aria-label="Plan your shop" className={`panel planning-panel bg-receipt ${firstVisit ? "first-round-guide" : ""}`}>
       <p className="sr-only" role="status" aria-atomic="true">{tourStep >= 0 ? `Quick tour ${tourStep + 1} of 5: ${TOUR_STEPS[tourStep]}.` : ""}</p>
+      {tourStep >= 0 && <TourSpotlight
+        step={tourStep}
+        panel={panel}
+        controls={tourControls}
+        onNext={tourStep === TOUR_STEPS.length - 1 ? finishTour : tour.next}
+        onSkip={finishTour}
+      />}
       <RoundIntro state={state} tourStep={tourStep} />
       <div className="plan-actions">
         <a href="#store-shelves" className="browse-link" onClick={() => document.getElementById("store-shelves")?.focus({ preventScroll: true })}>Browse food ↓</a>
