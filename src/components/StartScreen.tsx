@@ -1,19 +1,20 @@
 import { useState } from "react";
 import type { GameMode } from "@/types/game";
+import type { GameSettings } from "@/utils/settings";
 import { GAME_VERSION_LABEL } from "@/game/version";
 
 interface StartScreenProps {
   bestScore: number;
   highestRound: number;
-  showTutorial: boolean;
-  onDismissTutorial: () => void;
+  settings: GameSettings;
+  onSettingsChange: (settings: Partial<GameSettings>) => void;
   onStart: () => void;
   mode: GameMode;
   onModeChange: (mode: GameMode) => void;
 }
 
 const TUTORIAL_STEPS = [
-  "Read the order ticket: a base (like bread), protein (like beans), fruit or veg, and two food wishes.",
+  "Read the order ticket: a base (like bread), protein (like beans), fruit or veg, and the customer’s food wishes. Later shops have more wishes.",
   "Compare prices and check foods to avoid.",
   "Fill the checklist without going over budget, then check out.",
   "Follow 20 neighbourhood stops. Collect power-ups and try a cheaper basket!",
@@ -22,15 +23,13 @@ const TUTORIAL_STEPS = [
 export function StartScreen({
   bestScore,
   highestRound,
-  showTutorial,
-  onDismissTutorial,
+  settings,
+  onSettingsChange,
   onStart,
   mode,
   onModeChange,
 }: StartScreenProps) {
-  // null = follow the saved preference; true/false = user toggled this visit
-  const [tutorialOpen, setTutorialOpen] = useState<boolean | null>(null);
-  const open = tutorialOpen ?? showTutorial;
+  const [open, setTutorialOpen] = useState(false);
 
   return (
     <main className="relative grid min-h-dvh place-items-center overflow-hidden px-4 py-8">
@@ -74,12 +73,11 @@ export function StartScreen({
             <button
               type="button"
               onClick={() => {
-                onDismissTutorial();
                 setTutorialOpen(false);
               }}
               className="btn mt-3 min-h-11 w-full bg-paper text-sm"
             >
-              {showTutorial ? "Got it, don't show again" : "Close"}
+              Close
             </button>
           </div>
         )}
@@ -118,6 +116,17 @@ export function StartScreen({
               </span>
             </label>
           ))}
+        </fieldset>
+        <fieldset className="panel mt-4 p-3 text-left">
+          <legend className="px-2 font-display">Difficulty</legend>
+          <div className="difficulty-options">
+            {([1, 2, 3] as const).map((level) => <label key={level} className={settings.difficulty === level ? "difficulty-selected" : ""}>
+              <input type="radio" name="difficulty" value={level} checked={settings.difficulty === level} onChange={() => onSettingsChange({ difficulty: level })} />
+              <strong>{level}</strong><span>{level === 1 ? "More room" : level === 2 ? "Balanced" : "Tighter budget"}</span>
+            </label>)}
+          </div>
+          <label className="powerups-setting"><input type="checkbox" checked={settings.powerUpsEnabled} onChange={(event) => onSettingsChange({ powerUpsEnabled: event.target.checked })} />Enable power-ups</label>
+          <label className="powerups-setting"><input type="checkbox" checked={settings.allowRetries} onChange={(event) => onSettingsChange({ allowRetries: event.target.checked })} />Allow retries</label>
         </fieldset>
         <button
           type="button"

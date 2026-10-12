@@ -50,8 +50,7 @@ export function LearningReceipt({ state, compact = false }: { state: GameState; 
             : `Last time: ${formatCents(previous.spentCents)}. ${!previous.cleared && state.endReason === "goals_met" ? "This time you finished the checklist!" : "Compare your checklist as well as the cost."}`}
         </p>
       )}
-      {compact ? <details className="receipt-tip"><summary>Spending tip</summary><p>{improvementTip(state)}</p></details> : <p className="border-t border-dashed border-ink/25 pt-2"><strong>Try next:</strong> {improvementTip(state)}</p>}
-      {state.recipe && <p className="recipe-note">Your points include the recipe bonus.</p>}
+      <p className="receipt-tip">{improvementTip(state)}</p>
     </section>
   );
 }

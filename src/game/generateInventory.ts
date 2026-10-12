@@ -12,7 +12,7 @@ import {
   powerUpPriceMultiplier,
 } from "./powerups";
 import { createRng, randomBetween, shuffle } from "./seededRandom";
-export const INVENTORY_SIZE = 16;
+export const INVENTORY_SIZE = 20;
 export const MIN_STAPLE_SHARE = 0.4;
 const TARGET_STAPLE_SHARE = 0.75;
 const roundPrice = (cents: number) => Math.max(50, Math.round(cents / 5) * 5);
@@ -57,25 +57,18 @@ export function generateInventory(
     if (chosen.size >= size) break;
     chosen.set(food.id, food);
   }
-  const multiplier =
-    powerUpPriceMultiplier(powerUps) * (1 + 0.02 * (roundNumber - 1));
-  const items = shuffle(rng, [...chosen.values()]).map(
-    (food) =>
-      ({
-        foodItemId: food.id,
-        currentPriceCents: roundPrice(
-          food.basePriceCents * randomBetween(rng, 0.85, 1.25) * multiplier,
-        ),
-        quantityAvailable: 1,
-      }) as StoreItem,
-  );
+  const items = shuffle(rng, [...chosen.values()]).map((food): StoreItem => {
+    const referencePriceCents = roundPrice(food.basePriceCents * randomBetween(rng, 0.85, 1.25) * (1 + 0.02 * (roundNumber - 1)));
+    return { foodItemId: food.id, referencePriceCents, currentPriceCents: roundPrice(referencePriceCents * powerUpPriceMultiplier(powerUps)), quantityAvailable: 1 };
+  });
   const specials = shuffle(
     rng,
     items.filter((i) =>
       usableFood(FOOD_ITEMS.find((f) => f.id === i.foodItemId)!, npc),
     ),
   ).slice(0, 2 + powerUpExtraSpecials(powerUps));
-  for (const item of specials) {
+  for (const [index, item] of specials.entries()) {
+    if (index < 2) item.referencePriceCents = roundPrice(item.referencePriceCents! * 0.7);
     item.currentPriceCents = roundPrice(item.currentPriceCents * 0.7);
     item.specialLabel = "On sale";
     item.onSale = true;

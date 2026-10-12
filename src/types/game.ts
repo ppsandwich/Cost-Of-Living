@@ -16,6 +16,7 @@ export interface RetryChallenge {
   targetSpendCents: number;
   savingCents: number;
 }
+export type Difficulty = 1 | 2 | 3;
 export type GameMode = "standard_run" | "learning";
 export type GameStatus =
   | "idle"
@@ -28,6 +29,8 @@ export type EndReason = "goals_met" | "timer_expired";
 export interface StoreItem {
   foodItemId: string;
   currentPriceCents: number;
+  /** Same shelf price before earned discounts, used to calibrate the difficulty curve. */
+  referencePriceCents?: number;
   quantityAvailable: number;
   specialLabel?: string;
   onSale?: boolean;
@@ -52,9 +55,14 @@ export interface Attempt {
 export interface GameState {
   status: GameStatus;
   mode: GameMode;
+  difficulty: Difficulty;
+  powerUpsEnabled: boolean;
+  allowRetries: boolean;
+  solution: BasketItem[];
+  baseBudgetCents: number;
+  basketReviewOpen: boolean;
   roundNumber: number;
   successfulRounds: number;
-  budgetMultiplier: number;
   npc: NPC | null;
   inventory: StoreItem[];
   basket: BasketItem[];

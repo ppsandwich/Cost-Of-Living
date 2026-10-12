@@ -25,8 +25,8 @@ export interface NPC {
   description: string;
   mood: string;
   baseBudgetCents: number;
-  /** Exactly two wants — both must be satisfied to clear the round. */
-  wants: [FoodPreference, FoodPreference];
+  /** The active round uses one to four distinct wishes. */
+  wants: FoodPreference[];
   /** One hard dietary rule — violating it blocks the round until fixed. */
   mustNot: DietaryMustNot;
 }

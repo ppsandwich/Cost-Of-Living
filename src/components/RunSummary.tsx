@@ -1,3 +1,4 @@
+import { RoundSolution } from "./RoundSolution";
 import { DishPlate } from "./DishPlate";
 import type { GameState } from "@/types/game";
 import { LearningReceipt } from "./LearningReceipt";
@@ -19,15 +20,15 @@ export function RunSummary({
       <p className="mt-2 text-sm">
         {won
           ? "You finished all 20 rounds!"
-          : "Time ran out. Check your receipt and have another go."}
+          : state.allowRetries ? "Time ran out. See one way to meet every need, then try again." : "Time ran out. Here’s one way to meet every need within budget."}
       </p>
       {won && <DishPlate state={state} />}
-      <LearningReceipt state={state} compact />
+      {won ? <LearningReceipt state={state} compact /> : <RoundSolution state={state} />}
       <p className="text-sm font-bold">
         {state.successfulRounds} lunches sorted · {state.totalScore} points ·{" "}
         {state.mode === "learning" ? "Learning" : "Timed"} mode
       </p>
-      {!won && <button
+      {!won && state.allowRetries && <button
         onClick={() => onRetry()}
         className="btn mt-4 min-h-12 w-full bg-good text-white"
       >

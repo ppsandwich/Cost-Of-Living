@@ -63,11 +63,8 @@ export function StoreList({
         <div className="shelf-options">
           <span>{visibleCount} {visibleCount === 1 ? "choice" : "choices"}</span>
         </div>
-        <details className="aisle-disclosure"><summary>Jump to a group</summary><nav className="aisle-nav" aria-label="Jump to a group">
-          {groups.map((group) => <a key={group.id} href={`#shelf-${group.id}`}><span aria-hidden>{group.icon}</span> {group.label}</a>)}
-        </nav></details>
       </div>}
-      <p className="shelf-hint">{planning ? "Plan your picks. Prices appear when you start shopping." : "Pick food, watch your budget, then review your basket."}</p>
+      <p className="shelf-hint">{planning ? "Include a base, protein and fruit or veg. One food can cover more than one part." : "Pick food, watch your budget, then review your basket."}</p>
       {visibleCount === 0 && <p className="panel bg-receipt p-4 text-sm">No food here matches this filter. <button className="min-h-11 font-bold underline" onClick={() => setFilter("all")}>See all choices</button></p>}
       {groups.map((group) => <section className={`aisle shelf-${group.id}`} key={group.id} id={`shelf-${group.id}`} aria-label={`${group.label} foods`}>
         <h3 className="aisle-sign"><span aria-hidden>{group.icon}</span> {group.label}<span className="shelf-group-count">{group.items.length} {group.items.length === 1 ? "choice" : "choices"}</span></h3>

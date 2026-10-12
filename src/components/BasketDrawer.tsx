@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import type { NPC } from "@/types/npc";
 import type { BasketItem, BasketEvent } from "@/types/game";
 import { FOOD_BY_ID } from "@/data/foodItems";
@@ -18,26 +18,28 @@ interface BasketDrawerProps {
   event: BasketEvent | null;
   challengeTarget?: number;
   active: boolean;
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   timed: boolean;
   timeRemainingSeconds: number;
   onRemove: (foodItemId: string) => void;
   onCheckout: () => void;
 }
 
-export function BasketDrawer({ basket, npc, remainingBudgetCents, roundBudgetCents, event, challengeTarget, active, timed, timeRemainingSeconds, onRemove, onCheckout }: BasketDrawerProps) {
-  const [open, setOpen] = useState(false);
+export function BasketDrawer({ basket, npc, remainingBudgetCents, roundBudgetCents, event, challengeTarget, active, open, onOpen, onClose, timed, timeRemainingSeconds, onRemove, onCheckout }: BasketDrawerProps) {
   const reviewButton = useRef<HTMLButtonElement>(null);
   const itemCount = basket.reduce((n, b) => n + b.quantity, 0);
   const overBudget = remainingBudgetCents < 0;
   const readyToWin = !overBudget && allRequirementsMet(basket, npc);
   const status = getRequirementsStatus(basket, npc);
-  const close = () => { setOpen(false); requestAnimationFrame(() => reviewButton.current?.focus({ preventScroll: true })); };
+  const close = () => { onClose(); requestAnimationFrame(() => reviewButton.current?.focus({ preventScroll: true })); };
 
   return <>
     <section className="basket-dock" aria-label="Your basket">
       <BudgetMeter budget={roundBudgetCents} remaining={remainingBudgetCents} event={event} target={challengeTarget} />
-      <ShoppingReaction event={event} npc={npc} />
-      <button ref={reviewButton} type="button" onClick={() => { if (active && readyToWin) setOpen(true); }} disabled={!active || !readyToWin} aria-haspopup={readyToWin ? "dialog" : undefined} className={`btn basket-review-button ${readyToWin ? "bg-good text-white" : "bg-paper"}`} aria-label={readyToWin ? `Review basket: ${itemCount} items, ready to check out` : `Basket: ${itemCount} items. ${overBudget ? "Over budget" : "Checklist incomplete"}`}>
+      <ShoppingReaction event={event} npc={npc} empty={basket.length === 0} unsuitable={status.mustNotViolated} />
+      <button ref={reviewButton} type="button" onClick={() => { if (active && readyToWin) onOpen(); }} disabled={!active || !readyToWin} aria-haspopup={readyToWin ? "dialog" : undefined} className={`btn basket-review-button ${status.mustNotViolated ? "basket-unsuitable" : readyToWin ? "bg-good text-white" : "bg-paper"}`} aria-label={readyToWin ? `Review basket: ${itemCount} item${itemCount === 1 ? "" : "s"}, ready to check out` : `Basket: ${itemCount} item${itemCount === 1 ? "" : "s"}. ${status.mustNotViolated ? "Remove unsuitable foods" : overBudget ? "Over budget" : "Checklist incomplete"}`}>
         <span className="basket-still-life" aria-hidden>
           <span className="basket-outline">🧺</span>
           {basket.slice(-4).map((entry) => <span key={`${entry.foodItemId}-${entry.quantity}`} className="basket-food">{FOOD_BY_ID[entry.foodItemId].emoji}</span>)}
@@ -71,10 +73,10 @@ export function BasketDrawer({ basket, npc, remainingBudgetCents, roundBudgetCen
       </div>
       <BudgetMeter budget={roundBudgetCents} remaining={remainingBudgetCents} event={null} target={challengeTarget} />
       <p className={`my-2 text-xs font-bold ${overBudget ? "text-danger" : "text-good"}`} role="status">{overBudget ? `Put something back to save ${formatCents(-remainingBudgetCents)}.` : readyToWin ? "Checklist complete. Lunch is ready!" : "Finish the unticked parts of your checklist."}</p>
-      {timed && <p className="mb-2 text-xs text-faded"><strong className={timeRemainingSeconds <= 15 ? "text-danger" : "text-ink"}>⏱ {timeRemainingSeconds}s left.</strong> Putting food back costs 3 seconds.</p>}
+      {timed && <p className="mb-2 text-xs text-faded"><strong className={timeRemainingSeconds <= 15 ? "text-danger" : "text-ink"}>⏸ Timer paused · {timeRemainingSeconds}s left.</strong> Putting food back costs 3 seconds.</p>}
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={close} className="btn min-h-12 bg-paper text-sm">← Keep shopping</button>
-        <button type="button" onClick={() => { setOpen(false); onCheckout(); }} disabled={!readyToWin} className="btn min-h-12 bg-good text-sm text-white">Check out ✓</button>
+        <button type="button" onClick={() => { onClose(); onCheckout(); }} disabled={!readyToWin} className="btn min-h-12 bg-good text-sm text-white">Check out ✓</button>
       </div>
     </Dialog>}
   </>;

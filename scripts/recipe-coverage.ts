@@ -1,29 +1,27 @@
 import assert from "node:assert/strict";
-import { NPCS } from "../src/data/npcs";
+import { gameReducer, INITIAL_STATE } from "../src/game/reducer";
 import { FOOD_BY_ID } from "../src/data/foodItems";
 import { RECIPES } from "../src/data/recipes";
 import { findRecipe, isStaple } from "../src/game/recipes";
-import { generateSolvableRound, findClearingBasket, basketCost } from "../src/game/solver";
+import { findClearingBasket, basketCost } from "../src/game/solver";
 import { usableFood } from "../src/game/meals";
 import { allRequirementsMet } from "../src/game/requirements";
-import { budgetMultiplierForRound, FINAL_ROUND } from "../src/game/progression";
-import { powerUpExtraBudgetCents, drawPowerUps } from "../src/game/powerups";
+import { FINAL_ROUND } from "../src/game/progression";
 import { MIN_STAPLE_SHARE } from "../src/game/generateInventory";
-import { POWER_UP_STOPS } from "../src/game/shops";
 import { createRng, shuffle } from "../src/game/seededRandom";
 import type { BasketItem } from "../src/types/game";
 
 const policies = { economical: { completed: 0, recipes: 0 }, swaps: { completed: 0, recipes: 0 }, shuffled: { completed: 0, recipes: 0 } };
 let shops = 0;
-for (const npc of NPCS) {
-  for (let roundNumber = 1; roundNumber <= FINAL_ROUND; roundNumber++) {
-    for (let seedIndex = 0; seedIndex < 25; seedIndex++) {
-      for (const upgrades of [false, true]) {
-        const seed = 104729 + seedIndex * 7919 + roundNumber;
-        const rng = createRng(seed);
-        const powerUps = drawPowerUps(rng, [], upgrades ? POWER_UP_STOPS.filter((stop) => stop < roundNumber).length : 0);
-        const base = Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) + powerUpExtraBudgetCents(powerUps);
-        const { inventory, budgetCents } = generateSolvableRound(npc, base, seed, roundNumber, powerUps);
+for (const difficulty of [1, 2, 3] as const) {
+  for (const powerUpsEnabled of [false, true]) {
+    for (let seedIndex = 0; seedIndex < 100; seedIndex++) {
+      let state = gameReducer(INITIAL_STATE, { type: "START_RUN", mode: "learning", difficulty, powerUpsEnabled, seed: 104729 + seedIndex * 7919, bestScore: 0, highestRound: 0 });
+      for (let roundNumber = 1; roundNumber <= FINAL_ROUND; roundNumber++) {
+        const rng = createRng(state.seed + roundNumber);
+        const npc = state.npc!;
+        const inventory = state.inventory;
+        const budgetCents = state.roundBudgetCents;
         assert.ok(inventory.filter((item) => isStaple(FOOD_BY_ID[item.foodItemId])).length >= Math.ceil(inventory.length * MIN_STAPLE_SHARE));
         shops++;
         const basket = findClearingBasket(npc, inventory, budgetCents)!;
@@ -53,6 +51,11 @@ for (const npc of NPCS) {
           random.push(trial[trial.length - 1]);
           if (allRequirementsMet(random, npc)) { count("shuffled", random); break; }
         }
+        state = gameReducer(state, { type: "BEGIN_SHOPPING", estimateCents: null });
+        for (const entry of basket) state = gameReducer(state, { type: "ADD_ITEM", foodItemId: entry.foodItemId });
+        state = gameReducer(state, { type: "CHECKOUT" });
+        if (state.powerUpChoices) state = gameReducer(state, { type: "CHOOSE_POWERUP", powerUpId: state.powerUpChoices[(seedIndex + roundNumber) % state.powerUpChoices.length] });
+        if (roundNumber < FINAL_ROUND) state = gameReducer(state, { type: "NEXT_ROUND" });
       }
     }
   }

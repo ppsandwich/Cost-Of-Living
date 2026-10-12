@@ -19,7 +19,41 @@ const fruit = ["bananas", "bag-of-apples", "frozen-berries", "tinned-peaches", "
 const aromatics = ["onions", "red-onions-500g", "garlic-bulb", "fresh-basil", "dried-oregano", "ground-cumin"];
 const cheese = ["cheese-block"];
 
+export const MEAL_RECIPES: Recipe[] = [
+  { id: "chicken-veg-rice", name: "Chicken and vegetable rice", ingredients: [rice, chicken, veg] },
+  { id: "tofu-veg-rice", name: "Tofu and vegetable rice", ingredients: [rice, ["tofu"], veg] },
+  { id: "egg-veg-rice", name: "Vegetable egg fried rice", ingredients: [rice, eggs, veg] },
+  { id: "fish-veg-rice", name: "Fish and vegetable rice", ingredients: [rice, fish, veg] },
+  { id: "mince-veg-rice", name: "Mince and vegetable rice", ingredients: [rice, mince, veg] },
+  { id: "chickpea-rice-salad", name: "Chickpea rice salad", ingredients: [rice, ["chickpeas-tin"], salad] },
+  { id: "lentil-rice-veg", name: "Lentil and vegetable pilaf", ingredients: [rice, ["dried-lentils"], veg] },
+  { id: "bean-corn-rice", name: "Rice, beans and sweetcorn", ingredients: [rice, ["kidney-beans-tin", "baked-beans"], ["tinned-corn"]] },
+  { id: "tuna-corn-pasta", name: "Tuna and sweetcorn pasta", ingredients: [pasta, ["tinned-tuna"], ["tinned-corn"]] },
+  { id: "chicken-veg-pasta", name: "Chicken and vegetable pasta", ingredients: [pasta, chicken, veg] },
+  { id: "cheese-broccoli-pasta", name: "Cheesy broccoli pasta", ingredients: [pasta, cheese, ["broccoli"]] },
+  { id: "sardine-tomato-pasta", name: "Sardine and tomato pasta", ingredients: [pasta, ["tinned-sardines"], ["tinned-tomatoes"]] },
+  { id: "lentil-tomato-pasta", name: "Lentil bolognese", ingredients: [pasta, ["dried-lentils"], ["tinned-tomatoes"]] },
+  { id: "chickpea-veg-pasta", name: "Chickpea and vegetable pasta", ingredients: [pasta, ["chickpeas-tin"], veg] },
+  { id: "tofu-veg-noodles", name: "Tofu and vegetable noodles", ingredients: [noodles, ["tofu"], veg] },
+  { id: "chicken-veg-noodles", name: "Chicken and vegetable noodles", ingredients: [noodles, chicken, veg] },
+  { id: "egg-veg-noodles", name: "Egg and vegetable noodles", ingredients: [noodles, eggs, veg] },
+  { id: "peanut-veg-noodles", name: "Peanut and vegetable noodles", ingredients: [noodles, ["peanut-butter", "salted-peanuts"], veg] },
+  { id: "tuna-salad-sandwich", name: "Tuna salad sandwich", ingredients: [bread, ["tinned-tuna"], salad] },
+  { id: "chicken-salad-sandwich", name: "Chicken salad sandwich", ingredients: [bread, chicken, salad] },
+  { id: "egg-salad-sandwich", name: "Egg salad sandwich", ingredients: [bread, eggs, salad] },
+  { id: "cheese-salad-sandwich", name: "Cheese salad sandwich", ingredients: [bread, cheese, salad] },
+  { id: "chickpea-salad-sandwich", name: "Chickpea salad sandwich", ingredients: [bread, ["chickpeas-tin"], salad] },
+  { id: "fish-salad-sandwich", name: "Fish finger salad sandwich", ingredients: [bread, ["fish-fingers"], salad] },
+  { id: "bean-corn-potato", name: "Jacket potato with beans and corn", ingredients: [["potatoes-2kg"], ["baked-beans", "kidney-beans-tin"], ["tinned-corn"]] },
+  { id: "tuna-salad-potato", name: "Tuna jacket potato with salad", ingredients: [["potatoes-2kg"], ["tinned-tuna"], salad] },
+  { id: "chicken-potato-veg", name: "Chicken and vegetable tray bake", ingredients: [["potatoes-2kg"], chicken, veg] },
+  { id: "fish-potato-veg", name: "Fish, wedges and vegetables", ingredients: [["potatoes-2kg"], ["white-fish-fillets-500g", "fish-fingers"], veg] },
+  { id: "fruit-yoghurt-oats", name: "Fruit and yoghurt overnight oats", ingredients: [["oats"], ["yoghurt-tub"], fruit] },
+  { id: "banana-peanut-porridge", name: "Banana and peanut butter porridge", ingredients: [["oats"], ["peanut-butter"], ["bananas"]] },
+];
+
 export const RECIPES: Recipe[] = [
+  ...MEAL_RECIPES,
   { id: "tomato-beans", name: "Tomato and bean stew", ingredients: [[...beans, "baked-beans"], tomato], optional: [...aromatics, "carrots", "ground-cumin"] },
   { id: "bean-pasta", name: "Bean pasta", ingredients: [pasta, [...beans, "baked-beans"]], optional: [...tomato, ...aromatics] },
   { id: "bean-vegetable-soup", name: "Bean and vegetable soup", ingredients: [[...beans, "baked-beans"], veg], optional: [...veg, ...tomato, ...aromatics] },

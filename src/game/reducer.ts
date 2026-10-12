@@ -1,14 +1,15 @@
 import { findRecipe } from "./recipes";
-import type { GameState, GameMode } from "@/types/game";
+import type { GameState, GameMode, Difficulty } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
 import {
-  budgetMultiplierForRound,
+  budgetHeadroomForRound,
+  npcForRound,
   FINAL_ROUND,
   ROUND_TIMER_SECONDS,
   selectNPC,
 } from "./progression";
-import { generateSolvableRound } from "./solver";
+import { generateSolvableRound, basketCost } from "./solver";
 import {
   drawPowerUps,
   powerUpExtraBudgetCents,
@@ -30,12 +31,18 @@ export type GameAction =
       bestScore: number;
       highestRound: number;
       mode: GameMode;
+      difficulty?: Difficulty;
+      powerUpsEnabled?: boolean;
+      allowRetries?: boolean;
     }
+  | { type: "RESET_RUN" }
   | { type: "BEGIN_SHOPPING"; estimateCents: number | null }
   | { type: "RETRY_ROUND"; challenge?: boolean }
   | { type: "ADD_ITEM"; foodItemId: string }
   | { type: "REMOVE_ITEM"; foodItemId: string }
   | { type: "CHECKOUT" }
+  | { type: "OPEN_BASKET" }
+  | { type: "CLOSE_BASKET" }
   | { type: "CHOOSE_POWERUP"; powerUpId: PowerUpId }
   | { type: "USE_ESCAPE_ROPE" }
   | { type: "TICK" }
@@ -44,9 +51,14 @@ export type GameAction =
 export const INITIAL_STATE: GameState = {
   status: "idle",
   mode: "learning",
+  difficulty: 2,
+  powerUpsEnabled: true,
+  allowRetries: false,
+  solution: [],
+  baseBudgetCents: 0,
+  basketReviewOpen: false,
   roundNumber: 1,
   successfulRounds: 0,
-  budgetMultiplier: 1,
   npc: null,
   inventory: [],
   basket: [],
@@ -74,18 +86,22 @@ export const INITIAL_STATE: GameState = {
 const roundSeed = (seed: number, round: number) => (seed + round * 7919) >>> 0;
 function makeRound(state: GameState, roundNumber: number) {
   const seed = roundSeed(state.seed, roundNumber);
-  const npc = selectNPC(state.previousNPCIds, seed);
+  const npc = npcForRound(selectNPC(state.previousNPCIds, seed), roundNumber);
   const carry = state.powerUps.includes("embezzler")
     ? Math.max(0, Math.round(state.remainingBudgetCents / 2))
     : 0;
-  const base =
-    Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
-    powerUpExtraBudgetCents(state.powerUps) +
-    carry;
-  return {
-    npc,
-    ...generateSolvableRound(npc, base, seed, roundNumber, state.powerUps),
-  };
+  // Calibrate against the same shelves before discounts, then add earned budget boosts.
+  const round = generateSolvableRound(npc, npc.baseBudgetCents, seed, roundNumber, state.powerUps);
+  const baseBudgetCents = Math.floor(round.referenceCostCents * budgetHeadroomForRound(roundNumber, state.difficulty));
+  const requestedBudget = baseBudgetCents + powerUpExtraBudgetCents(state.powerUps) + carry;
+  const required = basketCost(round.solution);
+  // Keep a new customer or earned boost from reversing the spending challenge.
+  // Compare actual budget / minimum cost, so different shelf prices are comparable.
+  const previousRoom = state.solution.length ? state.roundBudgetCents / basketCost(state.solution) : Infinity;
+  const difficultyLimit = Math.floor(required * Math.max(1, previousRoom - 0.025));
+  const budgetCents = Math.max(required, Math.min(requestedBudget, difficultyLimit));
+  const inventory = round.inventory.map((item) => ({ ...item, specialLabel: item.onSale ? "On sale" : item.currentPriceCents > budgetCents ? "Costs more than your budget" : undefined }));
+  return { npc, ...round, inventory, baseBudgetCents, budgetCents };
 }
 export function previewNextBudgetCents(state: GameState): number {
   return makeRound(
@@ -94,17 +110,19 @@ export function previewNextBudgetCents(state: GameState): number {
   ).budgetCents;
 }
 function setupRound(state: GameState, roundNumber: number): GameState {
-  const { npc, inventory, budgetCents } = makeRound(state, roundNumber);
+  const { npc, inventory, budgetCents, baseBudgetCents, solution } = makeRound(state, roundNumber);
   const duration = ROUND_TIMER_SECONDS + powerUpExtraSeconds(state.powerUps);
   const next: GameState = {
     ...state,
     status: "planning",
+    basketReviewOpen: false,
     roundNumber,
-    budgetMultiplier: budgetMultiplierForRound(roundNumber),
     npc,
     inventory,
     basket: [],
     roundBudgetCents: budgetCents,
+    baseBudgetCents,
+    solution,
     remainingBudgetCents: budgetCents,
     timeRemainingSeconds: duration,
     roundDurationSeconds: duration,
@@ -130,7 +148,7 @@ function winRound(state: GameState): GameState {
     state.mode === "learning"
       ? [...state.powerUps, "timewalker" as const]
       : state.powerUps;
-  const choices = final || !POWER_UP_STOPS.includes(state.roundNumber)
+  const choices = !state.powerUpsEnabled || final || !POWER_UP_STOPS.includes(state.roundNumber)
     ? []
     : drawPowerUps(
         createRng(
@@ -143,6 +161,7 @@ function winRound(state: GameState): GameState {
     ...state,
     status: final ? "game_won" : "round_won",
     endReason: "goals_met",
+    basketReviewOpen: false,
     powerUpChoices: choices.length ? choices : null,
     recipe,
     score,
@@ -163,12 +182,17 @@ function winRound(state: GameState): GameState {
 }
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case "RESET_RUN":
+      return { ...INITIAL_STATE };
     case "START_RUN":
       return setupRound(
         {
           ...INITIAL_STATE,
           seed: action.seed,
           mode: action.mode,
+          difficulty: action.difficulty ?? 2,
+          powerUpsEnabled: action.powerUpsEnabled ?? true,
+          allowRetries: action.allowRetries ?? false,
           bestScore: action.bestScore,
           highestRound: action.highestRound,
         },
@@ -190,6 +214,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case "RETRY_ROUND": {
       if (
+        !state.allowRetries ||
         !["round_won", "game_won", "lost"].includes(state.status) ||
         !state.roundStart
       )
@@ -217,7 +242,6 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       );
       if (!item || quantityRemaining(item, state.basket) <= 0) return state;
       const food = FOOD_BY_ID[action.foodItemId];
-      if (!usableFood(food, state.npc)) return state;
       const basket = [...state.basket, {
         foodItemId: action.foodItemId,
         quantity: 1,
@@ -234,7 +258,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         basketEvent: { id: (state.basketEvent?.id ?? 0) + 1, kind: "add", foodItemId: food.id, cents: item.currentPriceCents, newRoles: MEAL_ROLES.filter((role) => !before[role] && after[role]), newWant },
         remainingBudgetCents:
           state.remainingBudgetCents - item.currentPriceCents,
-        lastFeedback: roles.length
+        lastFeedback: !usableFood(food, state.npc)
+          ? `Remove ${food.name}: this customer needs to avoid it.`
+          : roles.length
           ? `Added ${food.name}. Counts as ${roles.map((r) => MEAL_LABELS[r].toLowerCase()).join(" and ")}.`
           : `Added ${food.name} as an extra. Check your lunch list too.`,
       };
@@ -270,6 +296,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           : {}),
       };
     }
+    case "OPEN_BASKET":
+      return state.status === "playing" && state.npc && state.remainingBudgetCents >= 0 && allRequirementsMet(state.basket, state.npc)
+        ? { ...state, basketReviewOpen: true } : state;
+    case "CLOSE_BASKET":
+      return state.basketReviewOpen ? { ...state, basketReviewOpen: false } : state;
     case "CHECKOUT":
       return state.status === "playing" &&
         state.npc &&
@@ -278,7 +309,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ? winRound(state)
         : state;
     case "CHOOSE_POWERUP":
-      return state.status === "round_won" &&
+      return state.status === "round_won" && state.powerUpsEnabled &&
         state.powerUpChoices?.includes(action.powerUpId)
         ? {
             ...state,
@@ -304,7 +335,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       );
     }
     case "TICK": {
-      if (state.status !== "playing" || state.mode === "learning") return state;
+      if (state.status !== "playing" || state.mode === "learning" || state.basketReviewOpen) return state;
       const time = Math.max(0, state.timeRemainingSeconds - 1);
       return {
         ...state,

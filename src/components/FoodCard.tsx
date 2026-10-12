@@ -44,19 +44,14 @@ export function FoodCard({
   onRemove,
 }: FoodCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const buyable = canShop && !unavailable && remainingQuantity > 0;
+  const buyable = canShop && remainingQuantity > 0;
   const removeInstead = inBasket > 0;
   const roles = mealRoles(food);
   const tasteTags = TASTE_TAGS.filter(({ tag }) => food.tags.includes(tag));
   return (
     <li
-      className={`panel food-card product-card relative p-3 ${unavailable ? "food-card-unavailable" : ""} ${inBasket ? "food-card-selected" : ""}`}
+      className={`panel food-card product-card relative p-3 ${inBasket ? unavailable ? "food-card-unsuitable" : "food-card-selected" : ""}`}
     >
-      {unavailable && (
-        <p className="mb-2 text-xs font-bold text-faded">
-          Can’t use: {unavailable}
-        </p>
-      )}
       <div className="product-top">
         <span key={inBasket} aria-hidden className={`food-icon product-art ${inBasket ? "check-stamp" : ""}`}>
           {food.emoji}
@@ -74,18 +69,25 @@ export function FoodCard({
               : food.tags.includes("seasoning") ? "Flavour extra" : "An extra"}
           </span>
         </button>
-        {canShop && <button
-          onClick={removeInstead ? onRemove : onAdd}
-          disabled={removeInstead ? !canShop : !buyable}
-          aria-label={removeInstead ? `Remove ${food.name}` : `Add ${food.name}`}
-          className={`product-action btn min-h-11 px-2 text-sm ${removeInstead ? "bg-paper text-ink" : "bg-good text-white"}`}
-        >
-          {removeInstead ? "Remove" : "Add"}
-        </button>}
-        {showPrice && <span className={`price-ticket ${storeItem.onSale ? "price-ticket-sale" : ""} shrink-0 font-display text-lg tabular-nums`}>
-          {formatCents(storeItem.currentPriceCents)}
-        </span>}
+        <div className="product-controls">
+          {showPrice && <span className={`price-ticket ${storeItem.onSale ? "price-ticket-sale" : ""} shrink-0 font-display text-lg tabular-nums`}>
+            {formatCents(storeItem.currentPriceCents)}
+          </span>}
+          {canShop && <button
+            onClick={removeInstead ? onRemove : onAdd}
+            disabled={removeInstead ? !canShop : !buyable}
+            aria-label={removeInstead ? `Remove ${food.name}` : `Add ${food.name}`}
+            className={`product-action btn min-h-11 px-2 text-sm ${removeInstead ? "bg-paper text-ink" : "bg-good text-white"}`}
+          >
+            {removeInstead ? "Remove" : "Add"}
+          </button>}
+        </div>
       </div>
+      {unavailable && (
+        <p className="mt-2 text-xs font-bold text-faded">
+          Food to avoid: {unavailable}
+        </p>
+      )}
       {showAisle && <p className="product-aisle">Aisle: {AISLE_LABEL[food.category]}</p>}
       {showPrice && storeItem.specialLabel && (
         <span className={`sticker mt-2 inline-block rounded ${storeItem.onSale ? "bg-tag" : "bg-white"} px-2 py-0.5 text-xs font-bold`}>
@@ -126,7 +128,7 @@ export function FoodCard({
           </p>
         </div>
       )}
-      {inBasket > 0 && <p className="mt-2 text-xs font-bold text-good">✓ In basket</p>}
+      {inBasket > 0 && <p className={`mt-2 text-xs font-bold ${unavailable ? "text-danger" : "text-good"}`}>{unavailable ? "⚠ Remove: unsuitable for this customer" : "✓ In basket"}</p>}
 
     </li>
   );

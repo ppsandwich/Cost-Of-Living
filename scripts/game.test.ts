@@ -1,4 +1,4 @@
-import { RECIPES, STAPLE_IDS } from "../src/data/recipes";
+import { RECIPES, MEAL_RECIPES, STAPLE_IDS } from "../src/data/recipes";
 import { findRecipe, isStaple, RECIPE_BONUS } from "../src/game/recipes";
 import { generateInventory, INVENTORY_SIZE } from "../src/game/generateInventory";
 import { groupShelves, SHELF_GROUPS } from "../src/game/shelfGroups";
@@ -11,7 +11,8 @@ import {
   basketCost,
   generateSolvableRound,
 } from "../src/game/solver";
-import { allRequirementsMet } from "../src/game/requirements";
+import { parseGameSettings, DEFAULT_SETTINGS } from "../src/utils/settings";
+import { allRequirementsMet, getRequirementsStatus } from "../src/game/requirements";
 import { mealRoles, usableFood } from "../src/game/meals";
 import { improvementTip, missingRequirements, findSaving, challengeAchieved } from "../src/game/feedback";
 import { violatesMustNot } from "../src/game/applyFoodItem";
@@ -19,7 +20,7 @@ import { calculateRoundScore } from "../src/game/scoring";
 import { POWER_UPS } from "../src/data/powerups";
 import { NPCS } from "../src/data/npcs";
 import { FOOD_ITEMS, FOOD_BY_ID } from "../src/data/foodItems";
-import { FINAL_ROUND } from "../src/game/progression";
+import { FINAL_ROUND, wishCountForRound, npcForRound, budgetHeadroomForRound } from "../src/game/progression";
 import type { GameState, GameMode, BasketItem } from "../src/types/game";
 
 function start(mode: GameMode = "learning", seed = 12345): GameState {
@@ -27,6 +28,7 @@ function start(mode: GameMode = "learning", seed = 12345): GameState {
     type: "START_RUN",
     mode,
     seed,
+    allowRetries: true,
     bestScore: 0,
     highestRound: 0,
   });
@@ -116,13 +118,14 @@ test("kitchen access never limits food; dietary boundaries still apply with ever
         const state = { ...begin(start()), npc, powerUps,
           inventory: [{ foodItemId, currentPriceCents: 100, quantityAvailable: 3, onSale: false }] };
         const next = gameReducer(state, { type: "ADD_ITEM", foodItemId });
-        assert.equal(next.basket.length, violatesMustNot(FOOD_BY_ID[foodItemId], npc) ? 0 : 1);
+        assert.equal(next.basket.length, 1);
+        assert.equal(getRequirementsStatus(next.basket, npc).mustNotViolated, violatesMustNot(FOOD_BY_ID[foodItemId], npc));
       }
     }
   }
 });
 
-test("checkout requires the entire brief and budget; stock and blocked items cannot be bypassed", () => {
+test("checkout requires the entire brief and budget; stock and dietary needs cannot be bypassed", () => {
   let state = begin(start());
   assert.equal(gameReducer(state, { type: "CHECKOUT" }), state);
   const forbidden = FOOD_BY_ID.bacon;
@@ -138,11 +141,16 @@ test("checkout requires the entire brief and budget; stock and blocked items can
       },
     ],
   };
-  assert.equal(
-    gameReducer(state, { type: "ADD_ITEM", foodItemId: forbidden.id }),
-    state,
-  );
   const full = fill(state);
+  const unsuitable = gameReducer(full, { type: "ADD_ITEM", foodItemId: forbidden.id });
+  assert.equal(unsuitable.basket.length, full.basket.length + 1);
+  assert.equal(getRequirementsStatus(unsuitable.basket, unsuitable.npc!).mustNotViolated, true);
+  assert.equal(gameReducer(unsuitable, { type: "CHECKOUT" }), unsuitable);
+  assert.equal(gameReducer(unsuitable, { type: "OPEN_BASKET" }), unsuitable);
+  const corrected = gameReducer(unsuitable, { type: "REMOVE_ITEM", foodItemId: forbidden.id });
+  assert.deepEqual(corrected.basket, full.basket);
+  assert.equal(corrected.remainingBudgetCents, full.remainingBudgetCents);
+  assert.equal(gameReducer(corrected, { type: "CHECKOUT" }).status, "round_won");
   assert.equal(
     gameReducer({ ...full, remainingBudgetCents: -1 }, { type: "CHECKOUT" })
       .status,
@@ -486,4 +494,107 @@ test("each food can only be added once, even if supplied inventory reports spare
     assert.ok(generateInventory(npc, npc.baseBudgetCents, 42, 20, POWER_UPS.map(p => p.id)).every(item => item.quantityAvailable === 1));
   }
   assert.ok(POWER_UPS.every(p => !["bulk_buyer", "camp_chef"].includes(p.id)));
+});
+
+
+test("basket review pauses timed play only when requirements are met, then resumes", () => {
+  const empty = begin(start("standard_run"));
+  assert.equal(gameReducer(empty, { type: "OPEN_BASKET" }), empty);
+  const ready = fill(empty);
+  const reviewing = gameReducer(ready, { type: "OPEN_BASKET" });
+  assert.equal(reviewing.basketReviewOpen, true);
+  assert.equal(gameReducer(reviewing, { type: "TICK" }), reviewing);
+  const revised = gameReducer(reviewing, { type: "REMOVE_ITEM", foodItemId: reviewing.basket[0].foodItemId });
+  assert.equal(revised.timeRemainingSeconds, reviewing.timeRemainingSeconds - 3);
+  assert.equal(gameReducer(revised, { type: "TICK" }), revised);
+  const closed = gameReducer(reviewing, { type: "CLOSE_BASKET" });
+  assert.equal(gameReducer(closed, { type: "TICK" }).timeRemainingSeconds, closed.timeRemainingSeconds - 1);
+  assert.equal(gameReducer(reviewing, { type: "CHECKOUT" }).basketReviewOpen, false);
+});
+
+test("difficulty changes budget room and power-up-free runs remain clearable through all 20 shops", () => {
+  const budgets: number[] = [];
+  for (const difficulty of [1, 2, 3] as const) {
+    for (const seed of [12345, 45678, 98765]) {
+      let state = gameReducer(INITIAL_STATE, { type: "START_RUN", mode: "learning", seed, bestScore: 0, highestRound: 0, difficulty, powerUpsEnabled: false });
+      if (seed === 12345) budgets.push(state.roundBudgetCents);
+      for (let round = 1; round <= FINAL_ROUND; round++) {
+        assert.equal(state.difficulty, difficulty);
+        state = clear(state);
+        assert.equal(state.status, round === FINAL_ROUND ? "game_won" : "round_won");
+        assert.equal(state.powerUpChoices, null);
+        assert.deepEqual(state.powerUps, []);
+        assert.equal(gameReducer(state, { type: "CHOOSE_POWERUP", powerUpId: "deep_pockets" }), state);
+        if (round < FINAL_ROUND) state = gameReducer(state, { type: "NEXT_ROUND" });
+      }
+    }
+  }
+  assert.ok(budgets[0] > budgets[1] && budgets[1] > budgets[2]);
+});
+
+test("saved settings accept supported choices and recover from missing or corrupt storage", () => {
+  for (const raw of [null, "oops", "null", "{}", '{"difficulty":9,"powerUpsEnabled":"false"}'])
+    assert.deepEqual(parseGameSettings(raw), DEFAULT_SETTINGS);
+  for (const difficulty of [1, 2, 3])
+    assert.deepEqual(parseGameSettings(JSON.stringify({ difficulty, powerUpsEnabled: false })), { difficulty, powerUpsEnabled: false, allowRetries: false });
+});
+
+
+test("new recipes require a base, protein and produce across every ingredient alternative", () => {
+  assert.equal(RECIPES.length, 108);
+  assert.equal(MEAL_RECIPES.length, 30);
+  assert.equal(new Set(RECIPES.map((recipe) => recipe.id)).size, RECIPES.length);
+  for (const recipe of MEAL_RECIPES) {
+    assert.equal(recipe.ingredients.length, 3);
+    for (const [i, role] of (["base", "protein", "produce"] as const).entries())
+      for (const id of recipe.ingredients[i]) assert.ok(mealRoles(FOOD_BY_ID[id]).includes(role), `${recipe.id}: ${id} supplies ${role}`);
+  }
+});
+
+test("wishes grow from one to four, keep the person's favourites and never mutate the catalogue", () => {
+  for (const npc of NPCS) {
+    for (let round = 1; round <= 20; round++) {
+      const actual = npcForRound(npc, round);
+      assert.equal(actual.wants.length, wishCountForRound(round));
+      assert.equal(new Set(actual.wants).size, actual.wants.length);
+      assert.deepEqual(actual.wants.slice(0, Math.min(2, actual.wants.length)), npc.wants.slice(0, Math.min(2, actual.wants.length)));
+      assert.equal(npc.wants.length, 2);
+      if (round > 1) for (const difficulty of [1, 2, 3] as const)
+        assert.ok(budgetHeadroomForRound(round, difficulty) < budgetHeadroomForRound(round - 1, difficulty));
+    }
+  }
+});
+
+test("retries default off, opt-in restores the shop, and restart clears the current run", () => {
+  for (const allowRetries of [false, true]) {
+    let state = gameReducer(INITIAL_STATE, { type: "START_RUN", mode: "standard_run", seed: 456, bestScore: 0, highestRound: 0, allowRetries });
+    const plan = state;
+    state = gameReducer({ ...begin(state), timeRemainingSeconds: 1 }, { type: "TICK" });
+    assert.ok(allRequirementsMet(state.solution, state.npc!));
+    assert.ok(basketCost(state.solution) <= state.roundBudgetCents);
+    const retry = gameReducer(state, { type: "RETRY_ROUND" });
+    if (allowRetries) {
+      assert.equal(retry.status, "planning");
+      assert.deepEqual(retry.solution, plan.solution);
+      assert.deepEqual(retry.inventory, plan.inventory);
+    } else assert.equal(retry, state);
+    assert.deepEqual(gameReducer(state, { type: "RESET_RUN" }), INITIAL_STATE);
+  }
+  assert.equal(INITIAL_STATE.allowRetries, false);
+  assert.equal(parseGameSettings('{"allowRetries":true}').allowRetries, true);
+});
+
+test("exact solver agrees with exhaustive subsets, including variety and four wishes", () => {
+  for (const npc of NPCS) for (const seed of [11, 29, 53]) {
+    const customer = npcForRound(npc, 20);
+    const inventory = generateInventory(customer, 5000, seed).slice(0, 10);
+    let minimum = Infinity;
+    for (let mask = 0; mask < (1 << inventory.length); mask++) {
+      const basket = inventory.filter((_, i) => mask & (1 << i)).map((item) => ({ foodItemId: item.foodItemId, quantity: 1, pricePaidCents: item.currentPriceCents }));
+      if (allRequirementsMet(basket, customer)) minimum = Math.min(minimum, basketCost(basket));
+    }
+    const result = findClearingBasket(customer, inventory, Infinity);
+    assert.equal(result ? basketCost(result) : Infinity, minimum);
+    if (result) assert.equal(findClearingBasket(customer, inventory, minimum - 1), null);
+  }
 });

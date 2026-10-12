@@ -17,7 +17,7 @@ import {
   drawPowerUps,
   powerUpExtraBudgetCents,
 } from "../src/game/powerups";
-import { budgetMultiplierForRound, FINAL_ROUND } from "../src/game/progression";
+import { budgetHeadroomForRound, npcForRound, FINAL_ROUND } from "../src/game/progression";
 import { canClear, generateSolvableRound } from "../src/game/solver";
 import { createRng } from "../src/game/seededRandom";
 import type { NPC } from "../src/types/npc";
@@ -42,13 +42,13 @@ function simulate(
     [],
     withUpgrades ? POWER_UP_STOPS.filter((stop) => stop < roundNumber).length : 0,
   );
-  const npc = baseNpc;
+  const npc = npcForRound(baseNpc, roundNumber);
   const budget =
-    Math.round(npc.baseBudgetCents * budgetMultiplierForRound(roundNumber)) +
+    npc.baseBudgetCents +
     powerUpExtraBudgetCents(powerUps);
   const round = generateSolvableRound(npc, budget, seed, roundNumber, powerUps);
   return {
-    solvable: canClear(npc, round.inventory, round.budgetCents),
+    solvable: canClear(npc, round.inventory, Math.floor(round.referenceCostCents * budgetHeadroomForRound(roundNumber)) + powerUpExtraBudgetCents(powerUps)),
     rescueRatio: budget > 0 ? round.rescueCents / budget : 0,
   };
 }

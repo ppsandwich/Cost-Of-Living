@@ -99,9 +99,11 @@ export function PowerUpShelf({
   powerUps,
   canUseEscapeRope = false,
   onUseEscapeRope,
+  embedded = false,
 }: {
   powerUps: PowerUpId[];
   canUseEscapeRope?: boolean;
+  embedded?: boolean;
   onUseEscapeRope?: () => void;
 }) {
   const [openId, setOpenId] = useState<PowerUpId | null>(null);
@@ -109,11 +111,11 @@ export function PowerUpShelf({
   const open = openId ? POWER_UP_BY_ID[openId] : null;
 
   return (
-    <section aria-label="Your power-ups" className="panel p-3">
+    <section aria-label="Your power-ups" className={embedded ? "compact-boosts" : "panel p-3"}>
       <div className="flex items-start gap-2">
-        <h2 className="mt-1 shrink-0 font-display text-[12.7px] uppercase tracking-wider text-brand-dark">
+        {!embedded && <h2 className="mt-1 shrink-0 font-display text-[12.7px] uppercase tracking-wider text-brand-dark">
           Power-ups
-        </h2>
+        </h2>}
         <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
           {powerUps.map((id) => (
             <button
@@ -126,7 +128,7 @@ export function PowerUpShelf({
                 openId === id ? "-translate-y-0.5" : ""
               }`}
             >
-              <PowerUpCard powerUpId={id} />
+              {powerUps.length > 2 ? <span className="boost-chip"><span aria-hidden>{POWER_UP_BY_ID[id].icon}</span>{POWER_UP_BY_ID[id].name}</span> : <PowerUpCard powerUpId={id} size="medium" />}
             </button>
           ))}
         </div>

@@ -1,5 +1,6 @@
 import type { NPC } from "@/types/npc";
 import { FINAL_ROUND } from "@/game/progression";
+import { NPCDifficulty } from "./NPCDifficulty";
 import { NPCAvatar } from "./NPCAvatar";
 
 interface StatusBarProps {
@@ -10,6 +11,7 @@ interface StatusBarProps {
   muted: boolean;
   onToggleMute: () => void;
   onPause: () => void;
+  onRestart: () => void;
   canPause: boolean;
   clockLabel?: string;
 }
@@ -22,6 +24,7 @@ export function StatusBar({
   muted,
   onToggleMute,
   onPause,
+  onRestart,
   canPause,
   clockLabel,
 }: StatusBarProps) {
@@ -43,6 +46,7 @@ export function StatusBar({
               <div className="font-knewave truncate text-base leading-tight">
                 {npc.name}
               </div>
+              <NPCDifficulty npc={npc} />
               <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand-dark">
                 Stop {roundNumber}/{FINAL_ROUND}
               </div>
@@ -84,6 +88,7 @@ export function StatusBar({
             </div>
           )}
           <div className="flex shrink-0 items-center gap-1">
+            <button type="button" onClick={onRestart} aria-label="Restart game" title="Restart" className="btn grid size-11 place-items-center bg-paper text-lg"><span aria-hidden>↻</span></button>
             <button
               type="button"
               onClick={onToggleMute}

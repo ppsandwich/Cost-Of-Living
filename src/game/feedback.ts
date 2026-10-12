@@ -47,7 +47,7 @@ export function findSaving(state: GameState) {
     consider(
       trimmed,
       entry.pricePaidCents,
-      `Put back one pack of ${FOOD_BY_ID[entry.foodItemId].name} and save ${formatCents(entry.pricePaidCents)}. Checklist still complete.`,
+      `Put back one pack of ${FOOD_BY_ID[entry.foodItemId].name} and save ${formatCents(entry.pricePaidCents)}. Needs still met.`,
     );
     for (const item of state.inventory) {
       if (
@@ -68,7 +68,7 @@ export function findSaving(state: GameState) {
       consider(
         trial,
         savings,
-        `Swap one pack of ${FOOD_BY_ID[entry.foodItemId].name} for ${FOOD_BY_ID[item.foodItemId].name}. Save ${formatCents(savings)}; checklist still complete.`,
+        `Swap one pack of ${FOOD_BY_ID[entry.foodItemId].name} for ${FOOD_BY_ID[item.foodItemId].name}. Save ${formatCents(savings)}; needs still met.`,
       );
     }
   }
@@ -91,7 +91,7 @@ export function improvementTip(state: GameState): string {
   );
   return next
     ? `Try ${FOOD_BY_ID[next.foodItemId].name}. It can help you finish the checklist within budget.`
-    : "Pick a base, protein food and fruit or veg. Check both food wishes and leave time to check out.";
+    : "Pick a base, protein food and fruit or veg. Check all food wishes and leave time to check out.";
 }
 
 export function challengeAchieved(state: GameState): boolean {

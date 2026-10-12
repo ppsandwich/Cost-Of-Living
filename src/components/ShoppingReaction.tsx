@@ -1,8 +1,9 @@
 import type { BasketEvent } from "@/types/game";
 import type { NPC } from "@/types/npc";
 import { WANT_BADGE, WANT_EMOJI } from "@/data/labels";
-export function ShoppingReaction({ event, npc }: { event: BasketEvent | null; npc: NPC }) {
-  if (!event) return <p className="shopping-reaction text-faded">Your basket is ready. Pick a starting point.</p>;
+export function ShoppingReaction({ event, npc, empty, unsuitable }: { event: BasketEvent | null; npc: NPC; empty: boolean; unsuitable: boolean }) {
+  if (empty || !event) return <p className="shopping-reaction" aria-hidden />;
+  if (unsuitable) return <p className="shopping-reaction text-danger" role="status">⚠ Remove foods they need to avoid.</p>;
   const combo = event.newRoles.length >= 2;
   const text = event.kind === "remove" ? "Back on the shelf. Money back too."
     : combo ? "Two boxes ticked!"

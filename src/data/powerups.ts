@@ -36,7 +36,7 @@ export const POWER_UPS: PowerUp[] = [
     id: "deep_pockets",
     name: "Grocery voucher",
     icon: "🎟️",
-    description: "Get $2 extra to spend in every shop.",
+    description: "Get up to $2 extra to spend in every shop.",
   },
   {
     id: "coupon_clipper",
@@ -56,7 +56,7 @@ export const POWER_UPS: PowerUp[] = [
     name: "Savings jar",
     icon: "🪙",
     rarity: "rare",
-    description: "Add half your leftover money to the next budget.",
+    description: "Add up to half your leftover money to the next budget.",
   },
   {
     id: "price_compare",

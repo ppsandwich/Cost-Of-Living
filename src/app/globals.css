@@ -82,24 +82,6 @@ body {
   font-weight: 400;
 }
 
-.countdown-screen {
-  opacity: 1;
-  transition: opacity 0.42s ease-out;
-}
-
-.countdown-screen-fade {
-  opacity: 0;
-}
-
-.countdown-number {
-  text-shadow:
-    0 0.06em 0 var(--color-ink),
-    0.06em 0.08em 0 rgba(51, 36, 28, 0.35),
-    0 0 0.22em rgba(255, 250, 240, 0.55);
-  transform-origin: center;
-  animation: countdown-pop 1s cubic-bezier(0.18, 1.38, 0.32, 1) both;
-}
-
 /* ── Supermarket awning (header trim) ─────────────────────── */
 
 .awning-stripes {
@@ -262,25 +244,6 @@ body {
   }
 }
 
-@keyframes countdown-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.34) rotate(-8deg);
-  }
-  18% {
-    opacity: 1;
-    transform: scale(1.16) rotate(4deg);
-  }
-  70% {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.72) rotate(7deg);
-  }
-}
-
 @keyframes cart-rattle {
   0%,
   100% {
@@ -390,7 +353,6 @@ body {
   background: #f1f7e9;
   box-shadow: 4px 4px 0 #237a5433;
 }
-.food-card-unavailable { background: var(--color-paper); }
 .food-icon {
   display: grid;
   place-items: center;
@@ -762,7 +724,7 @@ body {
   .shop-products .product-top { grid-template-columns: 3.5rem minmax(0, 1fr); }
   .shop-products .product-top .price-ticket { grid-column: 2; justify-self: start; }
   .shop-products .product-art { grid-row: span 2; width: 3.5rem; height: 4rem; }
-  .shelf-tools { top: 5.5rem; }
+  .shelf-tools { top: 6.25rem; }
   .aisle { scroll-margin-top: 16rem; }
 }
 
@@ -786,9 +748,8 @@ body {
 .brief-label { display: flex; align-items: center; gap: .35rem; font: 700 .8rem var(--font-display); }
 .brief-label > span { display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; border: 1.5px solid #33241c55; border-radius: 50%; background: var(--color-tag); font-size: .7rem; }
 .brief-person-heading h2 { line-height: 1.2; margin-block: .15rem; }
-.brief-speech { margin-top: .6rem; font-size: .8rem; font-style: italic; }
 .brief-about { font-size: .75rem; }
-.brief-about summary { cursor: pointer; min-height: 44px; align-content: center; color: var(--color-brand-dark); font-weight: 800; }
+.brief-about h3 { margin-top: .65rem; margin-bottom: .2rem; color: var(--color-brand-dark); font-weight: 800; }
 .brief-about p { padding-bottom: .5rem; }
 .brief-wishes { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
 .brief-hint { margin-top: .5rem; font-size: .75rem; line-height: 1.45; }
@@ -840,8 +801,7 @@ body {
 .dish-extra .plate-food { font-size: 1.5rem; }
 .extra-plus { font: 800 1rem var(--font-display); color: var(--color-brand-dark); }
 .receipt-tip { margin-top: .25rem; border-top: 1px dashed #33241c33; }
-.receipt-tip summary { min-height: 32px; align-content: center; cursor: pointer; font-weight: 800; }
-.recipe-note { font-size: .7rem; color: var(--color-faded); }
+.receipt-tip { padding-top: .5rem; }
 .planning-shelves .product-top { grid-template-columns: 3.5rem minmax(0, 1fr); }
 .planning-shelves .product-art { grid-row: auto; }
 @media (max-width: 380px) {
@@ -906,10 +866,71 @@ body {
 }
 
 
-/* One pick per food; the primary action sits in the card’s top-right corner. */
-.store-shelves:not(.planning-shelves) .product-top { grid-template-columns: 3.5rem minmax(0, 1fr) 5rem; align-items: start; }
-.store-shelves:not(.planning-shelves) .product-art { grid-column: 1; grid-row: 1 / span 2; align-self: center; }
-.store-shelves:not(.planning-shelves) .product-info { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-.product-action { grid-column: 3; grid-row: 1; justify-self: stretch; }
-.store-shelves:not(.planning-shelves) .product-top .price-ticket { grid-column: 3; grid-row: 2; justify-self: end; }
+/* Price and action share the top-right corner; the name has its own full row. */
+.store-shelves:not(.planning-shelves) .product-top { grid-template-columns: 3.5rem minmax(0, 1fr); align-items: center; }
+.store-shelves:not(.planning-shelves) .product-art { grid-column: 1; grid-row: 1; }
+.store-shelves:not(.planning-shelves) .product-info { grid-column: 1 / -1; grid-row: 2; }
+.product-controls { display: flex; justify-content: flex-end; align-items: center; gap: .5rem; grid-column: 2; grid-row: 1; }
+.product-action { min-width: 5rem; }
+.planning-shelves .product-controls { display: none; }
 .estimate-field { padding-top: .65rem; }
+.food-card { background-color: white; transition: border-color 180ms ease, background-color var(--panel-motion, 560ms) ease, box-shadow 180ms ease; }
+.planning-shelves .food-card { background-color: var(--shop-paper); }
+.food-card.food-card-unsuitable { background-color: #ffe1da; border-color: var(--color-danger); box-shadow: 4px 4px 0 #d6402e33; }
+.basket-review-button.basket-unsuitable { background: var(--color-danger); color: white; opacity: 1; }
+.difficulty-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.difficulty-options label { position: relative; display: grid; justify-items: center; gap: .15rem; border: 2px solid #33241c33; border-radius: .65rem; padding: .5rem .2rem; cursor: pointer; }
+.difficulty-options input { position: absolute; opacity: 0; }
+.difficulty-options label:has(:focus-visible) { outline: 3px solid var(--color-brand); outline-offset: 3px; }
+.difficulty-options strong { font-family: var(--font-display); font-size: 1.3rem; }
+.difficulty-options span { font-size: .7rem; font-weight: 700; }
+.difficulty-options .difficulty-selected { background: #e5efdd; border-color: var(--color-good); }
+.powerups-setting { display: flex; align-items: center; gap: .6rem; min-height: 44px; margin-top: .5rem; font-size: .875rem; font-weight: 700; cursor: pointer; }
+.powerups-setting input { width: 1.25rem; height: 1.25rem; accent-color: var(--color-good); }
+
+.npc-difficulty { font-size: .65rem; line-height: 1.4; font-weight: 800; color: var(--color-brand-dark); white-space: nowrap; }
+.npc-difficulty span { color: #975018; }
+header .npc-difficulty { font-size: .58rem; }
+header .npc-difficulty span { display: none; }
+.boost-chip { display: inline-flex; gap: .3rem; align-items: center; min-height: 44px; padding: .25rem .5rem; border: 2px solid var(--color-ink); border-radius: .65rem; font-size: .7rem; background: var(--color-receipt); font-weight: 700; }
+.compact-boosts { margin-top: .5rem; }
+.round-solution { margin-block: .75rem; padding: .7rem; border: 2px dashed #33241c55; border-radius: .8rem; background: var(--color-receipt); font-size: .75rem; }
+.round-solution ul { display: grid; gap: .4rem; margin-block: .65rem; }
+.round-solution li { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr) auto; align-items: center; gap: .3rem; }
+.round-solution li > span:first-child { font-size: 1.25rem; }
+.round-solution p + p { margin-top: .3rem; }
+
+/* Quiet illustrated surroundings: detail at the edges, clear paper behind play. */
+.game-world { position: relative; isolation: isolate; --shop-scene: url('/illustrations/corner-shop.svg'); }
+.game-world[data-shop="market"] { --shop-scene: url('/illustrations/market.svg'); }
+.game-world[data-shop="supermarket"] { --shop-scene: url('/illustrations/supermarket.svg'); }
+.store-backdrop {
+  position: fixed;
+  inset: 4.5rem 0 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: linear-gradient(90deg, transparent, var(--shop-paper) 32%, var(--shop-paper) 68%, transparent), var(--shop-scene);
+  background-position: center top;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: .58;
+}
+.shop-front {
+  background-image: linear-gradient(90deg, var(--shop-accent) 28%, color-mix(in srgb, var(--shop-accent) 92%, transparent) 52%, color-mix(in srgb, var(--shop-accent) 42%, transparent)), var(--shop-scene);
+  background-position: center, right 42%;
+  background-size: cover, 650px auto;
+  background-repeat: no-repeat;
+}
+@media (max-width: 639px) {
+  .store-backdrop {
+    background-image: linear-gradient(var(--shop-paper), transparent 20%, transparent 78%, var(--shop-paper)), var(--shop-scene);
+    background-position: center, left top;
+    background-size: cover, auto 100%;
+    opacity: .32;
+  }
+  .shop-front { background-size: cover, 440px auto; }
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .store-backdrop { display: none; }
+  .shop-front { background-image: none; }
+}

@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { gameReducer, INITIAL_STATE } from "@/game/reducer";
 import {
-  dismissTutorial,
   recordRunProgress,
   useRecords,
 } from "@/utils/records";
+import { useGameSettings, saveGameSettings } from "@/utils/settings";
 import { StatusBar } from "@/components/StatusBar";
 import { StoreList } from "@/components/StoreList";
 import { BasketDrawer } from "@/components/BasketDrawer";
@@ -14,7 +14,7 @@ import { OutcomeModal } from "@/components/OutcomeModal";
 import { RunSummary } from "@/components/RunSummary";
 import { StartScreen } from "@/components/StartScreen";
 import { PowerUpShelf } from "@/components/PowerUps";
-import { CountdownInterstitial } from "@/components/CountdownInterstitial";
+import { Dialog } from "@/components/Dialog";
 import { PauseModal } from "@/components/PauseModal";
 import { PlanningPanel } from "@/components/PlanningPanel";
 import { ShoppingOrder } from "@/components/ShoppingOrder";
@@ -24,15 +24,9 @@ import { useShopAudio } from "@/hooks/useShopAudio";
 import type { GameMode } from "@/types/game";
 import { FINAL_ROUND } from "@/game/progression";
 
-interface PendingCountdown {
-  id: number;
-  onProceed: () => void;
-}
-
 export default function Home() {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
-  const [pendingCountdown, setPendingCountdown] =
-    useState<PendingCountdown | null>(null);
+  const [restartOpen, setRestartOpen] = useState(false);
   const [paused, setPaused] = useState(false);
   const [openingShop, setOpeningShop] = useState(false);
   const [shelfVisit, setShelfVisit] = useState(0);
@@ -40,15 +34,16 @@ export default function Home() {
   useEffect(() => () => { if (openingTimer.current) clearTimeout(openingTimer.current); }, []);
   const [mode, setMode] = useState<GameMode>("learning");
   const records = useRecords(mode);
-  const { muted, toggle: toggleSound } = useShopAudio(state.basketEvent, state.roundNumber, state.status === "playing" && !paused && !pendingCountdown);
+  const settings = useGameSettings();
+  const { muted, toggle: toggleSound } = useShopAudio(state.basketEvent, state.roundNumber, state.status === "playing" && !paused && !restartOpen && !state.basketReviewOpen);
 
-  // Round countdown
+  // Shopping timer
   useEffect(() => {
     if (state.status !== "playing" || state.mode === "learning") return;
-    if (paused || pendingCountdown) return;
+    if (paused || restartOpen || state.basketReviewOpen) return;
     const interval = setInterval(() => dispatch({ type: "TICK" }), 1000);
     return () => clearInterval(interval);
-  }, [paused, pendingCountdown, state.mode, state.status, state.roundNumber]);
+  }, [paused, restartOpen, state.mode, state.status, state.roundNumber, state.basketReviewOpen]);
 
   // Only a fresh plan resets the scroll; starting shopping keeps the same shelves.
   useEffect(() => {
@@ -68,25 +63,27 @@ export default function Home() {
     recordRunProgress(state.totalScore, state.successfulRounds, state.mode);
   }, [state.status, state.totalScore, state.successfulRounds, state.mode]);
 
+  const resetRun = () => {
+    if (openingTimer.current) clearTimeout(openingTimer.current);
+    openingTimer.current = null;
+    setOpeningShop(false);
+    setPaused(false);
+    setRestartOpen(false);
+    dispatch({ type: "RESET_RUN" });
+    window.scrollTo(0, 0);
+  };
   const startRun = () => {
     setPaused(false);
     setShelfVisit((visit) => visit + 1);
     dispatch({
       type: "START_RUN",
       mode,
+      ...settings,
       seed: Date.now() % 2147483647,
       bestScore: records.bestScore,
       highestRound: records.highestRound,
     });
   };
-
-  const withCountdown = useCallback((onComplete: () => void) => {
-    setPendingCountdown({
-      id: Date.now(),
-      onProceed: onComplete,
-    });
-  }, []);
-  const endCountdown = useCallback(() => setPendingCountdown(null), []);
 
   const beginShopping = (estimateCents: number | null) => {
     if (state.status !== "planning" || openingShop || openingTimer.current) return;
@@ -99,8 +96,7 @@ export default function Home() {
     const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 560;
     openingTimer.current = setTimeout(() => {
       openingTimer.current = null;
-      if (state.mode === "standard_run") withCountdown(begin);
-      else begin();
+      begin();
     }, duration);
   };
   const retryRound = (challenge = false) => {
@@ -114,14 +110,15 @@ export default function Home() {
     <StartScreen
       bestScore={records.bestScore}
       highestRound={records.highestRound}
-      showTutorial={!records.tutorialDismissed}
-      onDismissTutorial={dismissTutorial}
+      settings={settings}
+      onSettingsChange={saveGameSettings}
       onStart={startRun}
       mode={mode}
       onModeChange={setMode}
     />
   ) : (
     <div className="game-world flex min-h-dvh flex-col" data-shop={shopForRound(state.roundNumber).id}>
+      <div className="store-backdrop" aria-hidden="true" />
       <StatusBar
         npc={npc}
         clockLabel={
@@ -129,7 +126,7 @@ export default function Home() {
             ? "Planning · clock off"
             : state.mode === "learning"
               ? "Learning · no timer"
-              : undefined
+              : state.basketReviewOpen ? "Review · clock paused" : undefined
         }
         roundNumber={state.roundNumber}
         timeRemainingSeconds={state.timeRemainingSeconds}
@@ -139,7 +136,13 @@ export default function Home() {
         onPause={() => {
           if (state.status === "playing") setPaused(true);
         }}
-        canPause={state.status === "playing" && !pendingCountdown}
+        onRestart={() => {
+          if (openingTimer.current) clearTimeout(openingTimer.current);
+          openingTimer.current = null;
+          setOpeningShop(false);
+          setRestartOpen(true);
+        }}
+        canPause={state.status === "playing" && !restartOpen}
       />
 
       <main className={`shop-workspace ${planningView ? "workspace-planning" : "workspace-shopping"}`}>
@@ -169,12 +172,15 @@ export default function Home() {
               onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })} />
             <BasketDrawer
               key={`basket-${state.roundNumber}-${shelfVisit}`}
+              open={state.basketReviewOpen}
+              onOpen={() => dispatch({ type: "OPEN_BASKET" })}
+              onClose={() => dispatch({ type: "CLOSE_BASKET" })}
               roundBudgetCents={state.roundBudgetCents}
               event={state.basketEvent}
               challengeTarget={state.retryChallenge?.targetSpendCents}
               basket={state.basket} npc={npc}
               remainingBudgetCents={state.remainingBudgetCents}
-              active={state.status === "playing" && !paused && !pendingCountdown}
+              active={state.status === "playing" && !paused && !restartOpen}
               timed={state.mode === "standard_run"}
               timeRemainingSeconds={state.timeRemainingSeconds}
               onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
@@ -185,7 +191,7 @@ export default function Home() {
           <StoreList key={`${state.roundNumber}-${shelfVisit}`}
             inventory={state.inventory} roundNumber={state.roundNumber}
             planning={planningView}
-            canShop={state.status === "playing" && !paused && !pendingCountdown}
+            canShop={state.status === "playing" && !paused && !restartOpen}
             basket={state.basket} npc={npc} powerUps={state.powerUps}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
             onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
@@ -205,7 +211,7 @@ export default function Home() {
       {state.status === "lost" && (
         <RunSummary
           state={state}
-          onReplay={startRun}
+          onReplay={resetRun}
           onRetry={retryRound}
         />
       )}
@@ -213,7 +219,7 @@ export default function Home() {
         <RunSummary
           state={state}
           won
-          onReplay={startRun}
+          onReplay={resetRun}
           onRetry={retryRound}
         />
       )}
@@ -231,13 +237,13 @@ export default function Home() {
         {content}
       </div>
       {paused && <PauseModal onResume={() => setPaused(false)} />}
-      {pendingCountdown && (
-        <CountdownInterstitial
-          key={pendingCountdown.id}
-          onProceed={pendingCountdown.onProceed}
-          onDone={endCountdown}
-        />
-      )}
+      {restartOpen && <Dialog title="Restart this run?" onClose={() => setRestartOpen(false)}>
+        <p className="my-4 text-sm">You’ll lose this run’s progress and return to the start screen. Your saved settings and best scores will stay.</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button className="btn min-h-12 bg-paper" onClick={() => setRestartOpen(false)}>Keep playing</button>
+          <button className="btn min-h-12 bg-danger text-white" onClick={resetRun}>Restart run</button>
+        </div>
+      </Dialog>}
     </>
   );
 }
