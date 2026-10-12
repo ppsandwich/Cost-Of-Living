@@ -26,13 +26,13 @@ export function LearningReceipt({ state, compact = false }: { state: GameState; 
           <dd>{formatCents(Math.abs(state.remainingBudgetCents))}</dd>
         </div>
       </dl>
-      <p className={state.endReason === "goals_met" ? "font-bold text-good" : ""}>
+      {!(compact && state.endReason === "goals_met") && <p className={state.endReason === "goals_met" ? "font-bold text-good" : ""}>
         {missing.length
           ? `Still needed: ${missing.join("; ")}.`
           : state.endReason === "goals_met"
             ? "✓ Checklist complete. Within budget!"
             : "Your checklist was complete, but time ran out. Next time, check out sooner."}
-      </p>
+      </p>}
       {estimateDelta !== null && (
         <p>
           Estimate: {formatCents(state.estimateCents!)}. {estimateDelta === 0
@@ -50,9 +50,8 @@ export function LearningReceipt({ state, compact = false }: { state: GameState; 
             : `Last time: ${formatCents(previous.spentCents)}. ${!previous.cleared && state.endReason === "goals_met" ? "This time you finished the checklist!" : "Compare your checklist as well as the cost."}`}
         </p>
       )}
-      <p className="border-t border-dashed border-ink/25 pt-2">
-        <strong>Try next:</strong> {improvementTip(state)}
-      </p>
+      {compact ? <details className="receipt-tip"><summary>Spending tip</summary><p>{improvementTip(state)}</p></details> : <p className="border-t border-dashed border-ink/25 pt-2"><strong>Try next:</strong> {improvementTip(state)}</p>}
+      {state.recipe && <p className="recipe-note">Your points include the recipe bonus.</p>}
     </section>
   );
 }

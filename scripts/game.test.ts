@@ -1,3 +1,6 @@
+import { RECIPES, STAPLE_IDS } from "../src/data/recipes";
+import { findRecipe, isStaple, RECIPE_BONUS } from "../src/game/recipes";
+import { generateInventory, INVENTORY_SIZE } from "../src/game/generateInventory";
 import { groupShelves, SHELF_GROUPS } from "../src/game/shelfGroups";
 import { POWER_UP_STOPS, shopForRound } from "../src/game/shops";
 import assert from "node:assert/strict";
@@ -15,7 +18,7 @@ import { violatesMustNot } from "../src/game/applyFoodItem";
 import { calculateRoundScore } from "../src/game/scoring";
 import { POWER_UPS } from "../src/data/powerups";
 import { NPCS } from "../src/data/npcs";
-import { FOOD_BY_ID } from "../src/data/foodItems";
+import { FOOD_ITEMS, FOOD_BY_ID } from "../src/data/foodItems";
 import { FINAL_ROUND } from "../src/game/progression";
 import type { GameState, GameMode, BasketItem } from "../src/types/game";
 
@@ -372,4 +375,96 @@ test("group filters preserve dietary exclusions and every suitable food stays di
       assert.ok(filtered.flatMap((section) => section.items).every((item) => usableFood(FOOD_BY_ID[item.foodItemId], npc)));
     }
   }
+});
+
+
+test("new cooking ingredients are reachable in normal shops without enlarging each shop", () => {
+  const additions = ["spaghetti-500g", "lasagne-sheets", "basmati-rice-1kg", "brown-rice-1kg", "plain-flour-1kg", "caster-sugar-1kg", "eggs-six", "milk-1l", "fresh-basil", "dried-oregano", "ground-cumin", "curry-powder", "garlic-bulb", "red-onions-500g", "chicken-breast-500g", "pork-mince-500g", "white-fish-fillets-500g", "tinned-sardines", "lemons-three", "tomato-paste", "kidney-beans-tin"];
+  assert.equal(new Set(FOOD_ITEMS.map((food) => food.id)).size, FOOD_ITEMS.length);
+  const seen = new Set<string>();
+  for (let seed = 1; seed <= 200; seed++) {
+    const npc = NPCS[seed % NPCS.length];
+    const inventory = generateInventory(npc, npc.baseBudgetCents, seed);
+    assert.equal(inventory.length, INVENTORY_SIZE);
+    inventory.forEach((item) => seen.add(item.foodItemId));
+  }
+  for (const id of additions) {
+    assert.ok(FOOD_BY_ID[id], `${id} is in the catalogue`);
+    assert.ok(seen.has(id), `${id} can appear on the shelves`);
+    assert.ok(Number.isInteger(FOOD_BY_ID[id].basePriceCents) && FOOD_BY_ID[id].basePriceCents > 0);
+  }
+});
+
+test("cooking staples cover lunch roles while seasonings stay extras and dietary rules hold", () => {
+  for (const id of ["spaghetti-500g", "lasagne-sheets", "basmati-rice-1kg", "brown-rice-1kg", "plain-flour-1kg"])
+    assert.deepEqual(mealRoles(FOOD_BY_ID[id]), ["base"]);
+  for (const id of ["eggs-six", "chicken-breast-500g", "pork-mince-500g", "white-fish-fillets-500g", "tinned-sardines", "kidney-beans-tin"])
+    assert.deepEqual(mealRoles(FOOD_BY_ID[id]), ["protein"]);
+  assert.deepEqual(mealRoles(FOOD_BY_ID["red-onions-500g"]), ["produce"]);
+  for (const id of ["fresh-basil", "dried-oregano", "ground-cumin", "curry-powder", "garlic-bulb", "lemons-three", "tomato-paste", "caster-sugar-1kg", "milk-1l"])
+    assert.deepEqual(mealRoles(FOOD_BY_ID[id]), [], `${id} does not fill a main lunch slot`);
+  for (const id of ["chicken-breast-500g", "pork-mince-500g", "white-fish-fillets-500g", "tinned-sardines"])
+    assert.equal(usableFood(FOOD_BY_ID[id], { ...NPCS[0], mustNot: "vegetarian" }), false);
+  assert.equal(usableFood(FOOD_BY_ID["pork-mince-500g"], { ...NPCS[0], mustNot: "no_pork" }), false);
+  assert.equal(usableFood(FOOD_BY_ID["eggs-six"], { ...NPCS[0], mustNot: "egg_allergy" }), false);
+  assert.equal(usableFood(FOOD_BY_ID["milk-1l"], { ...NPCS[0], mustNot: "dairy_allergy" }), false);
+  assert.equal(usableFood(FOOD_BY_ID["kidney-beans-tin"], { ...NPCS[0], mustNot: "vegan" }), true);
+});
+
+test("recipe catalogue only uses real ingredients and every shop has at least 40% staples", () => {
+  assert.equal(new Set(RECIPES.map((recipe) => recipe.id)).size, RECIPES.length);
+  for (const recipe of RECIPES) {
+    assert.ok(recipe.ingredients.length >= 2);
+    for (const slot of recipe.ingredients) assert.ok(slot.length > 0);
+    for (const id of [...recipe.ingredients.flat(), ...(recipe.optional ?? [])]) assert.ok(FOOD_BY_ID[id], `${recipe.id}: ${id} exists`);
+  }
+  for (const id of STAPLE_IDS) assert.ok(FOOD_BY_ID[id]);
+  for (const npc of NPCS) for (const powerUps of [[], POWER_UPS.map((p) => p.id)]) for (let seed = 1; seed <= 20; seed++) {
+    const inventory = generateInventory(npc, npc.baseBudgetCents, seed, 20, powerUps);
+    assert.ok(inventory.filter((item) => isStaple(FOOD_BY_ID[item.foodItemId])).length >= Math.ceil(inventory.length * 0.4));
+  }
+});
+
+const ingredients = (...ids: string[]): BasketItem[] => ids.map((foodItemId) => ({ foodItemId, quantity: 1, pricePaidCents: 100 }));
+
+test("recipe matching requires distinct bought ingredients, honours dietary rules and conserves extras", () => {
+  const npc = { ...NPCS[0], mustNot: "no_pork" as const };
+  assert.equal(findRecipe(ingredients("white-bread"), npc), null);
+  assert.equal(findRecipe([{ ...ingredients("bananas")[0], quantity: 3 }], npc), null);
+  assert.equal(findRecipe(ingredients("bag-of-apples", "premium-bag-of-apples"), npc), null);
+  assert.equal(findRecipe(ingredients("white-bread", "bacon"), npc), null);
+  assert.equal(findRecipe(ingredients("white-bread", "eggs-six"), { ...npc, mustNot: "egg_allergy" }), null);
+  assert.equal(findRecipe([{ ...ingredients("eggs-six")[0], quantity: 0 }, ...ingredients("white-bread")], npc), null);
+  const basket = [{ ...ingredients("white-bread")[0], quantity: 2 }, ...ingredients("baked-beans", "cola-2l")];
+  const match = findRecipe(basket, npc)!;
+  assert.equal(match.recipeId, "beans-on-toast");
+  assert.deepEqual(match.used.map((entry) => entry.foodItemId).sort(), ["baked-beans", "white-bread"]);
+  assert.deepEqual(match.extras.map((entry) => [entry.foodItemId, entry.quantity]), [["white-bread", 1], ["cola-2l", 1]]);
+  for (const entry of basket) assert.equal([...match.used, ...match.extras].filter((item) => item.foodItemId === entry.foodItemId).reduce((sum, item) => sum + item.quantity, 0), entry.quantity);
+  const premium = findRecipe(ingredients("white-bread", "premium-cheese-block"), npc)!;
+  assert.equal(premium.recipeId, "cheese-toastie");
+  assert.ok(premium.used.some((entry) => entry.foodItemId === "premium-cheese-block"));
+  assert.equal(findRecipe(ingredients("pasta-500g", "beef-mince", "tinned-tomatoes", "garlic-bulb"), npc)?.recipeId, "bolognese");
+});
+
+test("Recipe Bonus is awarded once at valid checkout, reset on retry, and included in the final round", () => {
+  const npc = { ...NPCS[0], mustNot: "no_pork" as const, wants: ["likes_comfort_food", "likes_sweet_food"] as typeof NPCS[number]["wants"] };
+  const plan = { ...start(), npc, inventory: ingredients("white-bread", "baked-beans", "bananas").map((entry) => ({ foodItemId: entry.foodItemId, currentPriceCents: 100, quantityAvailable: 2 })) };
+  plan.roundStart = { ...plan, roundStart: null };
+  const playing = fill(begin(plan));
+  const won = gameReducer(playing, { type: "CHECKOUT" });
+  assert.ok(won.recipe);
+  assert.equal(won.score, calculateRoundScore(playing) + RECIPE_BONUS);
+  assert.equal(won.totalScore, playing.totalScore + won.score);
+  assert.equal(gameReducer(won, { type: "CHECKOUT" }), won);
+  const retry = gameReducer(won, { type: "RETRY_ROUND" });
+  assert.equal(retry.recipe, null);
+  assert.equal(retry.score, 0);
+  assert.equal(clear(retry).totalScore, won.totalScore);
+  const final = gameReducer({ ...playing, roundNumber: FINAL_ROUND }, { type: "CHECKOUT" });
+  assert.equal(final.status, "game_won");
+  assert.ok(final.recipe);
+  const lost = gameReducer({ ...playing, mode: "standard_run", timeRemainingSeconds: 1 }, { type: "TICK" });
+  assert.equal(lost.recipe, null);
+  assert.equal(lost.score, 0);
 });

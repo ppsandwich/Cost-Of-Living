@@ -129,7 +129,7 @@ export default function Home() {
         </div>
         <aside className="shop-companion" aria-label={state.status === "planning" ? "Your lunch order and plan" : "Your order and basket"}>
           {state.status === "planning" ? <>
-            <NPCPanel key={npc.id} npc={npc} basket={state.basket} budgetCents={state.roundBudgetCents} event={state.basketEvent} />
+            <NPCPanel showMealSlots={false} key={npc.id} npc={npc} basket={state.basket} budgetCents={state.roundBudgetCents} event={state.basketEvent} />
             <PlanningPanel
               key={`${state.roundNumber}-${state.previousAttempt ? "retry" : "first"}`}
               state={state}
@@ -162,6 +162,7 @@ export default function Home() {
         <div className="shop-products">
           <StoreList key={`${state.roundNumber}-${state.status === "planning" ? "plan" : "shop"}`}
             inventory={state.inventory} roundNumber={state.roundNumber}
+            planning={state.status === "planning"}
             canShop={state.status === "playing" && !paused && !pendingCountdown}
             basket={state.basket} npc={npc} powerUps={state.powerUps} bulkAddsUsed={state.bulkAddsUsed}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}

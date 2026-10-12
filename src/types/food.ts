@@ -35,6 +35,7 @@ export type FoodTag =
   | "vitamin_rich"
   | "mineral_rich"
   | "low_prep"
+  | "seasoning"
   | "family_friendly";
 
 export interface FoodItem {

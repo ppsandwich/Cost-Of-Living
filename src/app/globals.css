@@ -829,3 +829,33 @@ body {
   .intro-controls { padding: .65rem; gap: .4rem; }
   .intro-controls button { padding-inline: .65rem; font-size: .8rem; }
 }
+
+/* A cooked lunch takes centre stage; spare packs sit beside the plate. */
+.dish-result { margin-top: .5rem; padding: .5rem .6rem; border: 2px solid #33241c33; border-radius: 1rem; background: var(--shop-soft, #f6e6c6); }
+.dish-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .25rem; }
+.dish-heading h3 { font-size: 1.25rem; line-height: 1.15; }
+.recipe-bonus { display: inline-block; padding: .2rem .35rem; border: 2px solid var(--color-good); border-radius: .4rem; background: #e4f0d7; color: var(--color-good-dark); font: 700 .7rem var(--font-display); animation: check-stamp 450ms ease-out; }
+.dish-serving { display: flex; align-items: center; gap: .75rem; padding-top: .4rem; }
+.dish-plate { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .15rem; flex: 0 1 65%; min-width: 0; min-height: 5rem; padding: .5rem .7rem; border: 7px double #9caabd; border-radius: 50%; background: radial-gradient(ellipse, #fffef8 55%, #e0e9ed 57%, #ffffff 72%); box-shadow: 2px 4px 0 #33241c22; }
+.plate-food { position: relative; display: inline-grid; place-items: center; font-size: 2.15rem; line-height: 1.1; animation: basket-drop 400ms ease-out both; }
+.plate-food:nth-child(even) { transform: rotate(9deg); }
+.plate-food small { position: absolute; right: -.2rem; bottom: -.2rem; padding: .05rem .15rem; border: 1px solid var(--color-ink); border-radius: .3rem; background: white; color: var(--color-ink); font: 800 .6rem var(--font-sans); }
+.dish-plate-full .plate-food { font-size: 1.5rem; }
+.dish-extras { flex: 1; min-width: 0; font-size: .65rem; }
+.dish-extras > div { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .2rem; }
+.dish-extra { display: inline-flex; align-items: center; gap: .15rem; }
+.dish-extra .plate-food { font-size: 1.5rem; }
+.extra-plus { font: 800 1rem var(--font-display); color: var(--color-brand-dark); }
+.receipt-tip { margin-top: .25rem; border-top: 1px dashed #33241c33; }
+.receipt-tip summary { min-height: 32px; align-content: center; cursor: pointer; font-weight: 800; }
+.recipe-note { font-size: .7rem; color: var(--color-faded); }
+.planning-shelves .product-top { grid-template-columns: 3.5rem minmax(0, 1fr); }
+.planning-shelves .product-art { grid-row: auto; }
+@media (max-width: 380px) {
+  .dish-result { padding: .4rem; }
+  .dish-heading h3 { font-size: 1.1rem; }
+  .dish-serving { gap: .4rem; }
+  .dish-plate { padding: .3rem; min-height: 4.4rem; }
+  .plate-food { font-size: 1.8rem; }
+  .dish-extra .plate-food { font-size: 1.3rem; }
+}

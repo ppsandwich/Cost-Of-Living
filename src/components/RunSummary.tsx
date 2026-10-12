@@ -1,3 +1,4 @@
+import { DishPlate } from "./DishPlate";
 import type { GameState } from "@/types/game";
 import { LearningReceipt } from "./LearningReceipt";
 import { Dialog } from "./Dialog";
@@ -23,6 +24,7 @@ export function RunSummary({
           ? "You finished all 20 rounds!"
           : "Time ran out. Check your receipt and have another go."}
       </p>
+      {won && <DishPlate state={state} />}
       <LearningReceipt state={state} compact />
       <p className="text-sm font-bold">
         {state.successfulRounds} lunches sorted · {state.totalScore} points ·{" "}

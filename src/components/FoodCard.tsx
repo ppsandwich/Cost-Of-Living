@@ -23,6 +23,7 @@ interface FoodCardProps {
   wantMatches: string[];
   unavailable: string | null;
   canShop: boolean;
+  showPrice?: boolean;
   showAisle?: boolean;
   priceHint: string | null;
   canBulkAdd: boolean;
@@ -38,6 +39,7 @@ export function FoodCard({
   wantMatches,
   unavailable,
   canShop,
+  showPrice = true,
   showAisle = false,
   priceHint,
   canBulkAdd,
@@ -65,27 +67,27 @@ export function FoodCard({
         <button
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
-          aria-label={`${food.name}, ${formatCents(storeItem.currentPriceCents)}. Details`}
+          aria-label={`${food.name}${showPrice ? `, ${formatCents(storeItem.currentPriceCents)}` : ""}. Details`}
           className="min-h-11 min-w-0 flex-1 text-left"
         >
           <span className="block font-display text-base leading-tight">{food.name}</span>
           <span className="block text-xs text-faded">
             {roles.length
               ? roles.map((r) => `${MEAL_ICONS[r]} ${r === "produce" ? "Fruit / veg" : r === "base" ? "Base" : "Protein"}`).join(" · ")
-              : "An extra"}
+              : food.tags.includes("seasoning") ? "Flavour extra" : "An extra"}
           </span>
         </button>
-        <span className={`price-ticket ${storeItem.onSale ? "price-ticket-sale" : ""} shrink-0 font-display text-lg tabular-nums`}>
+        {showPrice && <span className={`price-ticket ${storeItem.onSale ? "price-ticket-sale" : ""} shrink-0 font-display text-lg tabular-nums`}>
           {formatCents(storeItem.currentPriceCents)}
-        </span>
+        </span>}
       </div>
       {showAisle && <p className="product-aisle">Aisle: {AISLE_LABEL[food.category]}</p>}
-      {storeItem.specialLabel && (
+      {showPrice && storeItem.specialLabel && (
         <span className={`sticker mt-2 inline-block rounded ${storeItem.onSale ? "bg-tag" : "bg-white"} px-2 py-0.5 text-xs font-bold`}>
           {storeItem.specialLabel}
         </span>
       )}
-      {priceHint && (
+      {showPrice && priceHint && (
         <p className="mt-2 text-xs font-bold text-good">🔎 {priceHint}</p>
       )}
       {tasteTags.length > 0 && <div className="mt-2 flex flex-wrap gap-2" aria-label="Taste tags">

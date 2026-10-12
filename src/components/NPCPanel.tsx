@@ -7,7 +7,7 @@ import { MUST_NOT_LABEL, WANT_BADGE, WANT_EMOJI } from "@/data/labels";
 import { formatCents } from "@/utils/money";
 import { StatsPanel } from "./StatsPanel";
 
-export function NPCPanel({ npc, basket, budgetCents, event }: { npc: NPC; basket: BasketItem[]; budgetCents: number; event: BasketEvent | null }) {
+export function NPCPanel({ npc, basket, budgetCents, event, showMealSlots = true }: { npc: NPC; basket: BasketItem[]; budgetCents: number; event: BasketEvent | null; showMealSlots?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const status = getRequirementsStatus(basket, npc);
   const happy = allRequirementsMet(basket, npc);
@@ -25,8 +25,8 @@ export function NPCPanel({ npc, basket, budgetCents, event }: { npc: NPC; basket
         <div className="order-budget"><span>Budget</span><strong>{formatCents(budgetCents)}</strong></div>
       </div>
       {expanded && <div className="mt-3 space-y-1 text-sm"><strong>{npc.ageLabel}</strong><p>{npc.description}</p><p className="italic text-faded">{npc.mood}</p></div>}
-      <div className="my-3"><StatsPanel npc={npc} basket={basket} visual /></div>
-      <div className="flex flex-wrap gap-2" aria-label="Food wishes">
+      {showMealSlots && <div className="my-3"><StatsPanel npc={npc} basket={basket} visual /></div>}
+      <div className="mt-3 flex flex-wrap gap-2" aria-label="Food wishes">
         {status.wants.map(({ want, satisfied }) => <span key={want} className={`wish-sticker ${satisfied ? "wish-done" : ""}`}>
           <span key={String(satisfied)} className={satisfied ? "check-stamp inline-block" : ""} aria-hidden>{satisfied ? "✓" : WANT_EMOJI[want]}</span>{" "}
           {want === "likes_variety" ? "3+ aisles" : WANT_BADGE[want]}

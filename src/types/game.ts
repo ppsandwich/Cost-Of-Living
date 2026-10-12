@@ -1,3 +1,4 @@
+import type { RecipeMatch } from "./recipe";
 import type { NPC } from "./npc";
 import type { PowerUpId } from "@/data/powerups";
 import type { MealRole } from "@/game/meals";
@@ -66,6 +67,7 @@ export interface GameState {
   powerUpChoices: PowerUpId[] | null;
   bulkAddsUsed: string[];
   endReason?: EndReason;
+  recipe: RecipeMatch | null;
   score: number;
   totalScore: number;
   bestScore: number;

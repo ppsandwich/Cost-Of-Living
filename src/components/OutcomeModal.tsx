@@ -1,3 +1,4 @@
+import { DishPlate } from "./DishPlate";
 import type { GameState } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
 import { previewNextBudgetCents } from "@/game/reducer";
@@ -23,6 +24,7 @@ export function OutcomeModal({
       <p className="result-score">
         <span aria-hidden className="star-pop">✨</span> {state.npc!.name} · +{state.score} points · Total {state.totalScore}
       </p>
+      <DishPlate state={state} />
       <LearningReceipt state={state} compact />
       {mustChoose ? (
         <PowerUpChoice compact choices={state.powerUpChoices!} onChoose={onChoosePowerUp} />

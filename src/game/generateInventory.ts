@@ -3,6 +3,7 @@ import type { NPC } from "@/types/npc";
 import type { StoreItem } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
 import { FOOD_ITEMS } from "@/data/foodItems";
+import { isStaple } from "./recipes";
 import { PREFERENCE_TAG } from "./applyFoodItem";
 import { MEAL_ROLES, mealRoles, usableFood } from "./meals";
 import {
@@ -13,6 +14,8 @@ import {
 } from "./powerups";
 import { createRng, randomBetween, shuffle } from "./seededRandom";
 export const INVENTORY_SIZE = 16;
+export const MIN_STAPLE_SHARE = 0.4;
+const TARGET_STAPLE_SHARE = 0.75;
 const roundPrice = (cents: number) => Math.max(50, Math.round(cents / 5) * 5);
 
 export function generateInventory(
@@ -24,12 +27,13 @@ export function generateInventory(
 ): StoreItem[] {
   const rng = createRng(seed);
   const chosen = new Map<string, FoodItem>();
+  const size = Math.round(INVENTORY_SIZE * powerUpInventoryMultiplier(powerUps));
   const pool = FOOD_ITEMS;
   const usable = pool.filter((f) => usableFood(f, npc) && !f.variant);
   const pick = (predicate: (food: FoodItem) => boolean) => {
-    const food = shuffle(rng, usable).find(
-      (f) => !chosen.has(f.id) && predicate(f),
-    );
+    if (chosen.size >= size) return;
+    const candidates = shuffle(rng, usable).filter((f) => !chosen.has(f.id) && predicate(f));
+    const food = candidates.find(isStaple) ?? candidates[0];
     if (food) chosen.set(food.id, food);
   };
   for (const role of MEAL_ROLES) pick((f) => mealRoles(f).includes(role));
@@ -43,10 +47,13 @@ export function generateInventory(
     const categories = new Set([...chosen.values()].map((f) => f.category));
     if (categories.size < 3) pick((f) => !categories.has(f.category));
   }
+  const minimumStaples = Math.ceil(size * TARGET_STAPLE_SHARE);
+  while ([...chosen.values()].filter(isStaple).length < minimumStaples) {
+    const before = chosen.size;
+    pick(isStaple);
+    if (chosen.size === before) throw new Error("Not enough suitable staples for this shop");
+  }
   for (let i = 0; i < 3; i++) pick((f) => f.basePriceCents <= 250);
-  const size = Math.round(
-    INVENTORY_SIZE * powerUpInventoryMultiplier(powerUps),
-  );
   for (const food of shuffle(rng, pool)) {
     if (chosen.size >= size) break;
     chosen.set(food.id, food);

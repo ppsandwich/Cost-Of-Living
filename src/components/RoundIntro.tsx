@@ -78,7 +78,7 @@ export function RoundIntro({ state }: { state: GameState }) {
               return <li key={id} style={{ animationDelay: `${index * 60}ms` }}><span aria-hidden>{boost.icon}</span><div><strong>{boost.name}</strong><p>{id === "embezzler" ? "Your carried savings are included in the budget." : boost.description}</p></div></li>;
             })}</ul>
           </> : <div className="intro-no-boosts"><span aria-hidden>🎁</span><strong>A fresh start!</strong><p>{state.roundNumber === 1 ? "No power-ups yet. Finish this shop to choose your first one." : "No power-ups for this shop. Let’s make the budget work."}</p></div>}
-          <p className="intro-next">Next: browse the prices and plan your picks.</p>
+          <p className="intro-next">Next: browse the food and plan your picks.</p>
         </div>}
       </div>
       <footer className="intro-controls">

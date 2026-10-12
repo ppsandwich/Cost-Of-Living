@@ -1,3 +1,4 @@
+import { findRecipe } from "./recipes";
 import type { GameState, GameMode } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
 import { FOOD_BY_ID } from "@/data/foodItems";
@@ -58,6 +59,7 @@ export const INITIAL_STATE: GameState = {
   powerUps: [],
   powerUpChoices: null,
   bulkAddsUsed: [],
+  recipe: null,
   score: 0,
   totalScore: 0,
   bestScore: 0,
@@ -110,6 +112,7 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     timeRemainingSeconds: duration,
     roundDurationSeconds: duration,
     endReason: undefined,
+    recipe: null,
     score: 0,
     lastFeedback: null,
     basketEvent: null,
@@ -122,7 +125,8 @@ function setupRound(state: GameState, roundNumber: number): GameState {
   return { ...next, roundStart: next };
 }
 function winRound(state: GameState): GameState {
-  const score = calculateRoundScore(state);
+  const recipe = findRecipe(state.basket, state.npc!);
+  const score = calculateRoundScore({ ...state, recipe });
   const totalScore = state.totalScore + score;
   const final = state.roundNumber >= FINAL_ROUND;
   const excluded =
@@ -143,6 +147,7 @@ function winRound(state: GameState): GameState {
     status: final ? "game_won" : "round_won",
     endReason: "goals_met",
     powerUpChoices: choices.length ? choices : null,
+    recipe,
     score,
     totalScore,
     successfulRounds: state.successfulRounds + 1,

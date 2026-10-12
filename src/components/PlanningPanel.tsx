@@ -13,11 +13,11 @@ export function PlanningPanel({ state, onBegin }: {
     <section id="shopping-plan" aria-label="Plan your shop" className="panel planning-panel bg-receipt p-4">
       <RoundIntro state={state} />
       <h2 className="font-title text-2xl">Take a look first</h2>
-      <p className="mt-1 text-sm">Check the prices. Pick out a lunch in your head.</p>
+      <p className="mt-1 text-sm">Pick out a lunch. Prices appear when you start shopping.</p>
       <p className="mt-2 text-xs font-bold text-brand-dark">{state.mode === "learning" ? "Take your time — there’s no timer." : `The ${state.roundDurationSeconds}-second clock starts when you shop. Putting food back costs 3 seconds.`}</p>
       {state.retryChallenge && <p className="challenge-ticket mt-3">🎯 Same checklist. Spend {formatCents(state.retryChallenge.targetSpendCents)} or less.</p>}
       {state.previousAttempt && !state.retryChallenge && <p className="mt-2 text-xs">Same shop. Last spend: {formatCents(state.previousAttempt.spentCents)}.</p>}
-      <a href="#store-shelves" className="browse-link">Browse prices ↓</a>
+      <a href="#store-shelves" className="browse-link">Browse food ↓</a>
       <form id="begin-shopping" className="mt-3" onSubmit={(e) => {
         e.preventDefault();
         if (valid) onBegin(estimate === "" ? null : Math.round(Number(estimate) * 100));

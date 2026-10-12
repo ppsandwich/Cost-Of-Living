@@ -1,6 +1,6 @@
 {
   "name": "cost-of-living",
-  "version": "2.5.0",
+  "version": "2.7.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "balance": "tsx scripts/balance.ts",
-    "test": "tsx --test scripts/game.test.ts"
+    "test": "tsx --test scripts/game.test.ts",
+    "recipes": "tsx scripts/recipe-coverage.ts"
   },
   "dependencies": {
     "next": "16.2.9",

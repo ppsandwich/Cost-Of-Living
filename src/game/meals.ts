@@ -14,6 +14,8 @@ export const MEAL_LABELS: Record<MealRole, string> = {
 
 /** Shopping roles, not nutrition scores or prescribed portion sizes. */
 export function mealRoles(food: FoodItem): MealRole[] {
+  // Small flavour additions do not replace a main lunch component.
+  if (food.tags.includes("seasoning")) return [];
   const id = food.id.replace(/^premium-/, "");
   if (
     [
