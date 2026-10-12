@@ -49,6 +49,7 @@ export function FoodCard({
 }: FoodCardProps) {
   const [expanded, setExpanded] = useState(false);
   const buyable = canShop && !unavailable && remainingQuantity > 0;
+  const removeInstead = inBasket > 0 && remainingQuantity <= 0;
   const roles = mealRoles(food);
   const tasteTags = TASTE_TAGS.filter(({ tag }) => food.tags.includes(tag));
   return (
@@ -126,7 +127,7 @@ export function FoodCard({
         <span className="min-w-0 flex-1 text-xs font-bold text-good">
           {inBasket > 0 && <span key={inBasket} className="check-stamp inline-block">✓ In basket</span>}
         </span>
-        {inBasket > 0 && (
+        {inBasket > 0 && !removeInstead && (
           <button
             onClick={onRemove}
             disabled={!canShop}
@@ -137,14 +138,14 @@ export function FoodCard({
           </button>
         )}
         <button
-          onClick={onAdd}
-          disabled={!buyable}
-          aria-label={`Add ${food.name}`}
-          className="btn min-h-11 min-w-16 bg-good px-3 text-white"
+          onClick={removeInstead ? onRemove : onAdd}
+          disabled={removeInstead ? !canShop : !buyable}
+          aria-label={removeInstead ? `Remove one ${food.name}` : `Add ${food.name}`}
+          className={`btn min-h-11 min-w-16 px-3 ${removeInstead ? "bg-paper text-ink" : "bg-good text-white"}`}
         >
-          Add
+          {removeInstead ? "Remove" : "Add"}
         </button>
-        {canBulkAdd && inBasket > 0 && (
+        {canBulkAdd && inBasket > 0 && !removeInstead && (
           <button
             onClick={onBulkAdd}
             disabled={!buyable}

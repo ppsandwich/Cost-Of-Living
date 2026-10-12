@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { gameReducer, INITIAL_STATE } from "@/game/reducer";
 import {
   dismissTutorial,
@@ -34,6 +34,10 @@ export default function Home() {
   const [pendingCountdown, setPendingCountdown] =
     useState<PendingCountdown | null>(null);
   const [paused, setPaused] = useState(false);
+  const [openingShop, setOpeningShop] = useState(false);
+  const [shelfVisit, setShelfVisit] = useState(0);
+  const openingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (openingTimer.current) clearTimeout(openingTimer.current); }, []);
   const [mode, setMode] = useState<GameMode>("learning");
   const records = useRecords(mode);
   const { muted, toggle: toggleSound } = useShopAudio(state.basketEvent, state.roundNumber, state.status === "playing" && !paused && !pendingCountdown);
@@ -46,10 +50,10 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [paused, pendingCountdown, state.mode, state.status, state.roundNumber]);
 
-  // A fresh round starts at the top of the shelves
+  // Only a fresh plan resets the scroll; starting shopping keeps the same shelves.
   useEffect(() => {
     if (state.status !== "playing" && state.status !== "planning") return;
-    window.scrollTo(0, 0);
+    if (state.status === "planning") window.scrollTo(0, 0);
     document.getElementById(state.status === "planning" ? "shop-heading" : "store-shelves")?.focus({ preventScroll: true });
   }, [state.status, state.roundNumber]);
 
@@ -66,6 +70,7 @@ export default function Home() {
 
   const startRun = () => {
     setPaused(false);
+    setShelfVisit((visit) => visit + 1);
     dispatch({
       type: "START_RUN",
       mode,
@@ -83,6 +88,26 @@ export default function Home() {
   }, []);
   const endCountdown = useCallback(() => setPendingCountdown(null), []);
 
+  const beginShopping = (estimateCents: number | null) => {
+    if (state.status !== "planning" || openingShop || openingTimer.current) return;
+    document.getElementById("store-shelves")?.focus({ preventScroll: true });
+    setOpeningShop(true);
+    const begin = () => {
+      dispatch({ type: "BEGIN_SHOPPING", estimateCents });
+      setOpeningShop(false);
+    };
+    const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 560;
+    openingTimer.current = setTimeout(() => {
+      openingTimer.current = null;
+      if (state.mode === "standard_run") withCountdown(begin);
+      else begin();
+    }, duration);
+  };
+  const retryRound = (challenge = false) => {
+    setShelfVisit((visit) => visit + 1);
+    dispatch({ type: "RETRY_ROUND", challenge });
+  };
+  const planningView = state.status === "planning" && !openingShop;
   const npc = state.npc;
   const isIdle = state.status === "idle" || !npc;
   const content = isIdle ? (
@@ -117,7 +142,7 @@ export default function Home() {
         canPause={state.status === "playing" && !pendingCountdown}
       />
 
-      <main className={`shop-workspace ${state.status === "planning" ? "workspace-planning" : "workspace-shopping"}`}>
+      <main className={`shop-workspace ${planningView ? "workspace-planning" : "workspace-shopping"}`}>
         <div className="flow-heading">
           <div><p className="text-xs font-bold text-brand-dark">Lunch run · Stop {state.roundNumber}{state.previousAttempt && state.status === "planning" ? " · Try again" : ""}</p><h1 tabIndex={-1} className="font-title text-3xl focus:outline-none" id="shop-heading">{state.status === "planning" ? "Meet & plan" : "Let’s build a lunch."}</h1></div>
           <ol className="flow-steps" aria-label="Your shop">
@@ -126,41 +151,42 @@ export default function Home() {
             <li><span>3</span>Review</li>
           </ol>
         </div>
-        <aside className="shop-companion" aria-label={state.status === "planning" ? "Your lunch order and plan" : "Your order and basket"}>
-          {state.status === "planning" ?
+        <aside className="shop-companion planning-companion" aria-label="Your lunch order and plan" aria-hidden={!planningView} inert={!planningView}>
+          <div className="companion-content">
             <PlanningPanel
-              key={`${state.roundNumber}-${state.previousAttempt ? "retry" : "first"}`}
+              key={`${state.roundNumber}-${shelfVisit}`}
               state={state}
-              onBegin={(estimateCents) => {
-                const begin = () => dispatch({ type: "BEGIN_SHOPPING", estimateCents });
-                if (state.mode === "standard_run") withCountdown(begin);
-                else begin();
-              }}
+              onBegin={beginShopping}
             />
-          : <ShoppingOrder key={`order-${state.roundNumber}`} state={state} />}
-          {state.status !== "planning" && <PowerUpShelf key={`powerups-${state.roundNumber}`} powerUps={state.powerUps}
-            canUseEscapeRope={state.status === "playing" && state.roundNumber < FINAL_ROUND}
-            onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })} />}
-          {state.status !== "planning" && <BasketDrawer
-            key={`basket-${state.roundNumber}`}
-            roundBudgetCents={state.roundBudgetCents}
-            event={state.basketEvent}
-            challengeTarget={state.retryChallenge?.targetSpendCents}
-            basket={state.basket} npc={npc}
-            inventory={state.inventory}
-            remainingBudgetCents={state.remainingBudgetCents}
-            active={state.status === "playing" && !paused && !pendingCountdown}
-            timed={state.mode === "standard_run"}
-            timeRemainingSeconds={state.timeRemainingSeconds}
-            onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
-            onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
-            onCheckout={() => dispatch({ type: "CHECKOUT" })} />}
-          {state.status === "planning" && <details className="trail-disclosure"><summary>Your neighbourhood trail</summary><Journey state={state} /></details>}
+            <details className="trail-disclosure"><summary>Your neighbourhood trail</summary><Journey state={state} /></details>
+          </div>
+        </aside>
+        <aside className="shop-companion shopping-companion" aria-label="Your order and basket" aria-hidden={planningView} inert={planningView || openingShop}>
+          <div className="companion-content">
+            <ShoppingOrder key={`order-${state.roundNumber}-${shelfVisit}`} state={state} />
+            <PowerUpShelf key={`powerups-${state.roundNumber}`} powerUps={state.powerUps}
+              canUseEscapeRope={state.status === "playing" && state.roundNumber < FINAL_ROUND}
+              onUseEscapeRope={() => dispatch({ type: "USE_ESCAPE_ROPE" })} />
+            <BasketDrawer
+              key={`basket-${state.roundNumber}-${shelfVisit}`}
+              roundBudgetCents={state.roundBudgetCents}
+              event={state.basketEvent}
+              challengeTarget={state.retryChallenge?.targetSpendCents}
+              basket={state.basket} npc={npc}
+              inventory={state.inventory}
+              remainingBudgetCents={state.remainingBudgetCents}
+              active={state.status === "playing" && !paused && !pendingCountdown}
+              timed={state.mode === "standard_run"}
+              timeRemainingSeconds={state.timeRemainingSeconds}
+              onRemove={(foodItemId) => dispatch({ type: "REMOVE_ITEM", foodItemId })}
+              onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
+              onCheckout={() => dispatch({ type: "CHECKOUT" })} />
+          </div>
         </aside>
         <div className="shop-products">
-          <StoreList key={`${state.roundNumber}-${state.status === "planning" ? "plan" : "shop"}`}
+          <StoreList key={`${state.roundNumber}-${shelfVisit}`}
             inventory={state.inventory} roundNumber={state.roundNumber}
-            planning={state.status === "planning"}
+            planning={planningView}
             canShop={state.status === "playing" && !paused && !pendingCountdown}
             basket={state.basket} npc={npc} powerUps={state.powerUps} bulkAddsUsed={state.bulkAddsUsed}
             onAdd={(foodItemId) => dispatch({ type: "ADD_ITEM", foodItemId })}
@@ -172,7 +198,7 @@ export default function Home() {
       {state.status === "round_won" && (
         <OutcomeModal
           state={state}
-          onRetry={(challenge = false) => dispatch({ type: "RETRY_ROUND", challenge })}
+          onRetry={retryRound}
           onNextRound={() => dispatch({ type: "NEXT_ROUND" })}
           onChoosePowerUp={(powerUpId) =>
             dispatch({ type: "CHOOSE_POWERUP", powerUpId })
@@ -183,7 +209,7 @@ export default function Home() {
         <RunSummary
           state={state}
           onReplay={startRun}
-          onRetry={(challenge = false) => dispatch({ type: "RETRY_ROUND", challenge })}
+          onRetry={retryRound}
         />
       )}
       {state.status === "game_won" && (
@@ -191,7 +217,7 @@ export default function Home() {
           state={state}
           won
           onReplay={startRun}
-          onRetry={(challenge = false) => dispatch({ type: "RETRY_ROUND", challenge })}
+          onRetry={retryRound}
         />
       )}
     </div>

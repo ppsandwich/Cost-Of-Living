@@ -854,3 +854,55 @@ body {
   .plate-food { font-size: 1.8rem; }
   .dish-extra .plate-food { font-size: 1.3rem; }
 }
+
+/* One set of shelves, with planning leaving left and shopping arriving right. */
+.game-world { overflow-x: clip; }
+.shop-workspace { --panel-motion: 560ms; --panel-ease: cubic-bezier(.22, 1, .36, 1); }
+.shop-companion { grid-column: 1; grid-row: 2; grid-template-rows: 1fr; gap: 0; transition: grid-template-rows var(--panel-motion) var(--panel-ease), opacity 350ms ease, visibility 0s; }
+.companion-content { display: grid; gap: .85rem; min-height: 0; min-width: 0; overflow: hidden; }
+.shop-products { grid-column: 1; grid-row: 3; }
+.workspace-shopping .planning-companion,
+.workspace-planning .shopping-companion { grid-template-rows: 0fr; opacity: 0; visibility: hidden; pointer-events: none; transition: grid-template-rows var(--panel-motion) var(--panel-ease), opacity 350ms ease, visibility 0s var(--panel-motion); }
+.planning-companion .round-brief,
+.planning-companion .plan-actions > a,
+.planning-companion .estimate-disclosure,
+.planning-companion .planning-start,
+.planning-companion .trail-disclosure,
+.shopping-companion .shopping-order,
+.shopping-companion .companion-content > section { transition: transform var(--panel-motion) var(--panel-ease); }
+.workspace-shopping .planning-companion .round-brief,
+.workspace-shopping .planning-companion .plan-actions > a,
+.workspace-shopping .planning-companion .estimate-disclosure,
+.workspace-shopping .planning-companion .planning-start,
+.workspace-shopping .planning-companion .trail-disclosure { transform: translateX(-110%); }
+.workspace-planning .shopping-companion .shopping-order,
+.workspace-planning .shopping-companion .companion-content > section { transform: translateX(110%); }
+@media (max-width: 639px) {
+  .workspace-shopping .flow-heading { display: flex; }
+  .workspace-shopping .flow-heading h1, .workspace-shopping .flow-heading > div,
+  .workspace-shopping .shop-front { display: block; }
+  .workspace-shopping .shop-front { display: flex; }
+}
+@media (min-width: 1024px) {
+  .shop-workspace { column-gap: 0; transition: grid-template-columns var(--panel-motion) var(--panel-ease); }
+  .workspace-planning { grid-template-columns: 365px minmax(0, 1fr) 0px; }
+  .workspace-shopping { grid-template-columns: 0px minmax(0, 1fr) 330px; }
+  .shop-workspace .shop-products { grid-column: 2; grid-row: 2; }
+  .shop-workspace .shop-companion { grid-template-rows: 1fr; grid-row: 2; padding: 0; overflow-y: auto; transition: transform var(--panel-motion) var(--panel-ease), opacity 350ms ease, visibility 0s; }
+  .shop-workspace .planning-companion { grid-column: 1; width: 365px; padding-right: 1.25rem; }
+  .shop-workspace .shopping-companion { grid-column: 3; width: 330px; padding-left: 1.25rem; }
+  .workspace-shopping .planning-companion { transform: translateX(-110%); }
+  .workspace-planning .shopping-companion { transform: translateX(110%); }
+  .shop-workspace .shop-companion[aria-hidden="true"] { transition: transform var(--panel-motion) var(--panel-ease), opacity 350ms ease, visibility 0s var(--panel-motion); }
+  .shop-companion .companion-content { overflow: visible; }
+  .shop-workspace .shop-companion .round-brief,
+  .shop-workspace .shop-companion .plan-actions > a,
+  .shop-workspace .shop-companion .estimate-disclosure,
+  .shop-workspace .shop-companion .planning-start,
+  .shop-workspace .shop-companion .trail-disclosure,
+  .shop-workspace .shop-companion .shopping-order,
+  .shop-workspace .shop-companion .companion-content > section { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop-workspace { --panel-motion: 0ms; }
+}
