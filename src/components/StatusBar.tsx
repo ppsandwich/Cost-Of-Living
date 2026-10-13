@@ -2,6 +2,7 @@ import type { NPC } from "@/types/npc";
 import { FINAL_ROUND } from "@/game/progression";
 import { NPCDifficulty } from "./NPCDifficulty";
 import { NPCAvatar } from "./NPCAvatar";
+import { useEffect, useRef } from "react";
 
 interface StatusBarProps {
   npc: NPC;
@@ -28,6 +29,19 @@ export function StatusBar({
   canPause,
   clockLabel,
 }: StatusBarProps) {
+  const header = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const element = header.current;
+    if (!element) return;
+    const measure = () => document.documentElement.style.setProperty("--game-header-height", `${element.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--game-header-height");
+    };
+  }, []);
   const minutes = Math.floor(timeRemainingSeconds / 60);
   const seconds = timeRemainingSeconds % 60;
   const timeLow = timeRemainingSeconds <= 15;
@@ -37,29 +51,29 @@ export function StatusBar({
   );
 
   return (
-    <header className="sticky top-0 z-30">
+    <header ref={header} className="sticky top-0 z-30">
       <div className="bg-receipt px-3 pb-2 pt-2">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-3 lg:max-w-6xl">
-          <div className="flex min-w-0 items-center gap-2">
+        <div className="status-layout mx-auto flex max-w-md items-center justify-between gap-3 lg:max-w-6xl">
+          <div className="status-customer flex min-w-0 items-center gap-2">
             <NPCAvatar npc={npc} compact />
             <div className="min-w-0">
               <div className="font-knewave truncate text-base leading-tight">
                 {npc.name}
               </div>
               <NPCDifficulty npc={npc} />
-              <div className="truncate font-display text-[11.5px] uppercase tracking-wider text-brand-dark">
+              <div className="truncate font-display text-xs uppercase tracking-wider text-brand-dark">
                 Stop {roundNumber}/{FINAL_ROUND}
               </div>
             </div>
           </div>
 
           {clockLabel ? (
-            <p className="flex-1 text-center font-display text-xs sm:text-base">
+            <p className="status-clock flex-1 text-center font-display text-xs sm:text-base">
               {clockLabel}
             </p>
           ) : (
             <div
-              className="min-w-0 flex-1"
+              className="status-clock min-w-0 flex-1"
               role="timer"
               aria-label={`${timeRemainingSeconds} seconds remaining`}
             >
@@ -87,7 +101,7 @@ export function StatusBar({
               </div>
             </div>
           )}
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="status-actions flex shrink-0 items-center gap-1">
             <button type="button" onClick={onRestart} aria-label="Restart game" title="Restart" className="btn grid size-11 place-items-center bg-paper text-lg"><span aria-hidden>↻</span></button>
             <button
               type="button"

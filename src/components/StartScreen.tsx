@@ -146,11 +146,11 @@ export function StartScreen({
           </button>
         )}
 
-        <p className="mt-3 text-[12.7px] font-bold text-faded">
+        <p className="mt-3 text-xs font-bold text-faded">
           Practise spending, saving and comparing prices. The prices are made up,
           and this game does not show how much you need to eat.
         </p>
-        <p className="mt-1.5 text-[12.7px] font-bold text-faded">
+        <p className="mt-1.5 text-xs font-bold text-faded">
           A game by{" "}
           <a
             href="https://sandwich.codes"
@@ -161,7 +161,7 @@ export function StartScreen({
             sandwich.codes
           </a>
         </p>
-        <p className="mt-1 text-[11.5px] font-bold text-faded">
+        <p className="mt-1 text-xs font-bold text-faded">
           {GAME_VERSION_LABEL}
         </p>
       </div>

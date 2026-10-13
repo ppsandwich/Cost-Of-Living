@@ -30,14 +30,14 @@ export function PowerUpCard({
         className={`relative flex h-full flex-col items-center gap-1 rounded-xl border-2 px-1 pb-2 pt-3 ${shadow} ${cardBg}`}
       >
         {rare && (
-          <span className="sticker absolute -top-2 left-1/2 -translate-x-1/2 rounded-md bg-brand px-1 py-px font-display text-[8px] uppercase tracking-wide text-white">
+          <span className="sticker absolute -top-2 left-1/2 -translate-x-1/2 rounded-md bg-brand px-1 py-px font-display text-xs uppercase tracking-wide text-white">
             Rare!
           </span>
         )}
         <span aria-hidden className="text-2xl leading-none">
           {powerUp.icon}
         </span>
-        <span className="text-center font-display text-[10.4px] uppercase leading-tight">
+        <span className="text-center font-display text-xs uppercase leading-tight">
           {powerUp.name}
         </span>
       </span>
@@ -49,7 +49,7 @@ export function PowerUpCard({
         className={`relative flex h-full flex-col items-center gap-1 rounded-xl border-[3px] px-2 pb-3 pt-4 ${largeShadow} ${cardBg}`}
       >
         {rare && (
-          <span className="sticker absolute -top-2 left-1/2 -translate-x-1/2 rounded-md bg-brand px-1.5 py-0.5 font-display text-[10.4px] uppercase tracking-wide text-white">
+          <span className="sticker absolute -top-2 left-1/2 -translate-x-1/2 rounded-md bg-brand px-1.5 py-0.5 font-display text-xs uppercase tracking-wide text-white">
             Rare!
           </span>
         )}
@@ -60,8 +60,8 @@ export function PowerUpCard({
           {powerUp.name}
         </span>
         <span
-          className={`text-center text-[11.5px] font-semibold leading-snug ${
-            mutated ? "text-white/85" : "text-ink/70"
+          className={`text-center text-xs font-semibold leading-snug ${
+            mutated ? "text-white" : "text-faded"
           }`}
         >
           {powerUp.description}
@@ -71,12 +71,12 @@ export function PowerUpCard({
   }
   return (
     <span
-      className={`relative flex w-12 flex-col items-center gap-0.5 rounded-lg border-2 px-1 py-1.5 ${shadow} ${cardBg}`}
+      className={`powerup-mini relative flex flex-col items-center gap-0.5 rounded-lg border-2 px-1 py-1.5 ${shadow} ${cardBg}`}
     >
       {rare && (
         <span
           aria-hidden
-          className="absolute -right-1 -top-1.5 text-[10.4px] drop-shadow-[1px_1px_0_rgba(51,36,28,0.4)]"
+          className="absolute -right-1 -top-1.5 text-xs drop-shadow-[1px_1px_0_rgba(51,36,28,0.4)]"
         >
           🌟
         </span>
@@ -84,8 +84,8 @@ export function PowerUpCard({
       <span aria-hidden className="text-xl leading-none">
         {powerUp.icon}
       </span>
-      <span className="w-full truncate text-center text-[8px] font-extrabold uppercase leading-none">
-        {powerUp.name.split(" ")[0]}
+      <span className="w-full text-center text-xs font-extrabold uppercase leading-none">
+        {powerUp.name}
       </span>
     </span>
   );
@@ -112,8 +112,8 @@ export function PowerUpShelf({
 
   return (
     <section aria-label="Your power-ups" className={embedded ? "compact-boosts" : "panel p-3"}>
-      <div className="flex items-start gap-2">
-        {!embedded && <h2 className="mt-1 shrink-0 font-display text-[12.7px] uppercase tracking-wider text-brand-dark">
+      <div className="powerup-shelf-heading flex items-start gap-2">
+        {!embedded && <h2 className="mt-1 shrink-0 font-display text-xs uppercase tracking-wider text-brand-dark">
           Power-ups
         </h2>}
         <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
@@ -138,7 +138,7 @@ export function PowerUpShelf({
           <span className="font-display uppercase">
             {open.icon} {open.name}
           </span>{" "}
-          <span className="font-semibold text-ink/70">{open.description}</span>
+          <span className="font-semibold text-faded">{open.description}</span>
           {open.id === "escape_rope" && canUseEscapeRope && onUseEscapeRope && (
             <button
               type="button"
