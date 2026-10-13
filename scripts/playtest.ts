@@ -1,3 +1,5 @@
+import { assessTaste } from "../src/game/taste";
+import { mealCounts } from "../src/game/meals";
 import assert from "node:assert/strict";
 import { gameReducer, INITIAL_STATE } from "../src/game/reducer";
 import { FOOD_BY_ID } from "../src/data/foodItems";
@@ -25,6 +27,8 @@ for (const difficulty of [1, 2, 3] as const) for (const mode of ["learning", "st
       assert.equal(state.inventory.length, state.powerUps.includes("superstore") ? 26 : 20);
       assert.ok(state.inventory.filter((item) => isStaple(FOOD_BY_ID[item.foodItemId])).length >= Math.ceil(state.inventory.length * 0.4));
       assert.ok(allRequirementsMet(state.solution, state.npc!));
+      assert.ok(mealCounts(state.solution, state.npc!).produce >= 2);
+      assert.equal(assessTaste(state.inventory.map((item) => ({ foodItemId: item.foodItemId, quantity: 1, pricePaidCents: item.currentPriceCents })), state.npc!).quality, "tasty", "every shelf contains a suitable 3–4 ingredient dish");
       assert.equal(new Set(state.solution.map((item) => item.foodItemId)).size, state.solution.length);
       for (const item of state.solution) assert.equal(item.pricePaidCents, state.inventory.find((shelf) => shelf.foodItemId === item.foodItemId)!.currentPriceCents);
       assert.ok(basketCost(state.solution) <= state.roundBudgetCents);

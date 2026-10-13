@@ -1,3 +1,4 @@
+import { assessTaste } from "./taste";
 import { findRecipe } from "./recipes";
 import type { GameState, GameMode, Difficulty } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
@@ -70,6 +71,7 @@ export const INITIAL_STATE: GameState = {
   powerUps: [],
   powerUpChoices: null,
   recipe: null,
+  taste: null,
   score: 0,
   totalScore: 0,
   bestScore: 0,
@@ -128,6 +130,7 @@ function setupRound(state: GameState, roundNumber: number): GameState {
     roundDurationSeconds: duration,
     endReason: undefined,
     recipe: null,
+    taste: null,
     score: 0,
     lastFeedback: null,
     basketEvent: null,
@@ -140,8 +143,9 @@ function setupRound(state: GameState, roundNumber: number): GameState {
   return { ...next, roundStart: next };
 }
 function winRound(state: GameState): GameState {
-  const recipe = findRecipe(state.basket, state.npc!);
-  const score = calculateRoundScore({ ...state, recipe });
+  const taste = assessTaste(state.basket, state.npc!);
+  const recipe = taste.quality === "dubious" ? null : taste.recipe ?? findRecipe(state.basket, state.npc!);
+  const score = calculateRoundScore({ ...state, recipe, taste });
   const totalScore = state.totalScore + score;
   const final = state.roundNumber >= FINAL_ROUND;
   const excluded =
@@ -164,6 +168,7 @@ function winRound(state: GameState): GameState {
     basketReviewOpen: false,
     powerUpChoices: choices.length ? choices : null,
     recipe,
+    taste,
     score,
     totalScore,
     successfulRounds: state.successfulRounds + 1,
@@ -175,7 +180,7 @@ function winRound(state: GameState): GameState {
         roundNumber: state.roundNumber,
         npcName: state.npc!.name,
         score,
-        rating: ratingForRound(state),
+        rating: ratingForRound({ ...state, recipe, taste }),
       },
     ],
   };
@@ -261,7 +266,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         lastFeedback: !usableFood(food, state.npc)
           ? `Remove ${food.name}: this customer needs to avoid it.`
           : roles.length
-          ? `Added ${food.name}. Counts as ${roles.map((r) => MEAL_LABELS[r].toLowerCase()).join(" and ")}.`
+          ? `Added ${food.name}. Counts as ${roles.map((r) => (r === "produce" ? "one fruit or veg item" : MEAL_LABELS[r].toLowerCase())).join(" and ")}.`
           : `Added ${food.name} as an extra. Check your lunch list too.`,
       };
     }

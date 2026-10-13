@@ -9,7 +9,7 @@ export type MealRole = (typeof MEAL_ROLES)[number];
 export const MEAL_LABELS: Record<MealRole, string> = {
   base: "A lunch base",
   protein: "A protein food",
-  produce: "Fruit or vegetables",
+  produce: "Two fruit or veg items",
 };
 
 /** Shopping roles, not nutrition scores or prescribed portion sizes. */
@@ -58,21 +58,26 @@ export function usableFood(food: FoodItem, npc: NPC): boolean {
   return !violatesMustNot(food, npc);
 }
 
-export function mealCoverage(
-  basket: BasketItem[],
-  npc: NPC,
-): Record<MealRole, boolean> {
-  const covered = new Set(
-    basket.flatMap((entry) => {
-      const food = FOOD_BY_ID[entry.foodItemId];
-      return entry.quantity > 0 && food && usableFood(food, npc)
-        ? mealRoles(food)
-        : [];
-    }),
-  );
+export const MEAL_REQUIRED: Record<MealRole, number> = { base: 1, protein: 1, produce: 2 };
+
+/** Count distinct shelf items, never duplicate entries or extra quantities. */
+export function mealCounts(basket: BasketItem[], npc: NPC): Record<MealRole, number> {
+  const counts = { base: 0, protein: 0, produce: 0 };
+  const seen = new Set<string>();
+  for (const entry of basket) {
+    const food = FOOD_BY_ID[entry.foodItemId];
+    if (entry.quantity <= 0 || !food || seen.has(food.id) || !usableFood(food, npc)) continue;
+    seen.add(food.id);
+    for (const role of mealRoles(food)) counts[role]++;
+  }
+  return counts;
+}
+
+export function mealCoverage(basket: BasketItem[], npc: NPC): Record<MealRole, boolean> {
+  const counts = mealCounts(basket, npc);
   return {
-    base: covered.has("base"),
-    protein: covered.has("protein"),
-    produce: covered.has("produce"),
+    base: counts.base >= MEAL_REQUIRED.base,
+    protein: counts.protein >= MEAL_REQUIRED.protein,
+    produce: counts.produce >= MEAL_REQUIRED.produce,
   };
 }

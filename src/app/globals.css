@@ -1007,3 +1007,13 @@ input::placeholder { color: var(--color-faded); opacity: 1; }
   .status-actions { grid-column: 2; grid-row: 1; }
   .journey-stops { flex-wrap: wrap; gap: .5rem; }
 }
+
+/* Taste is a points goal, separate from the required lunch checklist. */
+.taste-feedback { margin-block: .6rem; padding: .5rem .65rem; border: 2px solid var(--color-faded); border-radius: .65rem; background: var(--color-receipt); font-size: .875rem; line-height: 1.45; }
+.taste-feedback p + p { margin-top: .3rem; }
+.taste-feedback-tasty { border-color: var(--color-good); }
+.taste-feedback-tasty strong { color: var(--color-good); }
+.taste-feedback-dubious { border-color: var(--color-danger); background: #ffe9df; }
+.taste-feedback-dubious strong { color: var(--color-danger); }
+.taste-feedback-compact { padding: .25rem .4rem; margin-block: .3rem; }
+@media (max-width: 1023px) { .workspace-shopping { padding-bottom: 16rem; } }

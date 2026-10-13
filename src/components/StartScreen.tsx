@@ -14,7 +14,8 @@ interface StartScreenProps {
 }
 
 const TUTORIAL_STEPS = [
-  "Read the order ticket: a base (like bread), protein (like beans), fruit or veg, and the customer’s food wishes. Later shops have more wishes.",
+  "Read the order ticket: a base (like bread), protein (like beans), two fruit or veg items, and the customer’s food wishes. Later shops have more wishes.",
+  "Bonus goal: combine 3–4 matching ingredients for a tasty meal. Clear clashes become Dubious food and lose points. Check the taste preview before paying.",
   "Compare prices and check foods to avoid.",
   "Fill the checklist without going over budget, then check out.",
   "Follow 20 neighbourhood stops. Collect power-ups and try a cheaper basket!",

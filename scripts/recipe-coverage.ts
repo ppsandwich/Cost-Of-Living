@@ -1,3 +1,4 @@
+import { assessTaste } from "../src/game/taste";
 import assert from "node:assert/strict";
 import { gameReducer, INITIAL_STATE } from "../src/game/reducer";
 import { FOOD_BY_ID } from "../src/data/foodItems";
@@ -11,7 +12,7 @@ import { MIN_STAPLE_SHARE } from "../src/game/generateInventory";
 import { createRng, shuffle } from "../src/game/seededRandom";
 import type { BasketItem } from "../src/types/game";
 
-const policies = { economical: { completed: 0, recipes: 0 }, swaps: { completed: 0, recipes: 0 }, shuffled: { completed: 0, recipes: 0 } };
+const policies = { economical: { completed: 0, recipes: 0, tasty: 0, dubious: 0 }, swaps: { completed: 0, recipes: 0, tasty: 0, dubious: 0 }, shuffled: { completed: 0, recipes: 0, tasty: 0, dubious: 0 } };
 let shops = 0;
 for (const difficulty of [1, 2, 3] as const) {
   for (const powerUpsEnabled of [false, true]) {
@@ -29,7 +30,10 @@ for (const difficulty of [1, 2, 3] as const) {
         const count = (policy: keyof typeof policies, attempt: BasketItem[]) => {
           assert.ok(allRequirementsMet(attempt, npc) && basketCost(attempt) <= budgetCents);
           policies[policy].completed++;
-          if (findRecipe(attempt, npc)) policies[policy].recipes++;
+          const taste = assessTaste(attempt, npc);
+          if (taste.quality === "tasty") policies[policy].tasty++;
+          if (taste.quality === "dubious") policies[policy].dubious++;
+          if (taste.quality !== "dubious" && (taste.recipe || findRecipe(attempt, npc))) policies[policy].recipes++;
         };
         count("economical", basket);
         // Make valid, affordable swaps without looking at the recipe catalogue.
@@ -64,6 +68,7 @@ console.log(`${RECIPES.length} recipes; ${shops} shops, all with at least 40% st
 for (const [name, stats] of Object.entries(policies)) {
   const rate = stats.recipes / stats.completed;
   console.log(`${name}: ${stats.recipes}/${stats.completed} completed baskets (${(rate * 100).toFixed(1)}%) made a recipe.`);
+  console.log(`  Tasty: ${stats.tasty}; dubious: ${stats.dubious}.`);
   assert.ok(rate >= 0.7, `${name} recipe coverage must reach 70%`);
 
 }

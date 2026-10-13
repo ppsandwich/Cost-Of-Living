@@ -8,7 +8,7 @@ import {
   PREFERENCE_TAG,
   violatesMustNot,
 } from "@/game/applyFoodItem";
-import { mealRoles, mealCoverage, usableFood, MEAL_LABELS } from "@/game/meals";
+import { mealCounts, mealRoles, mealCoverage, usableFood, MEAL_LABELS } from "@/game/meals";
 import { quantityInBasket, quantityRemaining } from "@/game/roundEnd";
 import { shopForRound } from "@/game/shops";
 import { getRequirementsStatus } from "@/game/requirements";
@@ -38,6 +38,7 @@ export function StoreList({
 }: StoreListProps) {
   const shop = shopForRound(roundNumber);
   const [filter, setFilter] = useState<ShelfFilter>("all");
+  const counts = mealCounts(basket, npc);
   const coverage = mealCoverage(basket, npc);
   const wants = getRequirementsStatus(basket, npc).wants;
   const groups = groupShelves(inventory, npc, planning ? "all" : filter, true);
@@ -55,7 +56,7 @@ export function StoreList({
             const covered = group.id === "wishes" ? wants.every((want) => want.satisfied)
               : group.id === "extras" ? false : coverage[group.id];
             return <button key={group.id} aria-pressed={filter === group.id} onClick={() => setFilter(group.id)}>
-              <span aria-hidden>{covered ? "✓" : group.icon}</span> {group.label}
+              <span aria-hidden>{covered ? "✓" : group.icon}</span> {group.label}{group.id === "produce" && ` ${Math.min(counts.produce, 2)}/2`}
               {group.id !== "extras" && <span className="sr-only">{covered ? ": covered" : ": still needed"}</span>}
             </button>;
           })}
@@ -64,7 +65,8 @@ export function StoreList({
           <span>{visibleCount} {visibleCount === 1 ? "choice" : "choices"}</span>
         </div>
       </div>}
-      <p className="shelf-hint">{planning ? "Include a base, protein and fruit or veg. One food can cover more than one part." : "Pick food, watch your budget, then review your basket."}</p>
+      <p className="shelf-hint">{planning ? "Include a base, protein and two fruit or veg items. One food can cover more than one part." : "Pick food, watch your budget, then review your basket."}</p>
+      {planning && <p className="shelf-hint">For extra points, make a tasty dish with 3–4 matching ingredients. Clear clashes lose points as “Dubious food”.</p>}
       {visibleCount === 0 && <p className="panel bg-receipt p-4 text-sm">No food here matches this filter. <button className="min-h-11 font-bold underline" onClick={() => setFilter("all")}>See all choices</button></p>}
       {groups.map((group) => <section className={`aisle shelf-${group.id}`} key={group.id} id={`shelf-${group.id}`} aria-label={`${group.label} foods`}>
         <h3 className="aisle-sign"><span aria-hidden>{group.icon}</span> {group.label}<span className="shelf-group-count">{group.items.length} {group.items.length === 1 ? "choice" : "choices"}</span></h3>

@@ -1,3 +1,4 @@
+import type { TasteAssessment } from "@/game/taste";
 import type { RecipeMatch } from "./recipe";
 import type { NPC } from "./npc";
 import type { PowerUpId } from "@/data/powerups";
@@ -75,6 +76,7 @@ export interface GameState {
   powerUpChoices: PowerUpId[] | null;
   endReason?: EndReason;
   recipe: RecipeMatch | null;
+  taste: TasteAssessment | null;
   score: number;
   totalScore: number;
   bestScore: number;

@@ -3,9 +3,10 @@ import type { NPC } from "@/types/npc";
 import type { StoreItem } from "@/types/game";
 import type { PowerUpId } from "@/data/powerups";
 import { FOOD_ITEMS } from "@/data/foodItems";
+import { MEAL_RECIPES } from "@/data/recipes";
 import { isStaple } from "./recipes";
 import { PREFERENCE_TAG } from "./applyFoodItem";
-import { MEAL_ROLES, mealRoles, usableFood } from "./meals";
+import { MEAL_REQUIRED, MEAL_ROLES, mealRoles, usableFood } from "./meals";
 import {
   powerUpExtraSpecials,
   powerUpInventoryMultiplier,
@@ -35,7 +36,17 @@ export function generateInventory(
     const food = candidates.find(isStaple) ?? candidates[0];
     if (food) chosen.set(food.id, food);
   };
-  for (const role of MEAL_ROLES) pick((f) => mealRoles(f).includes(role));
+  // Put the core of a familiar, dietary-safe meal on every shelf.
+  const starter = shuffle(rng, MEAL_RECIPES).find((recipe) =>
+    recipe.ingredients.every((slot) => usable.some((food) => slot.includes(food.id))));
+  if (starter) for (const slot of starter.ingredients) pick((food) => slot.includes(food.id));
+  for (const role of MEAL_ROLES) {
+    while ([...chosen.values()].filter((food) => mealRoles(food).includes(role)).length < MEAL_REQUIRED[role]) {
+      const before = chosen.size;
+      pick((food) => mealRoles(food).includes(role));
+      if (chosen.size === before) throw new Error(`Not enough suitable foods for ${role}`);
+    }
+  }
   for (const want of npc.wants) {
     const tag = PREFERENCE_TAG[want];
     if (tag && ![...chosen.values()].some((f) => f.tags.includes(tag)))

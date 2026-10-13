@@ -1,3 +1,4 @@
+import { TasteFeedback } from "./TasteFeedback";
 import { useRef } from "react";
 import type { NPC } from "@/types/npc";
 import type { BasketItem, BasketEvent } from "@/types/game";
@@ -38,6 +39,7 @@ export function BasketDrawer({ basket, npc, remainingBudgetCents, roundBudgetCen
   return <>
     <section className="basket-dock" aria-label="Your basket">
       <BudgetMeter budget={roundBudgetCents} remaining={remainingBudgetCents} event={event} target={challengeTarget} />
+      <TasteFeedback basket={basket} npc={npc} compact />
       <ShoppingReaction event={event} npc={npc} empty={basket.length === 0} unsuitable={status.mustNotViolated} />
       <button ref={reviewButton} type="button" onClick={() => { if (active && readyToWin) onOpen(); }} disabled={!active || !readyToWin} aria-haspopup={readyToWin ? "dialog" : undefined} className={`btn basket-review-button ${status.mustNotViolated ? "basket-unsuitable" : readyToWin ? "bg-good text-white" : "bg-paper"}`} aria-label={readyToWin ? `Review basket: ${itemCount} item${itemCount === 1 ? "" : "s"}, ready to check out` : `Basket: ${itemCount} item${itemCount === 1 ? "" : "s"}. ${status.mustNotViolated ? "Remove unsuitable foods" : overBudget ? "Over budget" : "Checklist incomplete"}`}>
         <span className="basket-still-life" aria-hidden>
@@ -56,6 +58,7 @@ export function BasketDrawer({ basket, npc, remainingBudgetCents, roundBudgetCen
         </div>
         <p className="mt-2 text-xs font-bold">{status.mustNotViolated ? "⚠" : "✓"} {MUST_NOT_LABEL[npc.mustNot]}</p>
       </div>
+      <TasteFeedback basket={basket} npc={npc} />
       <div className="basket-receipt">
         {basket.length === 0 ? <p className="py-4 text-center text-sm">Your basket is empty. Head to the shelves to pick your lunch.</p> : <ul>
           {basket.map((entry) => {

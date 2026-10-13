@@ -1,3 +1,5 @@
+import { assessTaste, tastePoints, TASTY_MEAL_BONUS, DUBIOUS_FOOD_PENALTY } from "../src/game/taste";
+import { TASTE_CLASHES } from "../src/data/tasteClashes";
 import { RECIPES, MEAL_RECIPES, STAPLE_IDS } from "../src/data/recipes";
 import { findRecipe, isStaple, RECIPE_BONUS } from "../src/game/recipes";
 import { generateInventory, INVENTORY_SIZE } from "../src/game/generateInventory";
@@ -13,10 +15,10 @@ import {
 } from "../src/game/solver";
 import { parseGameSettings, DEFAULT_SETTINGS } from "../src/utils/settings";
 import { allRequirementsMet, getRequirementsStatus } from "../src/game/requirements";
-import { mealRoles, usableFood } from "../src/game/meals";
+import { mealCounts, mealCoverage, mealRoles, usableFood } from "../src/game/meals";
 import { improvementTip, missingRequirements, findSaving, challengeAchieved } from "../src/game/feedback";
 import { violatesMustNot } from "../src/game/applyFoodItem";
-import { calculateRoundScore } from "../src/game/scoring";
+import { calculateRoundScore, roundScoreBreakdown } from "../src/game/scoring";
 import { POWER_UPS } from "../src/data/powerups";
 import { NPCS } from "../src/data/npcs";
 import { FOOD_ITEMS, FOOD_BY_ID } from "../src/data/foodItems";
@@ -229,6 +231,7 @@ test("receipt suggests a verified saving, with unmet requirements for incomplete
     { foodItemId: "white-bread", quantity: 2, pricePaidCents: 200 },
     { foodItemId: "chickpeas-tin", quantity: 1, pricePaidCents: 150 },
     { foodItemId: "carrots", quantity: 1, pricePaidCents: 200 },
+    { foodItemId: "bananas", quantity: 1, pricePaidCents: 100 },
   ];
   assert.equal(allRequirementsMet(basket, npc), true);
   const state = {
@@ -302,6 +305,7 @@ test("basket events celebrate only newly covered roles and wishes, and return th
     { foodItemId: "microwave-curry", currentPriceCents: 300, quantityAvailable: 1 },
     { foodItemId: "rice-1kg", currentPriceCents: 200, quantityAvailable: 1 },
     { foodItemId: "carrots", currentPriceCents: 150, quantityAvailable: 1 },
+    { foodItemId: "bananas", currentPriceCents: 100, quantityAvailable: 1 },
   ] };
   state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "microwave-curry" });
   assert.deepEqual(state.basketEvent?.newRoles, ["base", "protein"]);
@@ -311,6 +315,8 @@ test("basket events celebrate only newly covered roles and wishes, and return th
   assert.equal(blocked, state, "sold-out purchases do not trigger animation or sound events");
   state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "carrots" });
   assert.equal(state.basketEvent?.newWant, "likes_fresh_food");
+  assert.deepEqual(state.basketEvent?.newRoles, []);
+  state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "bananas" });
   assert.deepEqual(state.basketEvent?.newRoles, ["produce"]);
   const remaining = state.remainingBudgetCents;
   state = gameReducer(state, { type: "REMOVE_ITEM", foodItemId: "carrots" });
@@ -321,17 +327,17 @@ test("basket events celebrate only newly covered roles and wishes, and return th
 
 test("retry challenges have a legal cheaper witness and require a complete checkout for the badge", () => {
   const original = { ...start(), npc: NPCS.find(n => n.id === "jan")!, roundBudgetCents: 2000, remainingBudgetCents: 2000,
-    inventory: ["white-bread", "baked-beans", "carrots", "bananas"].map(foodItemId => ({ foodItemId, currentPriceCents: 200, quantityAvailable: 1 })) };
+    inventory: ["white-bread", "baked-beans", "carrots", "bananas", "cola-2l"].map(foodItemId => ({ foodItemId, currentPriceCents: 200, quantityAvailable: 1 })) };
   const plan = { ...original, roundStart: { ...original, roundStart: null } };
   let state = begin(plan);
-  for (const foodItemId of ["white-bread", "baked-beans", "carrots", "bananas"]) state = gameReducer(state, { type: "ADD_ITEM", foodItemId });
+  for (const foodItemId of ["white-bread", "baked-beans", "carrots", "bananas", "cola-2l"]) state = gameReducer(state, { type: "ADD_ITEM", foodItemId });
   state = gameReducer(state, { type: "CHECKOUT" });
   const saving = findSaving(state)!;
   assert.equal(saving.savings, 200);
   assert.equal(allRequirementsMet(saving.basket, state.npc!), true);
-  assert.equal(basketCost(saving.basket), 600);
+  assert.equal(basketCost(saving.basket), 800);
   const retry = gameReducer(state, { type: "RETRY_ROUND", challenge: true });
-  assert.equal(retry.retryChallenge?.targetSpendCents, 600);
+  assert.equal(retry.retryChallenge?.targetSpendCents, 800);
   assert.deepEqual(retry.inventory, plan.inventory);
   assert.equal(retry.totalScore, 0);
   assert.equal(challengeAchieved(retry), false);
@@ -458,12 +464,12 @@ test("recipe matching requires distinct bought ingredients, honours dietary rule
 
 test("Recipe Bonus is awarded once at valid checkout, reset on retry, and included in the final round", () => {
   const npc = { ...NPCS[0], mustNot: "no_pork" as const, wants: ["likes_comfort_food", "likes_sweet_food"] as typeof NPCS[number]["wants"] };
-  const plan = { ...start(), npc, inventory: ingredients("white-bread", "baked-beans", "bananas").map((entry) => ({ foodItemId: entry.foodItemId, currentPriceCents: 100, quantityAvailable: 2 })) };
+  const plan = { ...start(), npc, inventory: ingredients("white-bread", "baked-beans", "bananas", "carrots").map((entry) => ({ foodItemId: entry.foodItemId, currentPriceCents: 100, quantityAvailable: 2 })) };
   plan.roundStart = { ...plan, roundStart: null };
   const playing = fill(begin(plan));
   const won = gameReducer(playing, { type: "CHECKOUT" });
   assert.ok(won.recipe);
-  assert.equal(won.score, calculateRoundScore(playing) + RECIPE_BONUS);
+  assert.equal(won.score, calculateRoundScore(playing) + RECIPE_BONUS + tastePoints(won.taste));
   assert.equal(won.totalScore, playing.totalScore + won.score);
   assert.equal(gameReducer(won, { type: "CHECKOUT" }), won);
   const retry = gameReducer(won, { type: "RETRY_ROUND" });
@@ -597,4 +603,98 @@ test("exact solver agrees with exhaustive subsets, including variety and four wi
     assert.equal(result ? basketCost(result) : Infinity, minimum);
     if (result) assert.equal(findClearingBasket(customer, inventory, minimum - 1), null);
   }
+});
+
+const tasteNPC = { ...NPCS[0], mustNot: "no_pork" as const, wants: [] };
+
+test("two separate produce picks are required, with no duplicate-entry or quantity shortcut", () => {
+  const core = ingredients("pasta-500g", "tinned-tuna", "tinned-tomatoes");
+  assert.equal(allRequirementsMet(core, tasteNPC), false);
+  assert.equal(mealCounts(core, tasteNPC).produce, 1);
+  assert.equal(allRequirementsMet([...core, { ...core[2], quantity: 8 }], tasteNPC), false);
+  assert.equal(allRequirementsMet([...core, ...ingredients("garlic-bulb", "fresh-basil", "potatoes-2kg")], tasteNPC), false);
+  assert.equal(allRequirementsMet([...core, ...ingredients("carrots")], tasteNPC), true);
+  assert.equal(mealCoverage([...core, ...ingredients("carrots")], tasteNPC).produce, true);
+});
+
+test("solver, basket review and checkout enforce the second produce pick", () => {
+  const basket = ingredients("pasta-500g", "tinned-tuna", "tinned-tomatoes", "carrots");
+  const inventory = basket.map((entry) => ({ foodItemId: entry.foodItemId, quantityAvailable: 9, currentPriceCents: 100 }));
+  assert.equal(findClearingBasket(tasteNPC, inventory.slice(0, 3), Infinity), null);
+  assert.equal(findClearingBasket(tasteNPC, inventory, 399), null);
+  assert.equal(basketCost(findClearingBasket(tasteNPC, inventory, 400)!), 400);
+  let state = { ...begin(start()), npc: tasteNPC, inventory, basket: basket.slice(0, 3) };
+  assert.equal(gameReducer(state, { type: "OPEN_BASKET" }), state);
+  assert.equal(gameReducer(state, { type: "CHECKOUT" }), state);
+  state = gameReducer(state, { type: "ADD_ITEM", foodItemId: "carrots" });
+  assert.equal(gameReducer(state, { type: "OPEN_BASKET" }).basketReviewOpen, true);
+  state = gameReducer(state, { type: "REMOVE_ITEM", foodItemId: "carrots" });
+  assert.equal(gameReducer(state, { type: "CHECKOUT" }), state);
+});
+
+test("taste recognises the pasta, tomato and tuna example and caps the dish at four ingredients", () => {
+  const basket = ingredients("pasta-500g", "tinned-tomatoes", "tinned-tuna");
+  const tasty = assessTaste(basket, tasteNPC);
+  assert.equal(tasty.quality, "tasty");
+  assert.equal(tasty.recipe?.used.length, 3);
+  assert.equal(assessTaste(ingredients("pasta-500g", "tinned-tuna", "tomato-paste"), tasteNPC).quality, "tasty");
+  const larger = [...basket, ...ingredients("onions", "garlic-bulb", "fresh-basil", "bananas", "cola-2l")];
+  const result = assessTaste(larger, tasteNPC);
+  assert.equal(result.quality, "tasty");
+  assert.equal(result.recipe?.used.length, 4);
+  assert.equal(result.recipe!.used.length + result.recipe!.extras.length, larger.length);
+  assert.equal(tastePoints(result), TASTY_MEAL_BONUS);
+  assert.equal(assessTaste(ingredients("pasta-500g", "tinned-tuna"), tasteNPC).quality, "unrated");
+  assert.equal(assessTaste(ingredients("bag-of-apples", "premium-bag-of-apples", "yoghurt-tub"), tasteNPC).quality, "unrated");
+});
+
+test("only explicit clashes are dubious; recognised dishes can have drinks and treats on the side", () => {
+  for (const rule of TASTE_CLASHES) for (const id of [...rule.sweet, ...rule.savoury]) assert.ok(FOOD_BY_ID[id]);
+  const clash = assessTaste(ingredients("pasta-500g", "tinned-tuna", "ice-cream-tub", "carrots", "bananas"), tasteNPC);
+  assert.equal(clash.quality, "dubious");
+  assert.deepEqual(clash.clash, ["ice-cream-tub", "tinned-tuna"]);
+  assert.equal(tastePoints(clash), -DUBIOUS_FOOD_PENALTY);
+  assert.equal(assessTaste(ingredients("pasta-500g", "tinned-tuna", "carrots", "bananas"), tasteNPC).quality, "unrated");
+  const corrected = assessTaste(ingredients("pasta-500g", "tinned-tuna", "tinned-tomatoes", "ice-cream-tub", "cola-2l"), tasteNPC);
+  assert.equal(corrected.quality, "tasty");
+  assert.ok(corrected.recipe!.extras.some((entry) => entry.foodItemId === "ice-cream-tub"));
+  for (const ids of [["oats", "peanut-butter", "bananas"], ["rice-1kg", "milk-1l", "caster-sugar-1kg"], ["instant-noodles", "peanut-butter", "carrots"]])
+    assert.equal(assessTaste(ingredients(...ids), tasteNPC).quality, "tasty", "sweet dishes and savoury peanut combinations are valid");
+  assert.notEqual(assessTaste(ingredients("pasta-500g", "tinned-tuna", "tinned-tomatoes"), { ...tasteNPC, mustNot: "vegetarian" }).quality, "tasty");
+});
+
+test("taste points are applied once on success, stay optional, and reset on retry", () => {
+  for (const [ids, expected] of [
+    [["pasta-500g", "tinned-tuna", "tinned-tomatoes", "carrots"], TASTY_MEAL_BONUS],
+    [["pasta-500g", "tinned-tuna", "ice-cream-tub", "carrots", "bananas"], -DUBIOUS_FOOD_PENALTY],
+  ] as const) {
+    const plan = { ...start(), npc: tasteNPC, basket: [], roundBudgetCents: 2000, remainingBudgetCents: 2000,
+      inventory: ingredients(...ids).map((entry) => ({ foodItemId: entry.foodItemId, currentPriceCents: 100, quantityAvailable: 1 })) };
+    plan.roundStart = { ...plan, roundStart: null };
+    let state = begin(plan);
+    for (const foodItemId of ids) state = gameReducer(state, { type: "ADD_ITEM", foodItemId });
+    const won = gameReducer(state, { type: "CHECKOUT" });
+    assert.equal(won.status, "round_won", "taste never blocks a valid basket");
+    assert.equal(tastePoints(won.taste), expected);
+    assert.equal(won.score, calculateRoundScore(state) + (won.recipe ? RECIPE_BONUS : 0) + expected);
+    assert.equal(roundScoreBreakdown(won).dubiousFoodPenalty, expected < 0 ? DUBIOUS_FOOD_PENALTY : 0);
+    if (expected < 0) assert.equal(won.recipe, null, "a clash does not also earn a recipe bonus");
+    assert.equal(gameReducer(won, { type: "CHECKOUT" }), won);
+    assert.equal(gameReducer(won, { type: "RETRY_ROUND" }).taste, null);
+    const final = gameReducer({ ...state, roundNumber: FINAL_ROUND }, { type: "CHECKOUT" });
+    assert.equal(final.status, "game_won");
+    assert.equal(tastePoints(final.taste), expected);
+    const lost = gameReducer({ ...state, mode: "standard_run", timeRemainingSeconds: 1 }, { type: "TICK" });
+    assert.equal(lost.score, 0);
+    assert.equal(lost.taste, null);
+  }
+});
+
+test("saving advice preserves a tasty dish and both produce picks", () => {
+  const basket = ingredients("pasta-500g", "tinned-tuna", "tinned-tomatoes", "carrots", "cola-2l");
+  const saving = findSaving({ ...start(), npc: tasteNPC, basket, inventory: [], remainingBudgetCents: 1000 })!;
+  assert.ok(saving);
+  assert.equal(allRequirementsMet(saving.basket, tasteNPC), true);
+  assert.equal(assessTaste(saving.basket, tasteNPC).quality, "tasty");
+  assert.equal(saving.basket.some((entry) => entry.foodItemId === "cola-2l"), false);
 });
